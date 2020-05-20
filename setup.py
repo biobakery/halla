@@ -5,12 +5,12 @@ def readme():
     with open('README.rst') as f:
         return f.read()
 
-# Edit the function parameter with the relevent information on this package
+# TODO: Edit the function parameter with the relevant information on this package
 setuptools.setup(
-    name="Template",
+    name="HAllA",
     author="AUTHOR",
     author_email="AUTHOR_EMAIL",
-    version="0.0.9",
+    version="0.0.0",
     license="",
     description="Tool Description2",
     long_description="Detailed tool description",
