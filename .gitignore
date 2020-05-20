@@ -1,3 +1,9 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python, distribution/packaging
 .python-version
 .env
 .venv
@@ -28,3 +34,11 @@ share/python-wheels/
 *.egg
 MANIFEST
 .pyc
+
+# Visual studio
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
