@@ -1,12 +1,16 @@
 from .config_loader import config
+from .distance_metrics import get_distance_function
 
 import scipy.cluster.hierarchy as sch
 import scipy.spatial.distance as spd
 
 class Hierarchy(object):
     def __init__(self, matrix):
-        self.matrix = matrix
-        self.distance_matrix = spd.pdist(matrix, metric=config.hierarchy['distance_metric'])
+        conf = config.hierarchy
+        if conf['pdist_args']:
+            self.distance_matrix = spd.pdist(matrix, metric=get_distance_function(conf['pdist_metric']), **conf['pdist_args'])
+        else:
+            self.distance_matrix = spd.pdist(matrix, metric=get_distance_function(conf['pdist_metric']))
         self.distance_matrix_sqr = spd.squareform(self.distance_matrix)
         self.generate_hierarchical_clusters()
     

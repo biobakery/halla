@@ -3,10 +3,19 @@ from .hierarchy import Hierarchy
 
 import pandas as pd
 
+def update_config(attribute, **args):
+    vals = getattr(config, attribute)
+    for key in args:
+        if key not in vals:
+            raise KeyError('%s not found in config.%s' % (key, attribute))
+        vals[key] = args[key]
+    print('Updating config.%s to:' % attribute, vals)
+    setattr(config, attribute, vals)
+
 class HAllA(object):
-    def __init__(self, param1):
-        #TODO: change param1 to proper parameters; update config?
-        self.param1 = param1
+    def __init__(self, pdist_metric='euclidean', pdist_args=None):
+        # update config settings
+        update_config('hierarchy', pdist_metric=pdist_metric, pdist_args=pdist_args)
         self.X = None
         self.Y = None
     
