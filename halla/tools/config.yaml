@@ -1,3 +1,4 @@
 hierarchy:
-  distance_metric: 'euclidean'
-  linkage_method: 'average'
+  pdist_metric: 'euclidean' # pairwise distance metric
+  pdist_args: ~
+  linkage_method: 'average' # https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.linkage.html
