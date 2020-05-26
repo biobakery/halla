@@ -21,6 +21,6 @@ TODO:
 
 Available pairwise distance metrics:
 - all available metrics on [Scipy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html)
-- `nmi` (TODO)
-- `pearson` (TODO)
-- `spearman` (TODO)
+- `nmi`
+- `pearson` (TODO: handle negative correlation)
+- `spearman` (TODO: handle negative correlation)
