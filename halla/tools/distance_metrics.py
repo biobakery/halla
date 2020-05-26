@@ -1,4 +1,6 @@
-# TODO: implement metric functions
+from sklearn.metrics import normalized_mutual_info_score
+from scipy.stats import pearsonr, spearmanr
+
 SCIPY_AVAILABLE_METRICS = [
     'braycurtis', 'canberra', 'chebyshev', 'cityblock',
     'correlation', 'cosine', 'dice', 'euclidean',
@@ -8,15 +10,18 @@ SCIPY_AVAILABLE_METRICS = [
     'sqeuclidean', 'yule'
 ]
 
-def nmi():
-   print('nmi') 
+def pearson(x, y):
+    #TODO: how to handle negative correlation?
+    return(pearsonr(x, y)[0])
 
-# def pearson():
-
-# def spearman():
+def spearman(x, y):
+    #TODO: how to handle negative correlation?
+    return(spearmanr(x, y)[0])
 
 DIST_FUNCS = {
-    'nmi': nmi,
+    'nmi': normalized_mutual_info_score,
+    'pearson': pearson,
+    'spearman': spearman,
 }
 
 def get_distance_function(metric):
