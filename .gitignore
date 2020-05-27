@@ -42,3 +42,7 @@ MANIFEST
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
+
+# Jupyter notebook
+.ipynb_checkpoints
+*.ipynb
