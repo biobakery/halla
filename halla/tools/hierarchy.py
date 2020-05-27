@@ -1,5 +1,5 @@
 from .config_loader import config
-from .distance_metrics import get_distance_function
+from .distance_utils import get_distance_function
 
 import scipy.cluster.hierarchy as sch
 import scipy.spatial.distance as spd
