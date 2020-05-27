@@ -1,7 +1,7 @@
 from .config_loader import config
 from .hierarchy import Hierarchy
-from .data_utils import preprocess, eval_type, is_all_cont
-from .distance_utils import get_distance_function
+from .utils.data import preprocess, eval_type, is_all_cont
+from .utils.distance import get_distance_function
 
 import pandas as pd
 import numpy as np
@@ -59,10 +59,12 @@ class HAllA(object):
         self.rank_index = np.zeros((n*m, 2), dtype=int)
         X, Y = self.X.to_numpy(), self.Y.to_numpy()
 
+        # obtain similarity matrix
         if conf['pdist_args']:
             self.similarity_table = spd.cdist(X, Y, metric=get_distance_function(conf['pdist_metric']), **conf['pdist_args'])
         else:
             self.similarity_table = spd.cdist(X, Y, metric=get_distance_function(conf['pdist_metric']))
+        # obtain p-values
 
     def run(self):
         # computing pairwise similarity matrix
