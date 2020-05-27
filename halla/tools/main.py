@@ -1,7 +1,7 @@
 from .config_loader import config
 from .hierarchy import Hierarchy
 from .data_utils import preprocess, eval_type, is_all_cont
-from .distance_metrics import get_distance_function
+from .distance_utils import get_distance_function
 
 import pandas as pd
 import numpy as np
