@@ -1,7 +1,8 @@
 from .config_loader import config
 from .hierarchy import Hierarchy
-from .data_utils import preprocess, eval_type, is_all_cont
-from .distance_utils import get_distance_function
+from .utils.data import preprocess, eval_type, is_all_cont
+from .utils.distance import get_distance_function
+from .utils.stats import get_pvalue_table
 
 import pandas as pd
 import numpy as np
@@ -17,10 +18,15 @@ def update_config(attribute, **args):
     setattr(config, attribute, vals)
 
 class HAllA(object):
-    def __init__(self, pdist_metric='euclidean', pdist_args=None):
+    def __init__(self,
+                 pdist_metric=config.hierarchy['pdist_metric'], pdist_args=config.hierarchy['pdist_args'],
+                 permute_iters=config.permute['iters'],
+                 seed=None):
         # update config settings
         update_config('hierarchy', pdist_metric=pdist_metric, pdist_args=pdist_args)
-        self.reset_attributes()        
+        update_config('permute', iters=permute_iters)
+        self.reset_attributes()
+        self.seed=seed
     
     def reset_attributes(self):
         self.X, self.Y = None, None
@@ -53,22 +59,28 @@ class HAllA(object):
         self.Y_hierarchy = Hierarchy(self.Y)
     
     def compute_pairwise_similarities(self):
-        conf = config.hierarchy
+        confh = config.hierarchy
         n, m = self.X.shape[0], self.Y.shape[0]
         self.pvalue_table, self.qvalue_table = np.zeros((n, m)), np.zeros((n, m))
         self.rank_index = np.zeros((n*m, 2), dtype=int)
         X, Y = self.X.to_numpy(), self.Y.to_numpy()
 
-        if conf['pdist_args']:
-            self.similarity_table = spd.cdist(X, Y, metric=get_distance_function(conf['pdist_metric']), **conf['pdist_args'])
+        # obtain similarity matrix
+        if confh['pdist_args']:
+            self.similarity_table = spd.cdist(X, Y, metric=get_distance_function(confh['pdist_metric']), **confh['pdist_args'])
         else:
-            self.similarity_table = spd.cdist(X, Y, metric=get_distance_function(conf['pdist_metric']))
+            self.similarity_table = spd.cdist(X, Y, metric=get_distance_function(confh['pdist_metric']))
+        # obtain p-values
+        confp = config.permute
+        self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=confh['pdist_metric'], pdist_args=confh['pdist_args'],
+                                                   permute_func=confp['func'], permute_iters=confp['iters'], seed=self.seed)
+        print(self.pvalue_table)
 
     def run(self):
         # computing pairwise similarity matrix
         self.compute_pairwise_similarities()
 
         # hierarchical clustering
-        self.run_clustering()
+        # self.run_clustering()
         
         # iteratively finding densely-associated blocks

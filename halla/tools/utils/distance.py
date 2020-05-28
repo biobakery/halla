@@ -28,6 +28,8 @@ def spearman(x, y, return_pval=False):
     if return_pval: return(spearmanr(x,y))
     return(spearmanr(x,y)[0])
 
+'''Constants
+'''
 DIST_FUNCS = {
     'nmi': nmi,
     'pearson': pearson,
@@ -50,3 +52,7 @@ def get_distance_function(metric):
         raise KeyError('The pdist metric is not available...')
     # only return the distance scores
     return(DIST_FUNCS[metric])
+
+def does_return_pval(metric):
+    if metric in SCIPY_AVAILABLE_METRICS: return False
+    return(PVAL_PROVIDED[metric])
