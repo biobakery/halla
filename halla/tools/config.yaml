@@ -1,7 +1,9 @@
+preproc:
+  discretize_func: ~ # None, 'equal-freq'
 hierarchy:
   pdist_metric: 'euclidean' # pairwise distance metric
   pdist_args: ~
   linkage_method: 'average' # https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.linkage.html
 permute:
   iters: 1000
-  func: 'ecdf' # or ecdf
+  func: 'ecdf' # 'ecdf' or 'gpd'
