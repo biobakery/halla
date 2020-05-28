@@ -19,14 +19,17 @@ def update_config(attribute, **args):
 
 class HAllA(object):
     def __init__(self,
+                 discretize_func=config.preproc['discretize_func'],
                  pdist_metric=config.hierarchy['pdist_metric'], pdist_args=config.hierarchy['pdist_args'],
-                 permute_iters=config.permute['iters'],
+                 permute_func=config.permute['func'], permute_iters=config.permute['iters'],
                  seed=None):
         # update config settings
+        update_config('preproc', discretize_func=discretize_func)
         update_config('hierarchy', pdist_metric=pdist_metric, pdist_args=pdist_args)
-        update_config('permute', iters=permute_iters)
+        update_config('permute', func=permute_func, iters=permute_iters)
+
         self.reset_attributes()
-        self.seed=seed
+        self.seed = seed
     
     def reset_attributes(self):
         self.X, self.Y = None, None
@@ -41,18 +44,17 @@ class HAllA(object):
         Y, Y_types = eval_type(pd.read_table(Y_file, index_col=0)) if Y_file \
             else (X.copy(deep=True), np.copy(X_types))
 
-        # TODO: what are the suitable pdist_metric(s)?
         # if not all types are continuous but pdist_metric is only for continuous types
-        # if not (is_all_cont(X_types) and is_all_cont(Y_types)) and config.hierarchy['pdist_metric'] == ...:
-        #     raise ValueError('pdist_metric only works for continuous data but not all features are continuous')
+        if not (is_all_cont(X_types) and is_all_cont(Y_types)) and config.hierarchy['pdist_metric'] != 'nmi':
+            raise ValueError('pdist_metric should be nmi if not all features are continuous...')
 
         # filter tables by intersect columns
         intersect_cols = list(set(X.columns) & set(Y.columns))
         X, Y = X[intersect_cols], Y[intersect_cols]
 
         # clean and preprocess data
-        self.X = preprocess(X)
-        self.Y = preprocess(Y)
+        self.X = preprocess(X, X_types, discretize_func=config.preproc['discretize_func'])
+        self.Y = preprocess(Y, Y_types, discretize_func=config.preproc['discretize_func'])
 
     def run_clustering(self):
         self.X_hierarchy = Hierarchy(self.X)
