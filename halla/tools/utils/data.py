@@ -73,21 +73,24 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
     if ar_type == object:
         return(_discretize_categorical(ar))
     return(_discretize_continuous(ar, func, num_bins))
-def preprocess(df, types, discretize_func=None):
+def preprocess(df, types, discretize_func=None, discretize_num_bins=None):
     '''Preprocess input data
     1) handle missing values # TODO
     2) discretize values if needed
     3) remove features with low entropy # TODO
 
     Args:
-    - df             : a panda dataframe
-    - discretize_func: function for discretizing 
+    - df                 : a panda dataframe
+    - discretize_func    : function for discretizing
+    - discretize_num_bins: # bins for discretizing #TODO: different bins for different features?
     '''
     updated_df = df.copy(deep=True)
     for row_i, type_i in enumerate(types):
-        updated_df.iloc[row_i] = discretize_vector(updated_df.iloc[row_i].to_numpy(), type_i, func=discretize_func)
+        updated_df.iloc[row_i] = discretize_vector(updated_df.iloc[row_i].to_numpy(), type_i,
+                                                   func=discretize_func,
+                                                   num_bins=discretize_num_bins)
 
-    return(matrix)
+    return(updated_df)
 
 def is_all_cont(types):
     '''Check if all types are continuous

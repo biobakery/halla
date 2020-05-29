@@ -1,5 +1,6 @@
-preproc:
-  discretize_func: ~ # None, 'equal-freq'
+discretize:
+  func: ~ # None, 'equal-freq'
+  num_bins: ~
 hierarchy:
   pdist_metric: 'euclidean' # pairwise distance metric
   pdist_args: ~
