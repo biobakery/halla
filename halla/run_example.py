@@ -3,11 +3,14 @@
 from tools import HAllA
 from os.path import dirname, abspath, join
 
-X_file = join(dirname(abspath(__file__)), 'data', 'X_line1_32_50.txt')
-Y_file = join(dirname(abspath(__file__)), 'data', 'Y_line1_32_50.txt')
+X_file = join(dirname(abspath(__file__)), 'data', 'X_5_10.txt')
+Y_file = join(dirname(abspath(__file__)), 'data', 'Y_4_10.txt')
 
-test_halla = HAllA(pdist_metric='minkowski', pdist_args={ 'p': .2 })
-# test_halla = HAllA(pdist_metric='pearson')
+pdist_metric, pdist_args = 'minkowski', { 'p': .2 }
+# pdist_metric, pdist_args = 'pearson', None
+
+test_halla = HAllA(discretize_func='equal-freq', discretize_num_bins=4,
+                  pdist_metric=pdist_metric, pdist_args=pdist_args)
 
 test_halla.load(X_file, Y_file)
 test_halla.run()
