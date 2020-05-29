@@ -4,8 +4,6 @@ import numpy as np
 from scipy.stats import percentileofscore
 import scipy.spatial.distance as spd
 
-
-
 def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', pdist_args=None,
 									permute_func='gpd', iters=1000, seed=None):
 	def _compute_pvalue(n, permute_scores, compared_score):
