@@ -1,4 +1,5 @@
 discretize:
+  bypass_if_cont: True # bypass discretization if all features are continuous
   func: ~ # None, 'equal-freq'
   num_bins: ~
 hierarchy:
