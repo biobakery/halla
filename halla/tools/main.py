@@ -18,13 +18,13 @@ def update_config(attribute, **args):
     setattr(config, attribute, vals)
 
 class HAllA(object):
-    def __init__(self,
+    def __init__(self, discretize_bypass_if_cont=config.discretize['bypass_if_cont'],
                  discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
                  pdist_metric=config.hierarchy['pdist_metric'], pdist_args=config.hierarchy['pdist_args'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'],
                  seed=None):
         # update config settings
-        update_config('discretize', func=discretize_func, num_bins=discretize_num_bins)
+        update_config('discretize', bypass_if_cont=discretize_bypass_if_cont, func=discretize_func, num_bins=discretize_num_bins)
         update_config('hierarchy', pdist_metric=pdist_metric, pdist_args=pdist_args)
         update_config('permute', func=permute_func, iters=permute_iters)
 
@@ -45,14 +45,17 @@ class HAllA(object):
             else (X.copy(deep=True), np.copy(X_types))
 
         # if not all types are continuous but pdist_metric is only for continuous types
+        # TODO: add more appropriate distance metrics
         if not (is_all_cont(X_types) and is_all_cont(Y_types)) and config.hierarchy['pdist_metric'] != 'nmi':
             raise ValueError('pdist_metric should be nmi if not all features are continuous...')
+        # if all features are continuous, discretization will be bypassed
+        if is_all_cont(X_types) and is_all_cont(Y_types) and config.discretize['bypass_if_cont']:
+            print('All features are continuous; bypassing discretization...')
+            update_config('discretize', func=None)
 
         # filter tables by intersect columns
         intersect_cols = sorted(list(set(X.columns) & set(Y.columns)))
         X, Y = X[intersect_cols], Y[intersect_cols]
-        print(intersect_cols)
-        print(X)
 
         # clean and preprocess data
         self.X = preprocess(X, X_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
@@ -85,6 +88,6 @@ class HAllA(object):
         self.compute_pairwise_similarities()
 
         # hierarchical clustering
-        # self.run_clustering()
+        self.run_clustering()
         
         # iteratively finding densely-associated blocks
