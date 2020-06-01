@@ -2,7 +2,7 @@ from .config_loader import config
 from .hierarchy import Hierarchy
 from .utils.data import preprocess, eval_type, is_all_cont
 from .utils.distance import get_distance_function
-from .utils.stats import get_pvalue_table
+from .utils.stats import get_pvalue_table, pvalues2qvalues
 
 import pandas as pd
 import numpy as np
@@ -22,11 +22,13 @@ class HAllA(object):
                  discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
                  pdist_metric=config.hierarchy['pdist_metric'], pdist_args=config.hierarchy['pdist_args'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'],
+                 fdr_alpha=config.fdr['alpha'],
                  seed=None):
         # update config settings
         update_config('discretize', bypass_if_cont=discretize_bypass_if_cont, func=discretize_func, num_bins=discretize_num_bins)
         update_config('hierarchy', pdist_metric=pdist_metric, pdist_args=pdist_args)
         update_config('permute', func=permute_func, iters=permute_iters)
+        update_config('fdr', alpha=fdr_alpha)
 
         self.reset_attributes()
         self.seed = seed
@@ -50,7 +52,7 @@ class HAllA(object):
             raise ValueError('pdist_metric should be nmi if not all features are continuous...')
         # if all features are continuous, discretization will be bypassed
         if is_all_cont(X_types) and is_all_cont(Y_types) and config.discretize['bypass_if_cont']:
-            print('All features are continuous; bypassing discretization...')
+            print('All features are continuous; bypassing discretization and updating config...')
             update_config('discretize', func=None)
 
         # filter tables by intersect columns
@@ -81,7 +83,10 @@ class HAllA(object):
         confp = config.permute
         self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=confh['pdist_metric'], pdist_args=confh['pdist_args'],
                                                    permute_func=confp['func'], permute_iters=confp['iters'], seed=self.seed)
-        print(self.pvalue_table)
+        # TODO: similarity rank?
+        
+        # obtain q-values
+        self.qvalue_table = pvalues2qvalues(self.pvalue_table.flatten(), config.fdr['alpha']).reshape(self.pvalue_table.shape)
 
     def run(self):
         # computing pairwise similarity matrix
