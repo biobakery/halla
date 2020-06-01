@@ -3,6 +3,7 @@ from .distance import does_return_pval, get_distance_function
 import numpy as np
 from scipy.stats import percentileofscore
 import scipy.spatial.distance as spd
+from statsmodels.stats.multitest import multipletests
 
 def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', pdist_args=None,
 									permute_func='gpd', iters=1000, seed=None):
@@ -49,3 +50,12 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', pdist_args=None,
 					X[i,:], Y[j,:], pdist_metric=pdist_metric, pdist_args=pdist_args,
 					permute_func=permute_func, iters=permute_iters, seed=seed)
 	return(pvalue_table)
+
+def pvalues2qvalues(pvalues, alpha=0.05):
+	'''Perform p-value correction for multiple tests (Benjamini/Hochberg)
+	# TODO? add more methods
+	Arg:
+	- pvalues: a 1D-array of pvalues
+	- alpha  : family-wise error rate
+	'''
+	return(multipletests(pvalues, alpha=alpha, method='fdr_bh')[1])

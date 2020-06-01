@@ -9,3 +9,5 @@ hierarchy:
 permute:
   iters: 1000
   func: 'ecdf' # 'ecdf' or 'gpd'
+fdr:
+  alpha: 0.05
