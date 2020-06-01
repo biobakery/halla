@@ -1,6 +1,7 @@
 from sklearn.metrics import normalized_mutual_info_score
 from scipy.stats import pearsonr, spearmanr
 from scipy.spatial.distance import cdist
+import math
 
 SCIPY_AVAILABLE_METRICS = [
     'braycurtis', 'canberra', 'chebyshev', 'cityblock',
@@ -21,12 +22,18 @@ def nmi(x, y, return_pval=False):
     return(normalized_mutual_info_score(x, y))
 
 def pearson(x, y, return_pval=False):
-    if return_pval: return(pearsonr(x,y))
-    return(pearsonr(x,y)[0])
+    corr, pval = pearsonr(x, y)
+    # TODO: enable tuning whether correlation should always be positive or not
+    corr = 1 - abs(corr)
+    if return_pval: return(corr, pval)
+    return(corr)
 
 def spearman(x, y, return_pval=False):
-    if return_pval: return(spearmanr(x,y))
-    return(spearmanr(x,y)[0])
+    corr, pval = spearmanr(x, y)
+    # TODO: enable tuning whether correlation should always be positive or not
+    corr = 1 - abs(corr)
+    if return_pval: return(corr, pval)
+    return(corr)
 
 '''Constants
 '''
