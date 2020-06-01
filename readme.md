@@ -13,8 +13,6 @@ Some main changes compared to the original HAllA code include:
 
 TODO:
 - What to do with missing data?
-- How to discretize continuous data (specific bin parameters)?
-	- How to define 'categorical'?
 - Test on real data to further 'generalize' parsing
 
 ### Hierarchical clustering
@@ -22,5 +20,5 @@ TODO:
 Available pairwise distance metrics:
 - all available metrics on [Scipy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html)
 - `nmi`
-- `pearson` (TODO: handle negative correlation)
-- `spearman` (TODO: handle negative correlation)
+- `pearson`
+- `spearman`
