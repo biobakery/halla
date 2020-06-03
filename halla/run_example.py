@@ -3,8 +3,8 @@
 from tools import HAllA
 from os.path import dirname, abspath, join
 
-X_file = join(dirname(abspath(__file__)), 'data', 'X_5_10.txt')
-Y_file = join(dirname(abspath(__file__)), 'data', 'Y_4_10.txt')
+X_file = join(dirname(abspath(__file__)), 'data', 'X_line1_32_50.txt')
+Y_file = join(dirname(abspath(__file__)), 'data', 'Y_line1_32_50.txt')
 
 pdist_metric, pdist_args = 'minkowski', { 'p': .2 }
 # pdist_metric, pdist_args = 'pearson', None
