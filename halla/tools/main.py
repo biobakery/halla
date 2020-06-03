@@ -1,8 +1,9 @@
 from .config_loader import config, update_config
-from .hierarchy import Hierarchy, compare_and_find_dense_block
+from .hierarchy import HierarchicalTree
 from .utils.data import preprocess, eval_type, is_all_cont
 from .utils.distance import get_distance_function
 from .utils.stats import get_pvalue_table, pvalues2qvalues
+from .utils.tree import compare_and_find_dense_block
 
 import pandas as pd
 import numpy as np
@@ -30,7 +31,8 @@ class HAllA(object):
         self.X_hierarchy, self.Y_hierarchy = None, None
         self.similarity_table = None
         self.pvalue_table, self.qvalue_table = None, None
-        self.reject_table = None
+        self.fdr_reject_table = None
+        self.significant_blocks = None
 
     def load(self, X_file, Y_file=None):
         # TODO: currently assumes no missing value and header+index col are provided
@@ -56,8 +58,8 @@ class HAllA(object):
         self.Y = preprocess(Y, Y_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
 
     def run_clustering(self):
-        self.X_hierarchy = Hierarchy(self.X, feature_names=list(self.X.index))
-        self.Y_hierarchy = Hierarchy(self.Y, feature_names=list(self.Y.index))
+        self.X_hierarchy = HierarchicalTree(self.X, feature_names=list(self.X.index))
+        self.Y_hierarchy = HierarchicalTree(self.Y, feature_names=list(self.Y.index))
     
     def compute_pairwise_similarities(self):
         confh = config.hierarchy
@@ -81,7 +83,7 @@ class HAllA(object):
         self.fdr_reject_table = self.fdr_reject_table.reshape(self.pvalue_table.shape)
 
     def find_dense_associated_blocks(self):
-        compare_and_find_dense_block(self.X_hierarchy, self.Y_hierarchy, self.similarity_table,
+        self.significant_blocks = compare_and_find_dense_block(self.X_hierarchy, self.Y_hierarchy, self.similarity_table,
                                      self.qvalue_table, self.fdr_reject_table, fnr_thresh=config.stats['fnr_thresh'])
 
     def run(self):
