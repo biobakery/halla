@@ -1,4 +1,4 @@
-from .config_loader import config
+from .config_loader import config, update_config
 from .hierarchy import Hierarchy
 from .utils.data import preprocess, eval_type, is_all_cont
 from .utils.distance import get_distance_function
@@ -7,15 +7,6 @@ from .utils.stats import get_pvalue_table, pvalues2qvalues
 import pandas as pd
 import numpy as np
 import scipy.spatial.distance as spd
-
-def update_config(attribute, **args):
-    vals = getattr(config, attribute)
-    for key in args:
-        if key not in vals:
-            raise KeyError('%s not found in config.%s' % (key, attribute))
-        vals[key] = args[key]
-    print('Updating config.%s to:' % attribute, vals)
-    setattr(config, attribute, vals)
 
 class HAllA(object):
     def __init__(self, discretize_bypass_if_cont=config.discretize['bypass_if_cont'],
