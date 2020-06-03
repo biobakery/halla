@@ -1,5 +1,5 @@
 from .config_loader import config, update_config
-from .hierarchy import Hierarchy
+from .hierarchy import Hierarchy, compare_and_find_dense_block
 from .utils.data import preprocess, eval_type, is_all_cont
 from .utils.distance import get_distance_function
 from .utils.stats import get_pvalue_table, pvalues2qvalues
@@ -13,13 +13,14 @@ class HAllA(object):
                  discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
                  pdist_metric=config.hierarchy['pdist_metric'], pdist_args=config.hierarchy['pdist_args'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'],
-                 fdr_alpha=config.fdr['alpha'],
+                 fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
+                 fnr_thresh=config.stats['fnr_thresh'],
                  seed=None):
         # update config settings
         update_config('discretize', bypass_if_cont=discretize_bypass_if_cont, func=discretize_func, num_bins=discretize_num_bins)
         update_config('hierarchy', pdist_metric=pdist_metric, pdist_args=pdist_args)
         update_config('permute', func=permute_func, iters=permute_iters)
-        update_config('fdr', alpha=fdr_alpha)
+        update_config('stats', fdr_alpha=fdr_alpha, fdr_method=fdr_method, fnr_thresh=fnr_thresh)
 
         self.reset_attributes()
         self.seed = seed
@@ -29,7 +30,7 @@ class HAllA(object):
         self.X_hierarchy, self.Y_hierarchy = None, None
         self.similarity_table = None
         self.pvalue_table, self.qvalue_table = None, None
-        self.rank_index = None
+        self.reject_table = None
 
     def load(self, X_file, Y_file=None):
         # TODO: currently assumes no missing value and header+index col are provided
@@ -55,14 +56,12 @@ class HAllA(object):
         self.Y = preprocess(Y, Y_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
 
     def run_clustering(self):
-        self.X_hierarchy = Hierarchy(self.X)
-        self.Y_hierarchy = Hierarchy(self.Y)
+        self.X_hierarchy = Hierarchy(self.X, feature_names=list(self.X.index))
+        self.Y_hierarchy = Hierarchy(self.Y, feature_names=list(self.Y.index))
     
     def compute_pairwise_similarities(self):
         confh = config.hierarchy
         n, m = self.X.shape[0], self.Y.shape[0]
-        self.pvalue_table, self.qvalue_table = np.zeros((n, m)), np.zeros((n, m))
-        self.rank_index = np.zeros((n*m, 2), dtype=int)
         X, Y = self.X.to_numpy(), self.Y.to_numpy()
 
         # obtain similarity matrix
@@ -77,7 +76,13 @@ class HAllA(object):
         # TODO: similarity rank?
         
         # obtain q-values
-        self.qvalue_table = pvalues2qvalues(self.pvalue_table.flatten(), config.fdr['alpha']).reshape(self.pvalue_table.shape)
+        self.fdr_reject_table, self.qvalue_table = pvalues2qvalues(self.pvalue_table.flatten(), config.stats['fdr_alpha'])
+        self.qvalue_table = self.qvalue_table.reshape(self.pvalue_table.shape)
+        self.fdr_reject_table = self.fdr_reject_table.reshape(self.pvalue_table.shape)
+
+    def find_dense_associated_blocks(self):
+        compare_and_find_dense_block(self.X_hierarchy, self.Y_hierarchy, self.similarity_table,
+                                     self.qvalue_table, self.fdr_reject_table, fnr_thresh=config.stats['fnr_thresh'])
 
     def run(self):
         # computing pairwise similarity matrix
@@ -87,3 +92,4 @@ class HAllA(object):
         self.run_clustering()
         
         # iteratively finding densely-associated blocks
+        self.find_dense_associated_blocks()
