@@ -1,9 +1,11 @@
 import numpy as np
 import math
 from scipy.stats import rankdata
+import pandas as pd
 
 def eval_type(df):
     '''Evaluate and set the type for each feature given dataframe df
+       where each row represents one feature
     Return a tuple (updated_df, all_cont):
     - updated_df: df with updated type
     - types     : type for each row in np array
@@ -18,6 +20,9 @@ def eval_type(df):
         except:
             return(object)
 
+    if not isinstance(df, pd.DataFrame):
+        raise ValueError('The argument should be a pandas DataFrame!')
+    # update all NaNs to None
     updated_df = df.copy(deep=True)
     types = []
     for row_i in range(updated_df.shape[0]):
@@ -73,6 +78,7 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
     if ar_type == object:
         return(_discretize_categorical(ar))
     return(_discretize_continuous(ar, func, num_bins))
+    
 def preprocess(df, types, discretize_func=None, discretize_num_bins=None):
     '''Preprocess input data
     1) handle missing values # TODO
@@ -85,6 +91,7 @@ def preprocess(df, types, discretize_func=None, discretize_num_bins=None):
     - discretize_num_bins: # bins for discretizing #TODO: different bins for different features?
     '''
     updated_df = df.copy(deep=True)
+    updated_df.fillna(None)
     for row_i, type_i in enumerate(types):
         updated_df.iloc[row_i] = discretize_vector(updated_df.iloc[row_i].to_numpy(), type_i,
                                                    func=discretize_func,

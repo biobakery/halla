@@ -63,7 +63,6 @@ class HAllA(object):
     
     def compute_pairwise_similarities(self):
         confh = config.hierarchy
-        n, m = self.X.shape[0], self.Y.shape[0]
         X, Y = self.X.to_numpy(), self.Y.to_numpy()
 
         # obtain similarity matrix
@@ -75,7 +74,6 @@ class HAllA(object):
         confp = config.permute
         self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=confh['pdist_metric'], pdist_args=confh['pdist_args'],
                                                    permute_func=confp['func'], permute_iters=confp['iters'], seed=self.seed)
-        # TODO: similarity rank?
         
         # obtain q-values
         self.fdr_reject_table, self.qvalue_table = pvalues2qvalues(self.pvalue_table.flatten(), config.stats['fdr_alpha'])
