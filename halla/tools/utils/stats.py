@@ -54,8 +54,9 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', pdist_args=None,
 def pvalues2qvalues(pvalues, alpha=0.05):
 	'''Perform p-value correction for multiple tests (Benjamini/Hochberg)
 	# TODO? add more methods
-	Arg:
+	Args:
 	- pvalues: a 1D-array of pvalues
 	- alpha  : family-wise error rate
+	Return a tuple (adjusted p-value array, boolean array [True = reject]
 	'''
-	return(multipletests(pvalues, alpha=alpha, method='fdr_bh')[1])
+	return(multipletests(pvalues, alpha=alpha, method='fdr_bh')[:2])

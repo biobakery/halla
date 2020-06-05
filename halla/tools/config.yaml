@@ -9,5 +9,7 @@ hierarchy:
 permute:
   iters: 1000
   func: 'ecdf' # 'ecdf' or 'gpd'
-fdr:
-  alpha: 0.05
+stats:
+  fdr_alpha: 0.05
+  fdr_method: 'bh'
+  fnr_thresh: 0.1
