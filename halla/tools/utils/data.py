@@ -1,9 +1,11 @@
 import numpy as np
 import math
 from scipy.stats import rankdata
+import pandas as pd
 
 def eval_type(df):
     '''Evaluate and set the type for each feature given dataframe df
+       where each row represents one feature
     Return a tuple (updated_df, all_cont):
     - updated_df: df with updated type
     - types     : type for each row in np array
@@ -18,6 +20,9 @@ def eval_type(df):
         except:
             return(object)
 
+    if not isinstance(df, pd.DataFrame):
+        raise ValueError('The argument should be a pandas DataFrame!')
+    # update all NaNs to None
     updated_df = df.copy(deep=True)
     types = []
     for row_i in range(updated_df.shape[0]):
@@ -61,10 +66,7 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
             num_bins = min(num_bins, len(set(ar)))
         if func == 'equal-freq':
             # TODO: handle missing data?
-            order = rankdata(ar, method='min') - 1 # order starts with 0
-            bin_size = np.ceil(len(ar) / float(num_bins))
-            # rankdata to have increment of 1
-            discretized_result = rankdata((order / bin_size).astype(int), method='dense')
+            discretized_result = pd.cut(ar, bins=num_bins, labels=False)
         return(discretized_result)
         
     # TODO: store available discretization functions somewhere
@@ -73,6 +75,7 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
     if ar_type == object:
         return(_discretize_categorical(ar))
     return(_discretize_continuous(ar, func, num_bins))
+    
 def preprocess(df, types, discretize_func=None, discretize_num_bins=None):
     '''Preprocess input data
     1) handle missing values # TODO
