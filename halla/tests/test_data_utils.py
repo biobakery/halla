@@ -48,18 +48,14 @@ class TestDataUtils(unittest.TestCase):
 
     '''Tests on discretization
     '''
-    # def test_dicretize_vector(self):
+    def test_discretize_vector_categorical(self):
+        ar = np.array(['a', 'c', 'b', 'b', 'c', 'b', 'a', 'd', 'a', 'd', 'e'])
+        res = data.discretize_vector(ar, ar_type=object)
+        expected_res = np.array([0, 1, 2, 2, 1, 2, 0, 3, 0, 3, 4])
+        self.assertTrue(compare_numpy_array(res, expected_res))
 
-    # def test_upper(self):
-    #     self.assertEqual('foo'.upper(), 'FOO')
-
-    # def test_isupper(self):
-    #     self.assertTrue('FOO'.isupper())
-    #     self.assertFalse('FOO'.isupper())
-
-    # def test_split(self):
-    #     s = 'hello world'
-    #     self.assertEqual(s.split(), ['hello', 'world'])
-    #     # check that s.split fails when the separator is not a string
-    #     with self.assertRaises(TypeError):
-    #         s.split(2)
+    def test_dicretize_vector_equal_freq(self):
+        ar = np.array([1,1,1,1,1,1,2,2,2,3,3,3,4,4,4,4,5,5,5,6,6])
+        res = data.discretize_vector(ar, func='equal-freq', num_bins=5)
+        expected_res = pd.cut(ar, bins=5, labels=False)
+        self.assertTrue(compare_numpy_array(res, expected_res))
