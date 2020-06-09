@@ -18,7 +18,6 @@ TODO:
 ### Hierarchical clustering
 
 Available pairwise distance metrics:
-- all available metrics on [Scipy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html)
 - `nmi`
 - `pearson`
 - `spearman`

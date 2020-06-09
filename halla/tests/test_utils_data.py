@@ -6,7 +6,7 @@ import pandas as pd
 
 sys.path.append(dirname(dirname(abspath(__file__))))
 
-import tools.utils.data as data
+from tools.utils import data
 
 def compare_numpy_array(ar1, ar2):
     '''Compare and check if the values of two numpy arrays are equal
