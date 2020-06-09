@@ -1,5 +1,5 @@
 from .config_loader import config
-from .utils.distance import get_distance_function
+from .utils.similarity import get_similarity_function, similarity2distance
 
 import scipy.cluster.hierarchy as sch
 import scipy.spatial.distance as spd
@@ -8,10 +8,7 @@ import scipy.spatial.distance as spd
 class HierarchicalTree(object):
     def __init__(self, matrix, feature_names):
         conf = config.hierarchy
-        if conf['pdist_args']:
-            self.distance_matrix = spd.pdist(matrix, metric=get_distance_function(conf['pdist_metric']), **conf['pdist_args'])
-        else:
-            self.distance_matrix = spd.pdist(matrix, metric=get_distance_function(conf['pdist_metric']))
+        self.distance_matrix = similarity2distance(spd.pdist(matrix, metric=get_similarity_function(conf['pdist_metric'])), conf['pdist_metric'])
         self.distance_matrix_sqr = spd.squareform(self.distance_matrix)
         self.feature_names = feature_names
         self.generate_hierarchical_clusters()
