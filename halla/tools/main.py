@@ -10,7 +10,7 @@ import numpy as np
 import scipy.spatial.distance as spd
 
 class HAllA(object):
-    def __init__(self, discretize_bypass_if_cont=config.discretize['bypass_if_cont'],
+    def __init__(self, discretize_bypass_if_possible=config.discretize['bypass_if_possible'],
                  discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
                  pdist_metric=config.hierarchy['pdist_metric'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'],
@@ -18,7 +18,7 @@ class HAllA(object):
                  fnr_thresh=config.stats['fnr_thresh'],
                  seed=None):
         # update config settings
-        update_config('discretize', bypass_if_cont=discretize_bypass_if_cont, func=discretize_func, num_bins=discretize_num_bins)
+        update_config('discretize', bypass_if_possible=discretize_bypass_if_possible, func=discretize_func, num_bins=discretize_num_bins)
         update_config('hierarchy', pdist_metric=pdist_metric)
         update_config('permute', func=permute_func, iters=permute_iters)
         update_config('stats', fdr_alpha=fdr_alpha, fdr_method=fdr_method, fnr_thresh=fnr_thresh)
@@ -44,8 +44,9 @@ class HAllA(object):
         # TODO: add more appropriate distance metrics
         if not (is_all_cont(X_types) and is_all_cont(Y_types)) and config.hierarchy['pdist_metric'] != 'nmi':
             raise ValueError('pdist_metric should be nmi if not all features are continuous...')
-        # if all features are continuous, discretization will be bypassed
-        if is_all_cont(X_types) and is_all_cont(Y_types) and config.discretize['bypass_if_cont']:
+        # if all features are continuous and distance metric != nmi, discretization can be bypassed
+        if is_all_cont(X_types) and is_all_cont(Y_types) and \
+            config.hierarchy['pdist_metric'].lower() != 'nmi' and config.discretize['bypass_if_possible']:
             print('All features are continuous; bypassing discretization and updating config...')
             update_config('discretize', func=None)
 

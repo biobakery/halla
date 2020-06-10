@@ -27,11 +27,12 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi',
 	permuted_dist_scores = []
 	# compute the ground truth scores for comparison later
 	gt_score = _compute_score(x, y)
+	permuted_y = np.copy(y[0])
 	if permute_func == 'ecdf': # empirical cumulative dist. function
 		for _ in range(iters):
-			permuted_y = np.random.permutation(y[0]).reshape((y.shape))
+			np.random.shuffle(permuted_y)
 			# compute permuted score and append to the list
-			permuted_dist_scores.append(_compute_score(x, permuted_y))
+			permuted_dist_scores.append(_compute_score(x, permuted_y.reshape(y.shape)))
 		# compute the significance
 		pvalue = _compute_pvalue(np.array(permuted_dist_scores), gt_score, iters)
 	return(pvalue)
