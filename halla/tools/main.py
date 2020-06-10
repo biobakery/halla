@@ -1,7 +1,7 @@
 from .config_loader import config, update_config
 from .hierarchy import HierarchicalTree
 from .utils.data import preprocess, eval_type, is_all_cont
-from .utils.distance import get_distance_function
+from .utils.similarity import get_similarity_function
 from .utils.stats import get_pvalue_table, pvalues2qvalues
 from .utils.tree import compare_and_find_dense_block
 
@@ -10,16 +10,16 @@ import numpy as np
 import scipy.spatial.distance as spd
 
 class HAllA(object):
-    def __init__(self, discretize_bypass_if_cont=config.discretize['bypass_if_cont'],
+    def __init__(self, discretize_bypass_if_possible=config.discretize['bypass_if_possible'],
                  discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
-                 pdist_metric=config.hierarchy['pdist_metric'], pdist_args=config.hierarchy['pdist_args'],
+                 pdist_metric=config.hierarchy['pdist_metric'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'],
                  seed=None):
         # update config settings
-        update_config('discretize', bypass_if_cont=discretize_bypass_if_cont, func=discretize_func, num_bins=discretize_num_bins)
-        update_config('hierarchy', pdist_metric=pdist_metric, pdist_args=pdist_args)
+        update_config('discretize', bypass_if_possible=discretize_bypass_if_possible, func=discretize_func, num_bins=discretize_num_bins)
+        update_config('hierarchy', pdist_metric=pdist_metric)
         update_config('permute', func=permute_func, iters=permute_iters)
         update_config('stats', fdr_alpha=fdr_alpha, fdr_method=fdr_method, fnr_thresh=fnr_thresh)
 
@@ -44,13 +44,14 @@ class HAllA(object):
         # TODO: add more appropriate distance metrics
         if not (is_all_cont(X_types) and is_all_cont(Y_types)) and config.hierarchy['pdist_metric'] != 'nmi':
             raise ValueError('pdist_metric should be nmi if not all features are continuous...')
-        # if all features are continuous, discretization will be bypassed
-        if is_all_cont(X_types) and is_all_cont(Y_types) and config.discretize['bypass_if_cont']:
+        # if all features are continuous and distance metric != nmi, discretization can be bypassed
+        if is_all_cont(X_types) and is_all_cont(Y_types) and \
+            config.hierarchy['pdist_metric'].lower() != 'nmi' and config.discretize['bypass_if_possible']:
             print('All features are continuous; bypassing discretization and updating config...')
             update_config('discretize', func=None)
 
         # filter tables by intersect columns
-        intersect_cols = sorted(list(set(X.columns) & set(Y.columns)))
+        intersect_cols = [col for col in X.columns if col in Y.columns]
         X, Y = X[intersect_cols], Y[intersect_cols]
 
         # clean and preprocess data
@@ -66,13 +67,10 @@ class HAllA(object):
         X, Y = self.X.to_numpy(), self.Y.to_numpy()
 
         # obtain similarity matrix
-        if confh['pdist_args']:
-            self.similarity_table = spd.cdist(X, Y, metric=get_distance_function(confh['pdist_metric']), **confh['pdist_args'])
-        else:
-            self.similarity_table = spd.cdist(X, Y, metric=get_distance_function(confh['pdist_metric']))
+        self.similarity_table = spd.cdist(X, Y, metric=get_similarity_function(confh['pdist_metric']))
         # obtain p-values
         confp = config.permute
-        self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=confh['pdist_metric'], pdist_args=confh['pdist_args'],
+        self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=confh['pdist_metric'],
                                                    permute_func=confp['func'], permute_iters=confp['iters'], seed=self.seed)
         
         # obtain q-values

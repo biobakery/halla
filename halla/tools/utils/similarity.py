@@ -1,43 +1,36 @@
 from sklearn.metrics import normalized_mutual_info_score
 from scipy.stats import pearsonr, spearmanr
-from scipy.spatial.distance import cdist
-import math
+import numpy as np
 
-SCIPY_AVAILABLE_METRICS = [
-    'braycurtis', 'canberra', 'chebyshev', 'cityblock',
-    'correlation', 'cosine', 'dice', 'euclidean',
-    'hamming', 'jaccard', 'jensenshannon', 'kulsinski',
-    'mahalanobis', 'matching', 'minkowski', 'rogerstanimoto',
-    'russellrao', 'seuclidean', 'sokalmichener', 'sokalsneath',
-    'sqeuclidean', 'yule'
-]
+'''Similarity wrapper functions (note: not distance!)
 
-'''Distance functions
-
-Given x, y, returns a tuple (distance, p-value);
+Given x, y, returns a tuple (similarity, p-value);
 p-value will be None if not provided
 '''
 def nmi(x, y, return_pval=False):
+    '''normalized mutual information, ranging from [0 .. 1]
+    0: no mutual information; 1: perfect correlation
+    '''
     if return_pval: return(normalized_mutual_info_score(x, y), None)
     return(normalized_mutual_info_score(x, y))
 
 def pearson(x, y, return_pval=False):
     corr, pval = pearsonr(x, y)
     # TODO: enable tuning whether correlation should always be positive or not
-    corr = 1 - abs(corr)
+    corr = abs(corr)
     if return_pval: return(corr, pval)
     return(corr)
 
 def spearman(x, y, return_pval=False):
     corr, pval = spearmanr(x, y)
     # TODO: enable tuning whether correlation should always be positive or not
-    corr = 1 - abs(corr)
+    corr = abs(corr)
     if return_pval: return(corr, pval)
     return(corr)
 
 '''Constants
 '''
-DIST_FUNCS = {
+SIM_FUNCS = {
     'nmi': nmi,
     'pearson': pearson,
     'spearman': spearman,
@@ -49,17 +42,25 @@ PVAL_PROVIDED = {
     'spearman': True,
 }
 
-def get_distance_function(metric):
+def get_similarity_function(metric):
     '''Retrieve the right distance function
     according to the metric
     '''
     metric = metric.lower()
-    if metric in SCIPY_AVAILABLE_METRICS: return metric
-    if metric not in DIST_FUNCS:
-        raise KeyError('The pdist metric is not available...')
-    # only return the distance scores
-    return(DIST_FUNCS[metric])
+    if metric not in SIM_FUNCS:
+        raise KeyError('The similarity metric is not available...')
+    # only return the similarity scores
+    return(SIM_FUNCS[metric])
 
 def does_return_pval(metric):
-    if metric in SCIPY_AVAILABLE_METRICS: return False
     return(PVAL_PROVIDED[metric])
+
+def similarity2distance(scores, metric):
+    '''Convert similarity scores (numpy array) to distance given metric
+    '''
+    if type(scores) is not np.ndarray:
+        raise ValueError('scores argument should be a numpy array!')
+    metric = metric.lower()
+    if metric == 'nmi': return(1 - scores)
+    if metric == 'pearson' or metric == 'spearman':
+        return(1 - np.abs(scores))
