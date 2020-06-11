@@ -17,14 +17,12 @@ def nmi(x, y, return_pval=False):
 def pearson(x, y, return_pval=False):
     corr, pval = pearsonr(x, y)
     # TODO: enable tuning whether correlation should always be positive or not
-    corr = abs(corr)
     if return_pval: return(corr, pval)
     return(corr)
 
 def spearman(x, y, return_pval=False):
     corr, pval = spearmanr(x, y)
     # TODO: enable tuning whether correlation should always be positive or not
-    corr = abs(corr)
     if return_pval: return(corr, pval)
     return(corr)
 
@@ -63,4 +61,5 @@ def similarity2distance(scores, metric):
     metric = metric.lower()
     if metric == 'nmi': return(1 - scores)
     if metric == 'pearson' or metric == 'spearman':
-        return(1 - np.abs(scores))
+        # source: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4498680/
+        return(1 - scores)
