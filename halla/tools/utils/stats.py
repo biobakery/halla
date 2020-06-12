@@ -7,7 +7,7 @@ from statsmodels.stats.multitest import multipletests
 
 def compute_permutation_test_pvalue(x, y, pdist_metric='nmi',
 									permute_func='gpd', iters=10000, seed=None):
-	'''Compute p-value using permutation test of the pairwise similarity between
+	'''Compute two-sided p-value using permutation test of the pairwise similarity between
 		an X feature and a Y feature.
 	'''
 	def _compute_score(feat1, feat2):
@@ -16,7 +16,8 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi',
 
 	def _compute_pvalue(permuted_scores, gt_score, n):
 		percentile = percentileofscore(permuted_scores, gt_score, kind='strict')
-		pval = (((100 - percentile) / 100.0) * n + 1) / n # add one to prevent 0
+		if percentile < 50: percentile = 100 - percentile
+		pval = (2*((100 - percentile) / 100.0) * n + 1) / n # add one to prevent 0
 		return(min(1.0, pval))
 
 	if seed:
