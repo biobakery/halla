@@ -6,6 +6,9 @@ def is_densely_associated(block, fnr_thresh=0.1):
     '''Check if the significance block (boolean array) is densely associated, given the
        false negative rate threshold
     '''
+    # check if block is a numpy boolean array
+    if type(block) is not np.ndarray or block.dtype != 'bool':
+        raise ValueError('block argument should be a boolean Numpy array!')
     return(np.sum(block) / block.size >= 1 - fnr_thresh)
 
 def calc_gini_impurity(ar):
