@@ -11,4 +11,4 @@ permute:
 stats:
   fdr_alpha: 0.05
   fdr_method: 'bh'
-  fnr_thresh: 0.1
+  fnr_thresh: 0.2
