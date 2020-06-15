@@ -6,6 +6,9 @@ def is_densely_associated(block, fnr_thresh=0.1):
     '''Check if the significance block (boolean array) is densely associated, given the
        false negative rate threshold
     '''
+    # ensure that block is a numpy boolean array
+    if type(block) is not np.ndarray or block.dtype != 'bool':
+        raise ValueError('block argument should be a boolean Numpy array!')
     return(np.sum(block) / block.size >= 1 - fnr_thresh)
 
 def calc_gini_impurity(ar):
@@ -13,9 +16,12 @@ def calc_gini_impurity(ar):
     Arg:
     - ar: a binary array (can be any dimension)
     '''
-    ar = np.asarray(ar).astype(int) # set to a numpy array of 1 or 0
-    prop_true  = np.sum(ar == 1) / ar.size
-    prop_false = np.sum(ar == 0) / ar.size
+    # ensure that ar is a boolean array
+    ar = np.asarray(ar)
+    if ar.dtype != 'bool':
+        raise ValueError('ar argument should be a boolean array!')
+    prop_true  = np.sum(ar) / ar.size
+    prop_false = 1 - prop_true
     return(1 - prop_true**2 - prop_false**2)
 
 def calc_weighted_gini_impurity(lists):
@@ -65,17 +71,15 @@ def bifurcate_one(x_tree, y_tree, fdr_reject_table):
     split2_gini = calc_weighted_gini_impurity(split2_blocks)
     return((x_branches, [y_tree]) if split1_gini < split2_gini else ([x_tree], y_branches)) 
 
-def compare_and_find_dense_block(X, Y, sim_table, qvalue_table, fdr_reject_table, fnr_thresh=0.1):
+def compare_and_find_dense_block(X, Y, fdr_reject_table, fnr_thresh=0.1):
     '''Given another HierarchicalTree object Y, compare and find
     densely-associated block from the top of the hierarchy;
 
     Densely-associated block = (1 - FNR)% of pairwise association are
       FDR significant
     Args:
-    - X               : X hierarchical tree (HierarchicalTree object)
-    - Y               : Y hierarchical tree (HierarchicalTree object)
-    - sim_table       : pairwise-similarity table between X and Y
-    - qvalue_table    : qvalue table for the pairwise-similarity
+    - X               : X hierarchical tree (ClusterNode object)
+    - Y               : Y hierarchical tree (ClusterNode object)
     - fdr_reject_table: a boolean table where True = reject H0
     - fnr_thresh      : false negative rate threshold
     '''
@@ -105,5 +109,5 @@ def compare_and_find_dense_block(X, Y, sim_table, qvalue_table, fdr_reject_table
             _check_iter_block(x_branch, y_branch)
 
     final_blocks = []
-    _check_iter_block(X.tree, Y.tree)
+    _check_iter_block(X, Y)
     return(final_blocks)
