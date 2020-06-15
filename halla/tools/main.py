@@ -79,8 +79,8 @@ class HAllA(object):
         self.fdr_reject_table = self.fdr_reject_table.reshape(self.pvalue_table.shape)
 
     def find_dense_associated_blocks(self):
-        self.significant_blocks = compare_and_find_dense_block(self.X_hierarchy, self.Y_hierarchy, self.similarity_table,
-                                     self.qvalue_table, self.fdr_reject_table, fnr_thresh=config.stats['fnr_thresh'])
+        self.significant_blocks = compare_and_find_dense_block(self.X_hierarchy.tree, self.Y_hierarchy.tree,
+                                     self.fdr_reject_table, fnr_thresh=config.stats['fnr_thresh'])
 
     def run(self):
         # step 1: computing pairwise similarity matrix
