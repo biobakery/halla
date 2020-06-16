@@ -21,8 +21,8 @@ class HierarchicalTree(object):
     '''
     def _generate_hierarchical_clusters(self):
         # perform hierarchical clustering
-        Z = sch.linkage(self.distance_matrix, method=config.hierarchy['linkage_method'])
-        self.tree = sch.to_tree(Z)
+        self.linkage = sch.linkage(self.distance_matrix, method=config.hierarchy['linkage_method'])
+        self.tree = sch.to_tree(self.linkage)
     
     '''Public functions
     '''

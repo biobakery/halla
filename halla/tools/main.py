@@ -3,8 +3,8 @@ from .hierarchy import HierarchicalTree
 from .utils.data import preprocess, eval_type, is_all_cont
 from .utils.similarity import get_similarity_function
 from .utils.stats import get_pvalue_table, pvalues2qvalues
-from .utils.tree import compare_and_find_dense_block, get_clust_table
-from .utils.plot import generate_hallagram
+from .utils.tree import compare_and_find_dense_block
+from .utils.plot import generate_hallagram, generate_clustermap
 
 import pandas as pd
 import numpy as np
@@ -41,9 +41,7 @@ class HAllA(object):
     
     def _run_clustering(self):
         self.X_hierarchy = HierarchicalTree(self.X)
-        self.X_ori2clust_idx = self.X_hierarchy.get_indices_dict()
         self.Y_hierarchy = HierarchicalTree(self.Y)
-        self.Y_ori2clust_idx = self.Y_hierarchy.get_indices_dict()
     
     def _compute_pairwise_similarities(self):
         confh = config.hierarchy
@@ -75,11 +73,17 @@ class HAllA(object):
 
     def _generate_report(self):
         # generate hallagram
-        generate_hallagram(self.significant_blocks,
+        # generate_hallagram(self.significant_blocks,
+        #                     self.X.index.to_numpy(),
+        #                     self.Y.index.to_numpy(),
+        #                     self.X_hierarchy.get_clust_indices(),
+        #                     self.Y_hierarchy.get_clust_indices(),
+        #                     self.similarity_table)
+        generate_clustermap(self.significant_blocks,
                             self.X.index.to_numpy(),
                             self.Y.index.to_numpy(),
-                            self.X_hierarchy.get_clust_indices(),
-                            self.Y_hierarchy.get_clust_indices(),
+                            self.X_hierarchy.linkage,
+                            self.Y_hierarchy.linkage,
                             self.similarity_table)
 
     '''Public functions
