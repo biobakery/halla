@@ -111,14 +111,3 @@ def compare_and_find_dense_block(X, Y, fdr_reject_table, fnr_thresh=0.1):
     final_blocks = []
     _check_iter_block(X, Y)
     return(final_blocks)
-
-def get_clust_table(x_tree, y_tree, ori_table):
-    '''Shuffle the table according to the clustered indices
-    Args:
-    - x_tree   : a ClusterNode instance of X
-    - y_tree   : a ClusterNode instance of Y
-    - ori_table: the table to be shuffled
-    '''
-    ori_table = np.asarray(ori_table)
-    x_indices, y_indices = x_tree.pre_order(), y_tree.pre_order()
-    return(ori_table[x_indices,:][:,y_indices])
