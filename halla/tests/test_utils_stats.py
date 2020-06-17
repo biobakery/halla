@@ -37,9 +37,9 @@ class TestStatsUtils(unittest.TestCase):
     
     def test_compute_permutation_test_pvalue_insignificant1(self):
         np.random.seed(2)
-        eps = 0.05
-        x = np.random.normal(size=50)
-        y = np.random.normal(size=50)
+        eps = 0.02
+        x = np.random.normal(size=1000)
+        y = np.random.normal(size=1000)
         _, expected_pvalue = spearmanr(x, y)
         test_pvalue = stats.compute_permutation_test_pvalue(x, y, pdist_metric='spearman',
                         permute_func='ecdf', iters=1000, seed=123)
@@ -47,9 +47,9 @@ class TestStatsUtils(unittest.TestCase):
     
     def test_compute_permutation_test_pvalue_insignificant2(self):
         np.random.seed(111)
-        eps = 0.05
-        x = np.random.normal(size=50)
-        y = np.random.normal(size=50)
+        eps = 0.02
+        x = np.random.normal(size=1000)
+        y = np.random.normal(size=1000)
         _, expected_pvalue = pearsonr(x, y)
         test_pvalue = stats.compute_permutation_test_pvalue(x, y, pdist_metric='pearson',
                         permute_func='ecdf', iters=1000, seed=123)
