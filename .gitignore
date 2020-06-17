@@ -46,6 +46,3 @@ MANIFEST
 # Jupyter notebook
 .ipynb_checkpoints
 *.ipynb
-
-# local tests
-local_tests/
