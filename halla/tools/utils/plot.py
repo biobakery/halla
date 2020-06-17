@@ -49,7 +49,6 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
     - cmap              : color map
     - kwargs            : other keyword arguments to be passed to seaborn's clustermap()
     '''
-    sns.set(font_scale = 0.7)
     clustermap = sns.clustermap(sim_table, row_linkage=x_linkage, col_linkage=y_linkage, cmap='RdBu_r',
                         xticklabels=y_features, yticklabels=x_features, **kwargs)
     ax = clustermap.ax_heatmap
