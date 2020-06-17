@@ -71,21 +71,6 @@ class HAllA(object):
             y_feat_names = [y_features[feat] for feat in y_feat_indices]
             self.significant_blocks_feature_names.append([x_feat_names, y_feat_names])
 
-    def _generate_report(self):
-        # generate hallagram
-        # generate_hallagram(self.significant_blocks,
-        #                     self.X.index.to_numpy(),
-        #                     self.Y.index.to_numpy(),
-        #                     self.X_hierarchy.get_clust_indices(),
-        #                     self.Y_hierarchy.get_clust_indices(),
-        #                     self.similarity_table)
-        generate_clustermap(self.significant_blocks,
-                            self.X.index.to_numpy(),
-                            self.Y.index.to_numpy(),
-                            self.X_hierarchy.linkage,
-                            self.Y_hierarchy.linkage,
-                            self.similarity_table)
-
     '''Public functions
     '''
     def load(self, X_file, Y_file=None):
@@ -115,6 +100,11 @@ class HAllA(object):
         self.has_loaded = True
 
     def run(self):
+        '''Run all 3 steps:
+        1) compute pairwise similarity matrix
+        2) cluster hierarchically
+        3) find densely-associated blocks iteratively
+        '''
         if self.has_loaded == False:
             raise RuntimeError('load function has not been called!')
 
@@ -127,6 +117,14 @@ class HAllA(object):
         # step 3: iteratively finding densely-associated blocks
         self._find_dense_associated_blocks()
     
-        # generate plot/report
-        self._generate_report()
+    def generate_hallagram(self, cmap='RdBu_r', **kwargs):
+        '''Generate a hallagram
+        '''
+        generate_clustermap(self.significant_blocks,
+                            self.X.index.to_numpy(),
+                            self.Y.index.to_numpy(),
+                            self.X_hierarchy.linkage,
+                            self.Y_hierarchy.linkage,
+                            self.similarity_table,
+                            cmap=cmap, **kwargs)
     
