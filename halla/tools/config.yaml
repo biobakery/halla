@@ -4,7 +4,7 @@ discretize:
   num_bins: ~
 hierarchy:
   pdist_metric: 'euclidean' # pairwise distance metric
-  linkage_method: 'average' # https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.linkage.html
+  linkage_method: 'complete' # https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.linkage.html
 permute:
   iters: 1000
   func: 'ecdf' # 'ecdf' or 'gpd'

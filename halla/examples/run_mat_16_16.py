@@ -1,10 +1,12 @@
-#TODO: move to the appropriate directory
+from os.path import dirname, abspath, join
+import sys
+
+sys.path.append(dirname(dirname(abspath(__file__))))
 
 from tools import HAllA
-from os.path import dirname, abspath, join
 
-X_file = join(dirname(abspath(__file__)), 'data', 'X_line1_16_16.txt')
-Y_file = join(dirname(abspath(__file__)), 'data', 'Y_line1_16_16.txt')
+X_file = join(dirname(abspath(__file__)), '../data', 'X_line1_16_16.txt')
+Y_file = join(dirname(abspath(__file__)), '../data', 'Y_line1_16_16.txt')
 
 pdist_metric = 'pearson'
 
