@@ -5,8 +5,8 @@ sys.path.append(dirname(dirname(abspath(__file__))))
 
 from tools import HAllA
 
-X_file = join(dirname(abspath(__file__)), '../data', 'X_line1_16_16.txt')
-Y_file = join(dirname(abspath(__file__)), '../data', 'Y_line1_16_16.txt')
+X_file = join(dirname(abspath(__file__)), '../data', 'synthetic_line_80_100_50', 'X_line_80_50.txt')
+Y_file = join(dirname(abspath(__file__)), '../data', 'synthetic_line_80_100_50', 'Y_line_100_50.txt')
 
 pdist_metric = 'pearson'
 
