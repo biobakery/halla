@@ -13,14 +13,14 @@ import scipy.spatial.distance as spd
 class HAllA(object):
     def __init__(self, discretize_bypass_if_possible=config.discretize['bypass_if_possible'],
                  discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
-                 pdist_metric=config.hierarchy['pdist_metric'],
+                 pdist_metric=config.hierarchy['pdist_metric'], linkage_method=config.hierarchy['linkage_method'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'],
                  seed=None):
         # update config settings
         update_config('discretize', bypass_if_possible=discretize_bypass_if_possible, func=discretize_func, num_bins=discretize_num_bins)
-        update_config('hierarchy', pdist_metric=pdist_metric)
+        update_config('hierarchy', pdist_metric=pdist_metric, linkage_method=linkage_method)
         update_config('permute', func=permute_func, iters=permute_iters)
         update_config('stats', fdr_alpha=fdr_alpha, fdr_method=fdr_method, fnr_thresh=fnr_thresh)
 
