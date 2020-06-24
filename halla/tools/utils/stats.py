@@ -4,6 +4,7 @@ import numpy as np
 from scipy.stats import percentileofscore
 import scipy.spatial.distance as spd
 from statsmodels.stats.multitest import multipletests
+import itertools
 
 def compute_permutation_test_pvalue(x, y, pdist_metric='nmi',
 									permute_func='gpd', iters=10000, seed=None):
@@ -63,3 +64,17 @@ def pvalues2qvalues(pvalues, alpha=0.05):
 	Return a tuple (adjusted p-value array, boolean array [True = reject]
 	'''
 	return(multipletests(pvalues, alpha=alpha, method='fdr_bh')[:2])
+
+def compute_power(significant_blocks, true_assoc):
+    '''Compute power given args:
+    - significant blocks: a list of significant blocks in the original indices, e.g.,
+                          [[[2], [0]], [[0,1], [1]]] --> two blocks
+    - true_assoc        : A matrix with row ~ X features and col ~ Y features containing
+                          1 if association exists or 0 if not
+    '''
+    positive_cond = np.sum(true_assoc).astype(int)
+    positive_true = 0
+    for block in significant_blocks:
+        for i,j in itertools.product(block[0], block[1]):
+            if true_assoc[i][j] == 1: positive_true += 1
+    return(positive_true * 1.0 / positive_cond)
