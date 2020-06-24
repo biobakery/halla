@@ -3,9 +3,8 @@
 Params:
 
 Generates: a directory that contains 3 files:
-- X
-- Y
-- A
+- X, Y: a paired dataset
+- A   : contains the associated features between the paired dataset
 '''
 
 import argparse
@@ -116,7 +115,7 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
     X = np.zeros((x_feat_num, sample_num))
     Y = np.zeros((y_feat_num, sample_num))
     common_base = rand_dist_func((block_num+1, sample_num))
-    # TODO: should we orthognonalize common_base?
+    # TODO: should we orthogonalize common_base?
     A = np.zeros(features_num)
 
     # assign features to blocks
