@@ -89,10 +89,10 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
                         noise_within=0.25, noise_between=0.25):
     '''Distribution functions
     '''
-    def uniform_dist_func(mat_size, low=-1, high=1):
-        return(np.random.uniform(low=low, high=high, size=mat_size))
-    def normal_dist_func(mat_size, loc=0, scale=1):
-        return(np.random.uniform(loc=loc, scale=scale, size=mat_size))
+    def uniform_dist_func(mat_size):
+        return(np.random.uniform(low=-1, high=1, size=mat_size))
+    def normal_dist_func(mat_size):
+        return(np.random.uniform(loc=0, scale=1, size=mat_size))
     
     '''Utility functions
     '''
@@ -114,7 +114,7 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
     x_feat_num, y_feat_num = features_num
     X = np.zeros((x_feat_num, sample_num))
     Y = np.zeros((y_feat_num, sample_num))
-    common_base = rand_dist_func((block_num+1, sample_num))
+    common_base = rand_dist_func((block_num, sample_num)) + (rand_dist_func((block_num, 1)) * noise_between)
     # TODO: should we orthogonalize common_base?
     A = np.zeros(features_num)
 
@@ -123,10 +123,9 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
     for block_i in range(block_num):
         for feat_x in x_assoc[block_i]:
             X[feat_x] = [common_base[block_i,sample_i] + noise_within * rand_dist_func(1) for sample_i in range(sample_num)]
-        # add noise between
-        shifted_common_base = common_base[block_i] + noise_between * rand_dist_func(1)
+        sign_corr = np.random.choice([-1, 1], p=[0.4, 0.6]) # arbitrary probabilities
         for feat_y in y_assoc[block_i]:
-            Y[feat_y] = [shifted_common_base[sample_i] + noise_within * rand_dist_func(1) for sample_i in range(sample_num)]
+            Y[feat_y] = [sign_corr * common_base[block_i,sample_i] + noise_within * rand_dist_func(1) for sample_i in range(sample_num)]
         # update A
         for i, j in itertools.product(x_assoc[block_i], y_assoc[block_i]):
             A[i][j] = 1
