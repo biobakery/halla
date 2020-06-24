@@ -65,8 +65,8 @@ def pvalues2qvalues(pvalues, alpha=0.05):
 	'''
 	return(multipletests(pvalues, alpha=alpha, method='fdr_bh')[:2])
 
-def compute_power(significant_blocks, true_assoc):
-    '''Compute power given args:
+def compute_result_power(significant_blocks, true_assoc):
+    '''Compute power (recall: TP / condition positive) given args:
     - significant blocks: a list of significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
     - true_assoc        : A matrix with row ~ X features and col ~ Y features containing
@@ -78,3 +78,18 @@ def compute_power(significant_blocks, true_assoc):
         for i,j in itertools.product(block[0], block[1]):
             if true_assoc[i][j] == 1: positive_true += 1
     return(positive_true * 1.0 / positive_cond)
+
+def compute_result_fdr(significant_blocks, true_assoc):
+	'''Compute fdr (FP / predicted condition positive) given args:
+    - significant blocks: a list of significant blocks in the original indices, e.g.,
+                          [[[2], [0]], [[0,1], [1]]] --> two blocks
+    - true_assoc        : A matrix with row ~ X features and col ~ Y features containing
+                          1 if association exists or 0 if not
+    '''
+	false_positive = 0
+	predicted_positive = 0
+	for block in significant_blocks:
+		for i,j in itertools.product(block[0], block[1]):
+			predicted_positive += 1
+			if true_assoc[i][j] != 1: false_positive += 1
+	return(false_positive * 1.0 / predicted_positive) 
