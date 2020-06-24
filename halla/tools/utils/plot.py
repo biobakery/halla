@@ -32,7 +32,8 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
 
     # begin plotting
     fig = plt.figure()
-    ax = sns.heatmap(clust_sim_table, xticklabels=clust_y_features, yticklabels=clust_x_features, cmap=cmap, vmin=vmin, vmax=vmax, **kwargs)
+    ax = sns.heatmap(clust_sim_table, xticklabels=clust_y_features, yticklabels=clust_x_features,
+                        cmap=cmap, vmin=vmin, vmax=vmax, **kwargs)
     
     for block in significant_blocks:
         x_block, y_block = block[0], block[1]
@@ -54,7 +55,7 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
     '''
     vmax = np.abs(np.max(sim_table))
     vmin = -vmax
-    clustermap = sns.clustermap(sim_table, row_linkage=x_linkage, col_linkage=y_linkage, cmap='RdBu_r',
+    clustermap = sns.clustermap(sim_table, row_linkage=x_linkage, col_linkage=y_linkage, cmap=cmap,
                         xticklabels=y_features, yticklabels=x_features, vmin=vmin, vmax=vmax, **kwargs)
     ax = clustermap.ax_heatmap
     x_ori2clust_idx = get_indices_map_dict(np.asarray(sch.to_tree(x_linkage).pre_order()))
