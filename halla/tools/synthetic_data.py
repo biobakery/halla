@@ -16,39 +16,6 @@ import os
 from os.path import join, isdir
 import shutil
 
-def create_dir(dir_name):
-    # remove any existing directory with the same name
-    if isdir(dir_name):
-        try:
-            shutil.rmtree(dir_name)
-        except EnvironmentError:
-            sys.exit('Unable to remove directory %s' % dir_name)
-    # create a new directory
-    try:
-        os.mkdir(dir_name)
-    except EnvironmentError:
-        sys.exit('Unable to create directory %s' % dir_name)
-
-def store_tables(X, Y, A, assoc, out_dir):
-    def create_df(table, col_pref, row_pref):
-        return pd.DataFrame(
-            data={ '%s%d' % (col_pref, j): table[:,j] for j in range(table.shape[1]) },
-            index=['%s%d' % (row_pref, i) for i in range(table.shape[0])]
-        )
-
-    x_feat_num, sample_num = X.shape
-    y_feat_num, _ = Y.shape
-
-    # create directory
-    create_dir(out_dir)
-    
-    # store df in files
-    filename_format = '%s_%s_%s_%s.txt' % ('%s', assoc, '%s', '%d')
-    dataset_format = filename_format % ('%s', '%d', sample_num)
-    create_df(X, 'S', 'X').to_csv(join(out_dir, dataset_format % ('X', x_feat_num)), sep='\t', index=True)
-    create_df(Y, 'S', 'Y').to_csv(join(out_dir, dataset_format % ('Y', y_feat_num)), sep='\t', index=True)
-    create_df(A, 'Y', 'X').to_csv(join(out_dir, filename_format % ('A', x_feat_num, y_feat_num)), sep='\t', index=True)
-
 def parse_argument(args):
     parser = argparse.ArgumentParser(
         description='HAllA synthetic data generator - produces a pair of datasets X & Y with specified association among their features'
@@ -58,10 +25,11 @@ def parse_argument(args):
     parser.add_argument('-yf', '--yfeatures', help='# features in Y', default=500, type=int, required=False)
     parser.add_argument('-b', '--blocks', help='# significant blocks; default = min(5, min(xfeatures, yfeatures)/2)',
                         default=None, type=int, required=False)
-    parser.add_argument('-a', '--association', help='association type {line, log}; default: line',
-                        default='line', choices=['line', 'log'], required=False)
+    parser.add_argument('-a', '--association', help='association type {line, parabola}; default: line',
+                        default='line', choices=['line', 'parabola'], required=False)
     parser.add_argument('-d', '--distribution', help='Distribution: {normal, uniform}',
                         default='uniform', choices=['normal', 'uniform'], required=False)
+    # TODO: add noise distribution?
     parser.add_argument('-nw', '--noise-within', dest='noise_within', help='noise within blocks [0 (no noise)..1 (complete noise)]',
                         default=0.25, type=float, required=False)
     parser.add_argument('-nb', '--noise-between', dest='noise_between', help='noise between associated blocks [0 (no noise)..1 (complete noise)]',
@@ -86,17 +54,17 @@ def parse_argument(args):
     return(params)
 
 def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, association='line', dist='uniform',
-                        noise_within=0.25, noise_between=0.25):
+                        noise_within=0.25, noise_between=0.25, noise_within_magnitude=0.5):
     '''Distribution functions
     '''
-    def uniform_dist_func(mat_size):
-        return(np.random.uniform(low=-1, high=1, size=mat_size))
-    def normal_dist_func(mat_size):
-        return(np.random.uniform(loc=0, scale=1, size=mat_size))
+    def uniform_dist_func(mat_size, low=-1, high=1):
+        return(np.random.uniform(low=low, high=high, size=mat_size))
+    def normal_dist_func(mat_size, loc=0, scale=1):
+        return(np.random.normal(loc=loc, scale=scale, size=mat_size))
     
     '''Utility functions
     '''
-    def div_blocks_into_blocks(feat_num):
+    def div_features_into_blocks(feat_num):
         # initialize
         blocks_size = [0] * block_num
         assoc = [[]] * block_num
@@ -119,17 +87,58 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
     A = np.zeros(features_num)
 
     # assign features to blocks
-    x_assoc, y_assoc = div_blocks_into_blocks(x_feat_num), div_blocks_into_blocks(y_feat_num)
+    x_assoc, y_assoc = div_features_into_blocks(x_feat_num), div_features_into_blocks(y_feat_num)
     for block_i in range(block_num):
+        # derive X features from common base
         for feat_x in x_assoc[block_i]:
-            X[feat_x] = [common_base[block_i,sample_i] + noise_within * rand_dist_func(1) for sample_i in range(sample_num)]
+            X[feat_x] = common_base[block_i] + noise_within * normal_dist_func(sample_num, scale=noise_within_magnitude)
         sign_corr = np.random.choice([-1, 1], p=[0.4, 0.6]) # arbitrary probabilities
+        # derive Y features from common base
         for feat_y in y_assoc[block_i]:
-            Y[feat_y] = [sign_corr * common_base[block_i,sample_i] + noise_within * rand_dist_func(1) for sample_i in range(sample_num)]
+            added_noise = noise_within * normal_dist_func(sample_num, scale=noise_within_magnitude)
+            if association == 'line':
+                Y[feat_y] = sign_corr * common_base[block_i] + added_noise
+            elif association == 'parabola':
+                Y[feat_y] = sign_corr * common_base[block_i] * common_base[block_i] + added_noise
         # update A
         for i, j in itertools.product(x_assoc[block_i], y_assoc[block_i]):
             A[i][j] = 1
     return(X, Y, A)
+
+def store_tables(X, Y, A, association, out_dir):
+    '''Store generated tables X,Y,A into files under out_dir directory
+    '''
+    def create_dir(dir_name):
+        # remove any existing directory with the same name
+        if isdir(dir_name):
+            try:
+                shutil.rmtree(dir_name)
+            except EnvironmentError:
+                sys.exit('Unable to remove directory %s' % dir_name)
+        # create a new directory
+        try:
+            os.mkdir(dir_name)
+        except EnvironmentError:
+            sys.exit('Unable to create directory %s' % dir_name)
+
+    def create_df(table, col_pref, row_pref):
+        return pd.DataFrame(
+            data={ '%s%d' % (col_pref, j): table[:,j] for j in range(table.shape[1]) },
+            index=['%s%d' % (row_pref, i) for i in range(table.shape[0])]
+        )
+
+    x_feat_num, sample_num = X.shape
+    y_feat_num, _ = Y.shape
+
+    # create directory
+    create_dir(out_dir)
+    
+    # store df in files
+    filename_format = '%s_%s_%s_%s.txt' % ('%s', association, '%s', '%d')
+    dataset_format = filename_format % ('%s', '%d', sample_num)
+    create_df(X, 'S', 'X').to_csv(join(out_dir, dataset_format % ('X', x_feat_num)), sep='\t', index=True)
+    create_df(Y, 'S', 'Y').to_csv(join(out_dir, dataset_format % ('Y', y_feat_num)), sep='\t', index=True)
+    create_df(A, 'Y', 'X').to_csv(join(out_dir, filename_format % ('A', x_feat_num, y_feat_num)), sep='\t', index=True)
 
 if __name__ == "__main__":
     # parse arguments
