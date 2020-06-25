@@ -15,6 +15,7 @@ import pandas as pd
 import os
 from os.path import join, isdir
 import shutil
+from scipy.stats import ortho_group
 
 def parse_argument(args):
     parser = argparse.ArgumentParser(
@@ -25,8 +26,8 @@ def parse_argument(args):
     parser.add_argument('-yf', '--yfeatures', help='# features in Y', default=500, type=int, required=False)
     parser.add_argument('-b', '--blocks', help='# significant blocks; default = min(5, min(xfeatures, yfeatures)/2)',
                         default=None, type=int, required=False)
-    parser.add_argument('-a', '--association', help='association type {line, parabola}; default: line',
-                        default='line', choices=['line', 'parabola'], required=False)
+    parser.add_argument('-a', '--association', help='association type {line, parabola, log, mixed, sine, step}; default: line',
+                        default='line', choices=['line', 'parabola', 'log', 'mixed', 'sine', 'step'], required=False)
     parser.add_argument('-d', '--distribution', help='Distribution: {normal, uniform}',
                         default='uniform', choices=['normal', 'uniform'], required=False)
     # TODO: add noise distribution?
@@ -64,6 +65,15 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
     
     '''Utility functions
     '''
+    def create_base():
+        '''Generate base matrix [block_num x sample_num] with orthonormal rows
+        '''
+        base = ortho_group.rvs(sample_num)[:block_num] # block_num <= sample_num
+        # rows should be orthonormal
+        test = base @ base.T
+        np.testing.assert_allclose(test, np.eye(block_num), atol=1e-10, err_msg='The rows in base are not orthonormal')
+        return(base)
+
     def div_features_into_blocks(feat_num):
         # initialize
         blocks_size = [0] * block_num
@@ -78,12 +88,10 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
         return(assoc)
 
     rand_dist_func = uniform_dist_func if dist == 'uniform' else normal_dist_func
-    # initialize X, Y, common base for generating X and Y, A
+    # initialize X, Y, base for generating X and Y, A
     x_feat_num, y_feat_num = features_num
-    X = np.zeros((x_feat_num, sample_num))
-    Y = np.zeros((y_feat_num, sample_num))
-    common_base = rand_dist_func((block_num, sample_num)) + (rand_dist_func((block_num, 1)) * noise_between)
-    # TODO: should we orthogonalize common_base?
+    X, Y = np.zeros((x_feat_num, sample_num)), np.zeros((y_feat_num, sample_num))
+    base = create_base()
     A = np.zeros(features_num)
 
     # assign features to blocks
@@ -91,15 +99,18 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
     for block_i in range(block_num):
         # derive X features from common base
         for feat_x in x_assoc[block_i]:
-            X[feat_x] = common_base[block_i] + noise_within * normal_dist_func(sample_num, scale=noise_within_magnitude)
+            X[feat_x] = base[block_i] + noise_within * normal_dist_func(sample_num, scale=noise_within_magnitude)
+
         sign_corr = np.random.choice([-1, 1], p=[0.4, 0.6]) # arbitrary probabilities
         # derive Y features from common base
         for feat_y in y_assoc[block_i]:
-            added_noise = noise_within * normal_dist_func(sample_num, scale=noise_within_magnitude)
             if association == 'line':
-                Y[feat_y] = sign_corr * common_base[block_i] + added_noise
+                Y[feat_y] = sign_corr * base[block_i]
             elif association == 'parabola':
-                Y[feat_y] = sign_corr * common_base[block_i] * common_base[block_i] + added_noise
+                Y[feat_y] = sign_corr * base[block_i] * base[block_i]
+            elif association == 'log':
+                Y[feat_y] = sign_corr * np.log(base[block_i])
+            Y[feat_y] = Y[feat_y] + noise_within * normal_dist_func(sample_num, scale=noise_within_magnitude)
         # update A
         for i, j in itertools.product(x_assoc[block_i], y_assoc[block_i]):
             A[i][j] = 1
