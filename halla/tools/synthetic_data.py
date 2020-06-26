@@ -29,8 +29,6 @@ def parse_argument(args):
                         default=None, type=int, required=False)
     parser.add_argument('-a', '--association', help='association type {line, parabola, log, mixed, sine, step}; default: line',
                         default='line', choices=['line', 'parabola', 'log', 'mixed', 'sine', 'step'], required=False)
-    parser.add_argument('-d', '--distribution', help='Distribution: {normal, uniform}',
-                        default='uniform', choices=['normal', 'uniform'], required=False)
     # TODO: add noise distribution?
     parser.add_argument('-nw', '--noise-within', dest='noise_within', help='noise within blocks [0 (no noise)..1 (complete noise)]',
                         default=0.25, type=float, required=False)
@@ -55,7 +53,7 @@ def parse_argument(args):
         raise ValueError('Noise within/between must be [0..1]')
     return(params)
 
-def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, association='line', dist='uniform',
+def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, association='line',
                         noise_within=0.25, noise_between=0.25, noise_within_std=0.25, noise_between_std=0.25):
     '''Generate synthetic data with the following steps:
     1) generate a base B [-1, 1] from uniform distribution
@@ -67,6 +65,7 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
     - parabola : X = base_X + noise; Y = base_Y * base_Y + noise
     - log      : base = abs(base); X = base_X + noise; Y = log(abs(base_Y)) + noise
     - sine     : base = base * 2 ; X = base_X + noise; Y = 2 * sin(pi * base_Y) + noise
+    - step     : X = base_X + noise; Y = { div base_Y into 4 quantiles; p1 = 2.0, p2 = 1.0, p3 = 3.0, p4 = 0.0 } + noise
     '''
     def create_base():
         '''Generate base matrix [block_num x sample_num] with rows independent to each other
@@ -132,6 +131,12 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
                 Y[feat_y] = np.log(base_Y)
             elif association == 'sine':
                 Y[feat_y] = 2 * np.sin(math.pi * base_Y)
+            elif association == 'step':
+                # divide base_Y into 4 quantiles
+                p1, p2, p3 = np.percentile(base_Y, 25), np.percentile(base_Y, 50), np.percentile(base_Y, 75)
+                Y[feat_y] = [2.0 if val < p1 else \
+                             1.0 if val < p2 else \
+                             3.0 if val < p3 else 0.0 for val in base_Y]
             Y[feat_y] = Y[feat_y] + noise_within * np.random.normal(scale=noise_within_std, size=sample_num)
         # update A
         for i, j in itertools.product(x_assoc[block_i], y_assoc[block_i]):
@@ -178,6 +183,6 @@ if __name__ == "__main__":
     params = parse_argument(sys.argv)
     # generate datasets
     X, Y, A = run_data_generator(params.samples, (params.xfeatures, params.yfeatures), params.blocks,
-                                    params.association, params.distribution, params.noise_within, params.noise_between)
+                                    params.association, params.noise_within, params.noise_between)
     # store datasets
     store_tables(X, Y, A, params.association, out_dir=params.output)
