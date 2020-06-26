@@ -32,7 +32,7 @@ def eval_type(df):
     return(updated_df, np.array(types))
 
 def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
-    '''Discretize vector, given:
+    '''Discretize vector to [0 .. (bin_num - 1)], given:
     - ar      : 1D numpy vector
     - ar_type : the type of the vector
     - func    : discretization function

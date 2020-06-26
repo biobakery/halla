@@ -18,6 +18,8 @@ import shutil
 from scipy.stats import ortho_group
 import math
 
+from utils.data import discretize_vector
+
 def parse_argument(args):
     parser = argparse.ArgumentParser(
         description='HAllA synthetic data generator - produces a pair of datasets X & Y with specified association among their features'
@@ -27,8 +29,8 @@ def parse_argument(args):
     parser.add_argument('-yf', '--yfeatures', help='# features in Y', default=500, type=int, required=False)
     parser.add_argument('-b', '--blocks', help='# significant blocks; default = min(5, min(xfeatures, yfeatures)/2)',
                         default=None, type=int, required=False)
-    parser.add_argument('-a', '--association', help='association type {line, parabola, log, mixed, sine, step}; default: line',
-                        default='line', choices=['line', 'parabola', 'log', 'mixed', 'sine', 'step'], required=False)
+    parser.add_argument('-a', '--association', help='association type {line, parabola, log, sine, step, mixed, categorical}; default: line',
+                        default='line', choices=['line', 'parabola', 'log', 'sine', 'step', 'mixed', 'categorical'], required=False)
     # TODO: add noise distribution?
     parser.add_argument('-nw', '--noise-within', dest='noise_within', help='noise within blocks [0 (no noise)..1 (complete noise)]',
                         default=0.25, type=float, required=False)
@@ -61,11 +63,13 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
     3) derive features in X and Y from base_X and base_Y with noise = within_noise
 
     Available associations include:
-    - line     : X = base_X + noise; Y = base_Y + noise
-    - parabola : X = base_X + noise; Y = base_Y * base_Y + noise
-    - log      : base = abs(base); X = base_X + noise; Y = log(abs(base_Y)) + noise
-    - sine     : base = base * 2 ; X = base_X + noise; Y = 2 * sin(pi * base_Y) + noise
-    - step     : X = base_X + noise; Y = { div base_Y into 4 quantiles; p1 = 2.0, p2 = 1.0, p3 = 3.0, p4 = 0.0 } + noise
+    - line       : X = base_X + noise; Y = base_Y + noise
+    - parabola   : X = base_X + noise; Y = base_Y * base_Y + noise
+    - log        : base = abs(base); X = base_X + noise; Y = log(abs(base_Y)) + noise
+    - sine       : base = base * 2 ; X = base_X + noise; Y = 2 * sin(pi * base_Y) + noise
+    - step       : X = base_X + noise; Y = { div base_Y into 4 quantiles; p1 = 2.0, p2 = 1.0, p3 = 3.0, p4 = 0.0 } + noise
+    - categorical: same as step; discretize all features into {[3..6]} bins
+    - mixed      : same as step; discretize some features in X and Y into into {[3..6]} bins
     '''
     def create_base():
         '''Generate base matrix [block_num x sample_num] with rows independent to each other
@@ -131,7 +135,7 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
                 Y[feat_y] = np.log(base_Y)
             elif association == 'sine':
                 Y[feat_y] = 2 * np.sin(math.pi * base_Y)
-            elif association == 'step':
+            elif association in ['step', 'categorical', 'mixed']:
                 # divide base_Y into 4 quantiles
                 p1, p2, p3 = np.percentile(base_Y, 25), np.percentile(base_Y, 50), np.percentile(base_Y, 75)
                 Y[feat_y] = [2.0 if val < p1 else \
@@ -141,6 +145,32 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
         # update A
         for i, j in itertools.product(x_assoc[block_i], y_assoc[block_i]):
             A[i][j] = 1
+    if association in ['categorical', 'mixed']:
+        X_new = np.empty((x_feat_num, sample_num), dtype=object)
+        Y_new = np.empty((y_feat_num, sample_num), dtype=object)
+        # select features to be discretized
+        if association == 'categorical':
+            xdisc_feat_indices = [i for i in range(x_feat_num)]
+            ydisc_feat_indices = [j for j in range(y_feat_num)]
+        else:
+            xdisc_feat_num, ydisc_feat_num = np.random.choice(x_feat_num), np.random.choice(y_feat_num)
+            xdisc_feat_indices = np.random.choice(x_feat_num, xdisc_feat_num, replace=False)
+            ydisc_feat_indices = np.random.choice(y_feat_num, ydisc_feat_num, replace=False)
+        for i in range(x_feat_num):
+            if i in xdisc_feat_indices:
+                discretized = discretize_vector(X[i], func='equal-freq',
+                                num_bins=min(np.random.choice(range(3,7)), sample_num/2))
+                X_new[i] = [chr(int(val) + 65) for val in discretized]
+            else:
+                X_new[i] = X[i]
+        for j in range(y_feat_num):
+            if j in ydisc_feat_indices:
+                discretized = discretize_vector(Y[j], func='equal-freq',
+                                num_bins=min(np.random.choice(range(3,7)), sample_num/2))
+                Y_new[j] = [chr(int(val) + 65) for val in discretized]
+            else:
+                Y_new[j] = Y[j]
+        return(X_new, Y_new, A)
     return(X, Y, A)
 
 def store_tables(X, Y, A, association, out_dir):
