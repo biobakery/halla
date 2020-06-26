@@ -55,21 +55,17 @@ def parse_argument(args):
     return(params)
 
 def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, association='line', dist='uniform',
-                        noise_within=0.25, noise_between=0.25, noise_within_magnitude=0.5):
-    '''Distribution functions
-    '''
-    def uniform_dist_func(mat_size, low=-1, high=1):
-        return(np.random.uniform(low=low, high=high, size=mat_size))
-    def normal_dist_func(mat_size, loc=0, scale=1):
-        return(np.random.normal(loc=loc, scale=scale, size=mat_size))
-    
+                        noise_within=0.25, noise_between=0.25, noise_within_std=0.25, noise_between_std=0.25):
     '''Utility functions
     '''
     def create_base():
-        '''Generate base matrix [block_num x sample_num] with orthonormal rows
+        '''Generate base matrix [block_num x sample_num] with orthonormal rows s.t.
+        no block is correlated to each other
         '''
-        base = ortho_group.rvs(sample_num)[:block_num] # block_num <= sample_num
-        # rows should be orthonormal
+        # generate orthogonal matrix from uniform distribution
+        #   then pick block_num rows given block_num <= sample_num
+        base = ortho_group.rvs(sample_num)[:block_num]
+        # test if rows are orthonormal
         test = base @ base.T
         np.testing.assert_allclose(test, np.eye(block_num), atol=1e-10, err_msg='The rows in base are not orthonormal')
         return(base)
@@ -86,31 +82,39 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
             assoc[i] = [i for i in range(start_idx, start_idx + blocks_size[i])]
             start_idx = start_idx + blocks_size[i]
         return(assoc)
+    
+    def abs_if_necessary(a):
+        if association == 'log': return(np.abs(a))
+        return(a)
 
-    rand_dist_func = uniform_dist_func if dist == 'uniform' else normal_dist_func
     # initialize X, Y, base for generating X and Y, A
     x_feat_num, y_feat_num = features_num
     X, Y = np.zeros((x_feat_num, sample_num)), np.zeros((y_feat_num, sample_num))
-    base = create_base()
+    base = abs_if_necessary(create_base())
     A = np.zeros(features_num)
 
     # assign features to blocks
     x_assoc, y_assoc = div_features_into_blocks(x_feat_num), div_features_into_blocks(y_feat_num)
     for block_i in range(block_num):
-        # derive X features from common base
+        # derive base_X from base given noise_between
+        base_X = base[block_i] + noise_between * np.random.normal(scale=noise_between_std, size=1)
+        # derive X from base_X given noise_within
         for feat_x in x_assoc[block_i]:
-            X[feat_x] = base[block_i] + noise_within * normal_dist_func(sample_num, scale=noise_within_magnitude)
+            X[feat_x] = base_X + noise_within * np.random.normal(scale=noise_within_std, size=sample_num)
 
-        sign_corr = np.random.choice([-1, 1], p=[0.4, 0.6]) # arbitrary probabilities
-        # derive Y features from common base
+        # determine positive or negative association if appropriate; arbitrary probs
+        sign_corr = np.random.choice([-1, 1], p=[0.4, 0.6])
+        # derive base_Y from base given noise_between
+        base_Y = abs_if_necessary(base[block_i] + noise_between * np.random.normal(scale=noise_between_std, size=1))
+        # derive Y from base_Y given noise_within
         for feat_y in y_assoc[block_i]:
             if association == 'line':
-                Y[feat_y] = sign_corr * base[block_i]
+                Y[feat_y] = sign_corr * base_Y
             elif association == 'parabola':
-                Y[feat_y] = sign_corr * base[block_i] * base[block_i]
+                Y[feat_y] = sign_corr * base_Y * base_Y
             elif association == 'log':
-                Y[feat_y] = sign_corr * np.log(base[block_i])
-            Y[feat_y] = Y[feat_y] + noise_within * normal_dist_func(sample_num, scale=noise_within_magnitude)
+                Y[feat_y] = np.log(base_Y)
+            Y[feat_y] = Y[feat_y] + noise_within * np.random.normal(scale=noise_within_std, size=sample_num)
         # update A
         for i, j in itertools.product(x_assoc[block_i], y_assoc[block_i]):
             A[i][j] = 1
