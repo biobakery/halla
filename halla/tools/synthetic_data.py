@@ -16,6 +16,7 @@ import os
 from os.path import join, isdir
 import shutil
 from scipy.stats import ortho_group
+import math
 
 def parse_argument(args):
     parser = argparse.ArgumentParser(
@@ -56,18 +57,29 @@ def parse_argument(args):
 
 def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, association='line', dist='uniform',
                         noise_within=0.25, noise_between=0.25, noise_within_std=0.25, noise_between_std=0.25):
-    '''Utility functions
+    '''Generate synthetic data with the following steps:
+    1) generate a base B [-1, 1] from uniform distribution
+    2) derive base_X and base_Y from B with noise = between_noise
+    3) derive features in X and Y from base_X and base_Y with noise = within_noise
+
+    Available associations include:
+    - line     : X = base_X + noise; Y = base_Y + noise
+    - parabola : X = base_X + noise; Y = base_Y * base_Y + noise
+    - log      : base = abs(base); X = base_X + noise; Y = log(abs(base_Y)) + noise
+    - sine     : base = base * 2 ; X = base_X + noise; Y = 2 * sin(pi * base_Y) + noise
     '''
     def create_base():
-        '''Generate base matrix [block_num x sample_num] with orthonormal rows s.t.
-        no block is correlated to each other
+        '''Generate base matrix [block_num x sample_num] with rows independent to each other
         '''
         # generate orthogonal matrix from uniform distribution
         #   then pick block_num rows given block_num <= sample_num
         base = ortho_group.rvs(sample_num)[:block_num]
-        # test if rows are orthonormal
+        # enlarge the range to around [-1, 1]
+        mult = min(abs(1.0 / base.min()), abs(1.0 / base.max()))
+        base = base * mult
+        # test if rows are independent
         test = base @ base.T
-        np.testing.assert_allclose(test, np.eye(block_num), atol=1e-10, err_msg='The rows in base are not orthonormal')
+        np.testing.assert_allclose(test, mult*mult*np.eye(block_num), atol=1e-10, err_msg='The rows in base are not orthonormal')
         return(base)
 
     def div_features_into_blocks(feat_num):
@@ -87,26 +99,30 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
         if association == 'log': return(np.abs(a))
         return(a)
 
-    # initialize X, Y, base for generating X and Y, A
+    # initialize all matrices
     x_feat_num, y_feat_num = features_num
     X, Y = np.zeros((x_feat_num, sample_num)), np.zeros((y_feat_num, sample_num))
-    base = abs_if_necessary(create_base())
     A = np.zeros(features_num)
 
-    # assign features to blocks
+    # step 1: generate base
+    base = abs_if_necessary(create_base())
+    if association == 'sine': base = 2 * base # for spreading out x
+    
+    # assign features in X and Y to blocks
     x_assoc, y_assoc = div_features_into_blocks(x_feat_num), div_features_into_blocks(y_feat_num)
     for block_i in range(block_num):
-        # derive base_X from base given noise_between
+        # step 2.1: derive base_X from base given noise_between
         base_X = base[block_i] + noise_between * np.random.normal(scale=noise_between_std, size=1)
-        # derive X from base_X given noise_within
+        # step 3.1: derive X from base_X given noise_within
         for feat_x in x_assoc[block_i]:
             X[feat_x] = base_X + noise_within * np.random.normal(scale=noise_within_std, size=sample_num)
 
         # determine positive or negative association if appropriate; arbitrary probs
         sign_corr = np.random.choice([-1, 1], p=[0.4, 0.6])
-        # derive base_Y from base given noise_between
+        
+        # step 2.2: derive base_Y from base given noise_between
         base_Y = abs_if_necessary(base[block_i] + noise_between * np.random.normal(scale=noise_between_std, size=1))
-        # derive Y from base_Y given noise_within
+        # step 3.2: derive Y from base_Y given noise_within
         for feat_y in y_assoc[block_i]:
             if association == 'line':
                 Y[feat_y] = sign_corr * base_Y
@@ -114,6 +130,8 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
                 Y[feat_y] = sign_corr * base_Y * base_Y
             elif association == 'log':
                 Y[feat_y] = np.log(base_Y)
+            elif association == 'sine':
+                Y[feat_y] = 2 * np.sin(math.pi * base_Y)
             Y[feat_y] = Y[feat_y] + noise_within * np.random.normal(scale=noise_within_std, size=sample_num)
         # update A
         for i, j in itertools.product(x_assoc[block_i], y_assoc[block_i]):
