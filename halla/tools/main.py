@@ -4,7 +4,8 @@ from .utils.data import preprocess, eval_type, is_all_cont
 from .utils.similarity import get_similarity_function
 from .utils.stats import get_pvalue_table, pvalues2qvalues
 from .utils.tree import compare_and_find_dense_block
-from .utils.plot import generate_hallagram, generate_clustermap
+from .utils.report import generate_hallagram, generate_clustermap, report_all_associations
+from .utils.filesystem import create_dir
 
 import pandas as pd
 import numpy as np
@@ -17,12 +18,14 @@ class HAllA(object):
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'],
+                 out_dir=config.output['dir'],
                  seed=None):
         # update config settings
         update_config('discretize', bypass_if_possible=discretize_bypass_if_possible, func=discretize_func, num_bins=discretize_num_bins)
         update_config('hierarchy', pdist_metric=pdist_metric, linkage_method=linkage_method)
         update_config('permute', func=permute_func, iters=permute_iters)
         update_config('stats', fdr_alpha=fdr_alpha, fdr_method=fdr_method, fnr_thresh=fnr_thresh)
+        update_config('output', dir=out_dir)
 
         self._reset_attributes()
         self.seed = seed
@@ -71,6 +74,23 @@ class HAllA(object):
             y_feat_names = [y_features[feat] for feat in y_feat_indices]
             self.significant_blocks_feature_names.append([x_feat_names, y_feat_names])
 
+    def _generate_reports(self):
+        '''Generate reports and store in config.output['dir'] directory:
+        1) all_associations.txt: stores the associations between each feature in X and Y along with its
+                                p-values and q-values in a table
+        '''
+        # create directory
+        dir_name = config.output['dir']
+        create_dir(dir_name)
+
+        # generate all_associations.txt
+        report_all_associations(dir_name,
+                                self.X.index.to_numpy(),
+                                self.Y.index.to_numpy(),
+                                self.similarity_table,
+                                self.pvalue_table,
+                                self.qvalue_table)
+
     '''Public functions
     '''
     def load(self, X_file, Y_file=None):
@@ -116,9 +136,13 @@ class HAllA(object):
         
         # step 3: iteratively finding densely-associated blocks
         self._find_dense_associated_blocks()
+
+        # generate reports
+        self._generate_reports()
     
     def generate_hallagram(self, cmap='RdBu_r', **kwargs):
         '''Generate a hallagram
+        # TODO: store in config.output['dir'] directory?
         '''
         generate_clustermap(self.significant_blocks,
                             self.X.index.to_numpy(),
