@@ -27,7 +27,7 @@ def parse_argument(args):
     parser.add_argument('-n', '--samples', help='# samples in both X and Y', default=50, type=int, required=False)
     parser.add_argument('-xf', '--xfeatures', help='# features in X', default=500, type=int, required=False)
     parser.add_argument('-yf', '--yfeatures', help='# features in Y', default=500, type=int, required=False)
-    parser.add_argument('-b', '--blocks', help='# significant blocks; default = min(5, min(xfeatures, yfeatures)/2)',
+    parser.add_argument('-b', '--blocks', help='# significant blocks; default = min(xfeatures, yfeatures, samples)/3',
                         default=None, type=int, required=False)
     parser.add_argument('-a', '--association', help='association type {line, parabola, log, sine, step, mixed, categorical}; default: line',
                         default='line', choices=['line', 'parabola', 'log', 'sine', 'step', 'mixed', 'categorical'], required=False)
@@ -46,9 +46,9 @@ def parse_argument(args):
     if params.xfeatures <= 0 or params.yfeatures <= 0: raise ValueError('# features must be > 0')
     # blocks must be 1 .. min(5, min(xfeatures, yfeatures)/2)
     if params.blocks is None:
-        params.blocks = min(5, min(params.xfeatures, params.yfeatures)/2)
-    if not (params.blocks > 0 and params.blocks <= min(params.xfeatures, params.yfeatures)):
-        raise ValueError('# blocks is invalid; must be [1..min(xfeatures, yfeatures)]')
+        params.blocks = min(params.xfeatures, params.yfeatures)/3
+    if not (params.blocks > 0 and params.blocks <= min(params.xfeatures, params.yfeatures, params.samples)/3):
+        raise ValueError('# blocks is invalid; must be [1..min(xfeatures, yfeatures, samples)/3]')
     # noises must be [0..1]
     if params.noise_between < 0 or params.noise_between > 1 or \
         params.noise_within < 0 or params.noise_within > 1:
@@ -159,14 +159,14 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
         for i in range(x_feat_num):
             if i in xdisc_feat_indices:
                 discretized = discretize_vector(X[i], func='equal-freq',
-                                num_bins=min(np.random.choice(range(3,7)), sample_num/2))
+                                num_bins=min(np.random.choice(range(3,7)), sample_num//2))
                 X_new[i] = [chr(int(val) + 65) for val in discretized]
             else:
                 X_new[i] = X[i]
         for j in range(y_feat_num):
             if j in ydisc_feat_indices:
                 discretized = discretize_vector(Y[j], func='equal-freq',
-                                num_bins=min(np.random.choice(range(3,7)), sample_num/2))
+                                num_bins=min(np.random.choice(range(3,7)), sample_num//2))
                 Y_new[j] = [chr(int(val) + 65) for val in discretized]
             else:
                 Y_new[j] = Y[j]
