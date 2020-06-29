@@ -78,6 +78,7 @@ def report_all_associations(dir_name, x_features, y_features, sim_table, pval_ta
     - sim_table         : similarity table with size [len(x_features), len(y_features)]
     - pval_table        : pvalue table with size [len(x_features), len(y_features)]
     - qval_table        : qvalue table with size [len(x_features), len(y_features)]
+    - output_file       : the output file name
 
     Store a .txt file that contains a table with column titles:
         'X_features', 'Y_features', 'association', 'p-values', 'q-values'
@@ -105,3 +106,28 @@ def report_all_associations(dir_name, x_features, y_features, sim_table, pval_ta
     # store into a file
     df.to_csv(filepath, sep='\t', index=False)
 
+def report_significant_clusters(dir_name, significant_blocks, x_features, y_features, output_file='sig_clusters.txt'):
+    '''Store only the significant clusters, given:
+    - dir_name          : output directory name
+    - significant_blocks: a list of significant blocks in the original indices, e.g.,
+                          [[[2], [0]], [[0,1], [1]]] --> two blocks
+    - {x,y}_features    : feature names of {x,y}
+    - output_file       : the output file name
+
+    # TODO: what are the scores to be stored?
+    Store a .txt file that contains a table with column titles:
+        'cluster_X', 'cluster_Y'
+    '''
+    filepath = join(dir_name, output_file)
+    # initiate arrays for generating a pandas DataFrame later
+    list_x_clust, list_y_clust = [], []
+    for block in significant_blocks:
+        list_x_clust.append(';'.join([x_features[idx] for idx in block[0]]))
+        list_y_clust.append(';'.join([y_features[idx] for idx in block[1]]))
+    # create a pandas DataFrame
+    df = pd.DataFrame(data={
+        'cluster_X': list_x_clust,
+        'cluster_Y': list_y_clust
+    })
+    # store into a file
+    df.to_csv(filepath, sep='\t', index=False)

@@ -15,4 +15,4 @@ test_halla = HAllA(discretize_func='equal-freq', discretize_num_bins=4,
 
 test_halla.load(X_file, Y_file)
 test_halla.run()
-# print(test_halla.X_hierarchy.distance_matrix)
+test_halla.generate_hallagram()
