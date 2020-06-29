@@ -4,7 +4,8 @@ from .utils.data import preprocess, eval_type, is_all_cont
 from .utils.similarity import get_similarity_function
 from .utils.stats import get_pvalue_table, pvalues2qvalues
 from .utils.tree import compare_and_find_dense_block
-from .utils.report import generate_hallagram, generate_clustermap, report_all_associations
+from .utils.report import generate_hallagram, generate_clustermap, \
+                          report_all_associations, report_significant_clusters
 from .utils.filesystem import create_dir
 
 import pandas as pd
@@ -78,6 +79,7 @@ class HAllA(object):
         '''Generate reports and store in config.output['dir'] directory:
         1) all_associations.txt: stores the associations between each feature in X and Y along with its
                                 p-values and q-values in a table
+        2) sig_clusters.txt    : stores only the significant clusters
         '''
         # create directory
         dir_name = config.output['dir']
@@ -90,6 +92,12 @@ class HAllA(object):
                                 self.similarity_table,
                                 self.pvalue_table,
                                 self.qvalue_table)
+        
+        # generate sig_clusters.txt
+        report_significant_clusters(dir_name,
+                                    self.significant_blocks,
+                                    self.X.index.to_numpy(),
+                                    self.Y.index.to_numpy(),)
 
     '''Public functions
     '''
