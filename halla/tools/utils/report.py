@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import scipy.cluster.hierarchy as sch
+import pandas as pd
+from os.path import join
 
 def get_indices_map_dict(new_indices):
     return({ idx: i for i, idx in enumerate(new_indices) })
@@ -12,7 +14,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
     - {x,y}_features    : feature names of {x,y}
     - clust_{x,y}_idx   : the indices of {x,y} in clustered form 
-    - sim_table         : similarity table
+    - sim_table         : similarity table with size [len(x_features), len(y_features)]
     - cmap              : color map
     - kwargs            : other keyword arguments to be passed to seaborn's heatmap()
     '''
@@ -49,7 +51,7 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
     - {x,y}_features    : feature names of {x,y}
     - {x,y}_linkage     : precomputed linkage matrix for {x,y}
-    - sim_table         : similarity table
+    - sim_table         : similarity table with size [len(x_features), len(y_features)]
     - cmap              : color map
     - kwargs            : other keyword arguments to be passed to seaborn's clustermap()
     '''
@@ -68,3 +70,38 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
         ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1)
         ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1)
     plt.show()
+
+def report_all_associations(dir_name, x_features, y_features, sim_table, pval_table, qval_table, output_file='all_associations.txt'):
+    '''Store the association between each feature in X and Y along with p-values and q-values, given:
+    - dir_name          : output directory name
+    - {x,y}_features    : feature names of {x,y}
+    - sim_table         : similarity table with size [len(x_features), len(y_features)]
+    - pval_table        : pvalue table with size [len(x_features), len(y_features)]
+    - qval_table        : qvalue table with size [len(x_features), len(y_features)]
+
+    Store a .txt file that contains a table with column titles:
+        'X_features', 'Y_features', 'association', 'p-values', 'q-values'
+    '''
+    filepath = join(dir_name, output_file)
+    # initiate arrays for generating a pandas DataFrame later
+    list_x_features, list_y_features = [], []
+    list_association = []
+    list_pvals, list_qvals = [], []
+    for i in range(len(x_features)):
+        for j in range(len(y_features)):
+            list_x_features.append(x_features[i])
+            list_y_features.append(y_features[j])
+            list_association.append(sim_table[i][j])
+            list_pvals.append(pval_table[i][j])
+            list_qvals.append(qval_table[i][j])
+    # create a pandas DataFrame
+    df = pd.DataFrame(data={
+        'X_features' : list_x_features,
+        'Y_features' : list_y_features,
+        'association': list_association,
+        'p-values'   : list_pvals,
+        'q-values'   : list_qvals,
+    })
+    # store into a file
+    df.to_csv(filepath, sep='\t', index=False)
+

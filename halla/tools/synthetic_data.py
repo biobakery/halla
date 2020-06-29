@@ -12,13 +12,12 @@ import sys
 import numpy as np
 import itertools
 import pandas as pd
-import os
-from os.path import join, isdir
-import shutil
+from os.path import join
 from scipy.stats import ortho_group
 import math
 
 from utils.data import discretize_vector
+from utils.filesystem import create_dir
 
 def parse_argument(args):
     parser = argparse.ArgumentParser(
@@ -176,20 +175,13 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
 def store_tables(X, Y, A, association, out_dir):
     '''Store generated tables X,Y,A into files under out_dir directory
     '''
-    def create_dir(dir_name):
-        # remove any existing directory with the same name
-        if isdir(dir_name):
-            try:
-                shutil.rmtree(dir_name)
-            except EnvironmentError:
-                sys.exit('Unable to remove directory %s' % dir_name)
-        # create a new directory
-        try:
-            os.mkdir(dir_name)
-        except EnvironmentError:
-            sys.exit('Unable to create directory %s' % dir_name)
 
     def create_df(table, col_pref, row_pref):
+        '''Create pandas DataFrame from table given:
+        - table   : a 2D numpy array
+        - col_pref: the column prefix
+        - row_pref: the row prefix 
+        '''
         return pd.DataFrame(
             data={ '%s%d' % (col_pref, j): table[:,j] for j in range(table.shape[1]) },
             index=['%s%d' % (row_pref, i) for i in range(table.shape[0])]
