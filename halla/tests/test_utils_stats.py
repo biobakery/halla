@@ -37,7 +37,7 @@ class TestStatsUtils(unittest.TestCase):
 '''
 def test_generator(mu_pair, var_pair, corr, sample_size):
     np.random.seed(123)
-    eps = 0.05
+    eps = 0.03
     cov_matrix = np.array([
                     [var_pair[0], corr],
                     [corr, var_pair[1]]
