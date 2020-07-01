@@ -16,9 +16,8 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi',
 		return(score[0,0]) # original shape is (1,1)
 
 	def _compute_pvalue(permuted_scores, gt_score, n):
-		percentile = percentileofscore(permuted_scores, gt_score, kind='strict')
-		if percentile < 50: percentile = 100 - percentile
-		pval = (2*((100 - percentile) / 100.0) * n + 1) / n # add one to prevent 0
+		low_bound, up_bound = min(gt_score, -gt_score), max(gt_score, -gt_score)
+		pval = ((permuted_scores < low_bound).sum() + (permuted_scores > up_bound).sum() + 1) / n
 		return(min(1.0, pval))
 
 	if seed:
