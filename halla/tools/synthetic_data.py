@@ -134,12 +134,15 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
                 Y[feat_y] = np.log(base_Y)
             elif association == 'sine':
                 Y[feat_y] = 2 * np.sin(math.pi * base_Y)
-            elif association in ['step', 'categorical', 'mixed']:
+            elif association == 'step':
                 # divide base_Y into 4 quantiles
                 p1, p2, p3 = np.percentile(base_Y, 25), np.percentile(base_Y, 50), np.percentile(base_Y, 75)
                 Y[feat_y] = [2.0 if val < p1 else \
                              1.0 if val < p2 else \
                              3.0 if val < p3 else 0.0 for val in base_Y]
+            else:
+                # default for now
+                Y[feat_y] = sign_corr * base_Y
             Y[feat_y] = Y[feat_y] + noise_within * np.random.normal(scale=noise_within_std, size=sample_num)
         # update A
         for i, j in itertools.product(x_assoc[block_i], y_assoc[block_i]):
