@@ -12,6 +12,9 @@ import pandas as pd
 import numpy as np
 import scipy.spatial.distance as spd
 
+########
+# AllA
+########
 class AllA(object):
     def __init__(self, discretize_bypass_if_possible=config.discretize['bypass_if_possible'],
                  discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
@@ -38,6 +41,7 @@ class AllA(object):
         self.similarity_table = None
         self.pvalue_table, self.qvalue_table = None, None
         self.fdr_reject_table = None
+        self.significant_blocks = None
         self.has_loaded = False
         self.has_run = False
 
@@ -56,6 +60,36 @@ class AllA(object):
         self.fdr_reject_table, self.qvalue_table = pvalues2qvalues(self.pvalue_table.flatten(), config.stats['fdr_alpha'])
         self.qvalue_table = self.qvalue_table.reshape(self.pvalue_table.shape)
         self.fdr_reject_table = self.fdr_reject_table.reshape(self.pvalue_table.shape)
+    
+    def _find_dense_associated_blocks(self):
+        '''Find significant cells based on FDR reject table
+        '''
+        n, m = self.X.shape[0], self.Y.shape[0]
+        self.significant_blocks = [[[x], [y]] for x in range(n) for y in range(m) if self.fdr_reject_table[x][y]]
+    
+    def _generate_reports(self):
+        '''Generate reports and store in config.output['dir'] directory:
+        1) all_associations.txt: stores the associations between each feature in X and Y along with its
+                                p-values and q-values in a table
+        2) sig_clusters.txt    : stores only the significant clusters
+        '''
+        # create directory
+        dir_name = config.output['dir']
+        create_dir(dir_name)
+
+        # generate all_associations.txt
+        report_all_associations(dir_name,
+                                self.X.index.to_numpy(),
+                                self.Y.index.to_numpy(),
+                                self.similarity_table,
+                                self.pvalue_table,
+                                self.qvalue_table)
+        
+        # generate sig_clusters.txt
+        report_significant_clusters(dir_name,
+                                    self.significant_blocks,
+                                    self.X.index.to_numpy(),
+                                    self.Y.index.to_numpy())
     
     '''Public functions
     '''
@@ -86,35 +120,37 @@ class AllA(object):
         self.has_loaded = True
     
     def run(self):
-        '''Run AllA: compute pairwise similarity matrix and p-values
+        '''Run AllA:
+        1) compute pairwise similarity matrix and p-values
+        2) find significantly-associated cells
         '''
         if self.has_loaded == False:
             raise RuntimeError('load function has not been called!')
 
-        # computing pairwise similarity matrix
+        # step 1: computing pairwise similarity matrix
         self._compute_pairwise_similarities()
+
+        # step 2: find significantly-associated cells
+        self._find_dense_associated_blocks()
 
         # generate reports
         self._generate_reports()
     
-    def _generate_reports(self):
-        '''Generate reports and store in config.output['dir'] directory:
-        1) all_associations.txt: stores the associations between each feature in X and Y along with its
-                                p-values and q-values in a table
-        2) sig_clusters.txt    : stores only the significant clusters
+    def generate_hallagram(self, cmap='RdBu_r', **kwargs):
+        '''Generate a hallagram
+        # TODO: store in config.output['dir'] directory?
         '''
-        # create directory
-        dir_name = config.output['dir']
-        create_dir(dir_name)
+        generate_hallagram(self.significant_blocks,
+                           self.X.index.to_numpy(),
+                           self.Y.index.to_numpy(),
+                           [idx for idx in range(self.X.shape[0])],
+                           [idx for idx in range(self.Y.shape[0])],
+                           self.similarity_table,
+                           cmap=cmap, **kwargs)
 
-        # generate all_associations.txt
-        report_all_associations(dir_name,
-                                self.X.index.to_numpy(),
-                                self.Y.index.to_numpy(),
-                                self.similarity_table,
-                                self.pvalue_table,
-                                self.qvalue_table)
-
+########
+# HAllA
+########
 class HAllA(AllA):
     def __init__(self, discretize_bypass_if_possible=config.discretize['bypass_if_possible'],
                  discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
@@ -152,38 +188,11 @@ class HAllA(AllA):
     def _find_dense_associated_blocks(self):
         self.significant_blocks = compare_and_find_dense_block(self.X_hierarchy.tree, self.Y_hierarchy.tree,
                                      self.fdr_reject_table, fnr_thresh=config.stats['fnr_thresh'])
-        # convert block feature indices to feature names
-        self.significant_blocks_feature_names = []
-        x_features, y_features = list(self.X.index), list(self.Y.index)
-        for block in self.significant_blocks:
-            x_feat_indices, y_feat_indices = block[0], block[1]
-            x_feat_names = [x_features[feat] for feat in x_feat_indices]
-            y_feat_names = [y_features[feat] for feat in y_feat_indices]
-            self.significant_blocks_feature_names.append([x_feat_names, y_feat_names])
 
     def _generate_reports(self):
-        '''Generate reports and store in config.output['dir'] directory:
-        1) all_associations.txt: stores the associations between each feature in X and Y along with its
-                                p-values and q-values in a table
-        2) sig_clusters.txt    : stores only the significant clusters
+        '''Generate reports and store in config.output['dir'] directory
         '''
-        # create directory
-        dir_name = config.output['dir']
-        create_dir(dir_name)
-
-        # generate all_associations.txt
-        report_all_associations(dir_name,
-                                self.X.index.to_numpy(),
-                                self.Y.index.to_numpy(),
-                                self.similarity_table,
-                                self.pvalue_table,
-                                self.qvalue_table)
-        
-        # generate sig_clusters.txt
-        report_significant_clusters(dir_name,
-                                    self.significant_blocks,
-                                    self.X.index.to_numpy(),
-                                    self.Y.index.to_numpy())
+        AllA._generate_reports(self)
 
     '''Public functions
     '''
