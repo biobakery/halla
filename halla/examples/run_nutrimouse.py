@@ -12,7 +12,7 @@ lipid_file = join(dirname(abspath(__file__)), '../data', 'nutrimouse', 'lipid.tx
 
 pdist_metric = 'spearman'
 
-halla = HAllA(pdist_metric=pdist_metric, seed=123)
+halla = HAllA(pdist_metric=pdist_metric, out_dir='local_tests/out', seed=123)
 halla.load(lipid_file, gene_file)
 halla.run()
 
