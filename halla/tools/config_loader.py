@@ -20,7 +20,7 @@ def update_config(attribute, **args):
         if key not in vals:
             raise KeyError('%s not found in config.%s' % (key, attribute))
         vals[key] = args[key]
-    print('[Config update] Updating config.%s to:' % attribute, vals)
+    # print('[Config update] Updating config.%s to:' % attribute, vals)
     setattr(config, attribute, vals)
 
 config = Struct(**config)
