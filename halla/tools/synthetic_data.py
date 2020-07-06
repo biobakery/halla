@@ -45,7 +45,7 @@ def parse_argument(args):
     if params.xfeatures <= 0 or params.yfeatures <= 0: raise ValueError('# features must be > 0')
     # blocks must be 1 .. min(5, min(xfeatures, yfeatures)/2)
     if params.blocks is None:
-        params.blocks = min(params.xfeatures, params.yfeatures)/3
+        params.blocks = min(params.xfeatures, params.yfeatures, params.samples)//3
     if not (params.blocks > 0 and params.blocks <= min(params.xfeatures, params.yfeatures, params.samples)/3):
         raise ValueError('# blocks is invalid; must be [1..min(xfeatures, yfeatures, samples)/3]')
     # noises must be [0..1]
@@ -55,7 +55,7 @@ def parse_argument(args):
     return(params)
 
 def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, association='line',
-                        noise_within=0.25, noise_between=0.25, noise_within_std=0.25, noise_between_std=0.25):
+                        noise_within=0.25, noise_between=0.5, noise_within_std=0.5, noise_between_std=0.25):
     '''Generate synthetic data with the following steps:
     1) generate a base B [-1, 1] from uniform distribution
     2) derive base_X and base_Y from B with noise = between_noise
