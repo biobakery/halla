@@ -12,18 +12,18 @@ import pandas as pd
 import numpy as np
 import scipy.spatial.distance as spd
 
-class HAllA(object):
+class AllA(object):
     def __init__(self, discretize_bypass_if_possible=config.discretize['bypass_if_possible'],
                  discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
-                 pdist_metric=config.hierarchy['pdist_metric'], linkage_method=config.hierarchy['linkage_method'],
+                 pdist_metric=config.association['pdist_metric'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'],
                  out_dir=config.output['dir'],
                  seed=None):
-        # update config settings
+        # update AllA config setting
         update_config('discretize', bypass_if_possible=discretize_bypass_if_possible, func=discretize_func, num_bins=discretize_num_bins)
-        update_config('hierarchy', pdist_metric=pdist_metric, linkage_method=linkage_method)
+        update_config('association', pdist_metric=pdist_metric)
         update_config('permute', func=permute_func, iters=permute_iters)
         update_config('stats', fdr_alpha=fdr_alpha, fdr_method=fdr_method, fnr_thresh=fnr_thresh)
         update_config('output', dir=out_dir)
@@ -31,6 +31,108 @@ class HAllA(object):
         self._reset_attributes()
         self.seed = seed
     
+    '''Private functions
+    '''
+    def _reset_attributes(self):
+        self.X, self.Y = None, None
+        self.similarity_table = None
+        self.pvalue_table, self.qvalue_table = None, None
+        self.fdr_reject_table = None
+        self.has_loaded = False
+        self.has_run = False
+
+    def _compute_pairwise_similarities(self):
+        dist_metric = config.association['pdist_metric']
+        X, Y = self.X.to_numpy(), self.Y.to_numpy()
+
+        # obtain similarity matrix
+        self.similarity_table = spd.cdist(X, Y, metric=get_similarity_function(dist_metric))
+        # obtain p-values
+        confp = config.permute
+        self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=dist_metric,
+                                                   permute_func=confp['func'], permute_iters=confp['iters'], seed=self.seed)
+        
+        # obtain q-values
+        self.fdr_reject_table, self.qvalue_table = pvalues2qvalues(self.pvalue_table.flatten(), config.stats['fdr_alpha'])
+        self.qvalue_table = self.qvalue_table.reshape(self.pvalue_table.shape)
+        self.fdr_reject_table = self.fdr_reject_table.reshape(self.pvalue_table.shape)
+    
+    '''Public functions
+    '''
+    def load(self, X_file, Y_file=None):
+        # TODO: currently assumes no missing value and header+index col are provided
+        X, X_types = eval_type(pd.read_table(X_file, index_col=0))
+        Y, Y_types = eval_type(pd.read_table(Y_file, index_col=0)) if Y_file \
+            else (X.copy(deep=True), np.copy(X_types))
+
+        # if not all types are continuous but pdist_metric is only for continuous types
+        # TODO: add more appropriate distance metrics
+        if not (is_all_cont(X_types) and is_all_cont(Y_types)) and config.association['pdist_metric'] != 'nmi':
+            raise ValueError('pdist_metric should be nmi if not all features are continuous...')
+        # if all features are continuous and distance metric != nmi, discretization can be bypassed
+        if is_all_cont(X_types) and is_all_cont(Y_types) and \
+            config.association['pdist_metric'].lower() != 'nmi' and config.discretize['bypass_if_possible']:
+            print('All features are continuous; bypassing discretization and updating config...')
+            update_config('discretize', func=None)
+
+        # filter tables by intersect columns
+        intersect_cols = [col for col in X.columns if col in Y.columns]
+        X, Y = X[intersect_cols], Y[intersect_cols]
+
+        # clean and preprocess data
+        self.X = preprocess(X, X_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
+        self.Y = preprocess(Y, Y_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
+
+        self.has_loaded = True
+    
+    def run(self):
+        '''Run AllA: compute pairwise similarity matrix and p-values
+        '''
+        if self.has_loaded == False:
+            raise RuntimeError('load function has not been called!')
+
+        # computing pairwise similarity matrix
+        self._compute_pairwise_similarities()
+
+        # generate reports
+        self._generate_reports()
+    
+    def _generate_reports(self):
+        '''Generate reports and store in config.output['dir'] directory:
+        1) all_associations.txt: stores the associations between each feature in X and Y along with its
+                                p-values and q-values in a table
+        2) sig_clusters.txt    : stores only the significant clusters
+        '''
+        # create directory
+        dir_name = config.output['dir']
+        create_dir(dir_name)
+
+        # generate all_associations.txt
+        report_all_associations(dir_name,
+                                self.X.index.to_numpy(),
+                                self.Y.index.to_numpy(),
+                                self.similarity_table,
+                                self.pvalue_table,
+                                self.qvalue_table)
+
+class HAllA(AllA):
+    def __init__(self, discretize_bypass_if_possible=config.discretize['bypass_if_possible'],
+                 discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
+                 pdist_metric=config.association['pdist_metric'], linkage_method=config.hierarchy['linkage_method'],
+                 permute_func=config.permute['func'], permute_iters=config.permute['iters'],
+                 fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
+                 fnr_thresh=config.stats['fnr_thresh'],
+                 out_dir=config.output['dir'],
+                 seed=None):
+        # retrieve AllA variables
+        alla_vars = vars()
+        del alla_vars['linkage_method']
+        # call AllA init function
+        AllA.__init__(**alla_vars)
+
+        # update HAllA config settings
+        update_config('hierarchy', linkage_method=linkage_method)
+
     '''Private functions
     '''
     def _reset_attributes(self):
@@ -44,24 +146,8 @@ class HAllA(object):
         self.has_run = False
     
     def _run_clustering(self):
-        self.X_hierarchy = HierarchicalTree(self.X)
-        self.Y_hierarchy = HierarchicalTree(self.Y)
-    
-    def _compute_pairwise_similarities(self):
-        confh = config.hierarchy
-        X, Y = self.X.to_numpy(), self.Y.to_numpy()
-
-        # obtain similarity matrix
-        self.similarity_table = spd.cdist(X, Y, metric=get_similarity_function(confh['pdist_metric']))
-        # obtain p-values
-        confp = config.permute
-        self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=confh['pdist_metric'],
-                                                   permute_func=confp['func'], permute_iters=confp['iters'], seed=self.seed)
-        
-        # obtain q-values
-        self.fdr_reject_table, self.qvalue_table = pvalues2qvalues(self.pvalue_table.flatten(), config.stats['fdr_alpha'])
-        self.qvalue_table = self.qvalue_table.reshape(self.pvalue_table.shape)
-        self.fdr_reject_table = self.fdr_reject_table.reshape(self.pvalue_table.shape)
+        self.X_hierarchy = HierarchicalTree(self.X, config.association['pdist_metric'], config.hierarchy['linkage_method'])
+        self.Y_hierarchy = HierarchicalTree(self.Y, config.association['pdist_metric'], config.hierarchy['linkage_method'])
 
     def _find_dense_associated_blocks(self):
         self.significant_blocks = compare_and_find_dense_block(self.X_hierarchy.tree, self.Y_hierarchy.tree,
@@ -97,36 +183,10 @@ class HAllA(object):
         report_significant_clusters(dir_name,
                                     self.significant_blocks,
                                     self.X.index.to_numpy(),
-                                    self.Y.index.to_numpy(),)
+                                    self.Y.index.to_numpy())
 
     '''Public functions
     '''
-    def load(self, X_file, Y_file=None):
-        # TODO: currently assumes no missing value and header+index col are provided
-        X, X_types = eval_type(pd.read_table(X_file, index_col=0))
-        Y, Y_types = eval_type(pd.read_table(Y_file, index_col=0)) if Y_file \
-            else (X.copy(deep=True), np.copy(X_types))
-
-        # if not all types are continuous but pdist_metric is only for continuous types
-        # TODO: add more appropriate distance metrics
-        if not (is_all_cont(X_types) and is_all_cont(Y_types)) and config.hierarchy['pdist_metric'] != 'nmi':
-            raise ValueError('pdist_metric should be nmi if not all features are continuous...')
-        # if all features are continuous and distance metric != nmi, discretization can be bypassed
-        if is_all_cont(X_types) and is_all_cont(Y_types) and \
-            config.hierarchy['pdist_metric'].lower() != 'nmi' and config.discretize['bypass_if_possible']:
-            print('All features are continuous; bypassing discretization and updating config...')
-            update_config('discretize', func=None)
-
-        # filter tables by intersect columns
-        intersect_cols = [col for col in X.columns if col in Y.columns]
-        X, Y = X[intersect_cols], Y[intersect_cols]
-
-        # clean and preprocess data
-        self.X = preprocess(X, X_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
-        self.Y = preprocess(Y, Y_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
-
-        self.has_loaded = True
-
     def run(self):
         '''Run all 3 steps:
         1) compute pairwise similarity matrix
