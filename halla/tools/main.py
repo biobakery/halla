@@ -5,12 +5,14 @@ from .utils.similarity import get_similarity_function
 from .utils.stats import get_pvalue_table, pvalues2qvalues
 from .utils.tree import compare_and_find_dense_block
 from .utils.report import generate_hallagram, generate_clustermap, \
-                          report_all_associations, report_significant_clusters
+                          report_all_associations, report_significant_clusters, \
+                          generate_lattice_plot
 from .utils.filesystem import create_dir
 
 import pandas as pd
 import numpy as np
 import scipy.spatial.distance as spd
+from os.path import join
 
 ########
 # AllA
@@ -38,6 +40,7 @@ class AllA(object):
     '''
     def _reset_attributes(self):
         self.X, self.Y = None, None
+        self.X_types, self.Y_types = None, None
         self.similarity_table = None
         self.pvalue_table, self.qvalue_table = None, None
         self.fdr_reject_table = None
@@ -95,16 +98,16 @@ class AllA(object):
     '''
     def load(self, X_file, Y_file=None):
         # TODO: currently assumes no missing value and header+index col are provided
-        X, X_types = eval_type(pd.read_table(X_file, index_col=0))
-        Y, Y_types = eval_type(pd.read_table(Y_file, index_col=0)) if Y_file \
-            else (X.copy(deep=True), np.copy(X_types))
+        X, self.X_types = eval_type(pd.read_table(X_file, index_col=0))
+        Y, self.Y_types = eval_type(pd.read_table(Y_file, index_col=0)) if Y_file \
+            else (X.copy(deep=True), np.copy(self.X_types))
 
         # if not all types are continuous but pdist_metric is only for continuous types
         # TODO: add more appropriate distance metrics
-        if not (is_all_cont(X_types) and is_all_cont(Y_types)) and config.association['pdist_metric'] != 'nmi':
+        if not (is_all_cont(self.X_types) and is_all_cont(self.X_types)) and config.association['pdist_metric'] != 'nmi':
             raise ValueError('pdist_metric should be nmi if not all features are continuous...')
         # if all features are continuous and distance metric != nmi, discretization can be bypassed
-        if is_all_cont(X_types) and is_all_cont(Y_types) and \
+        if is_all_cont(self.X_types) and is_all_cont(self.X_types) and \
             config.association['pdist_metric'].lower() != 'nmi' and config.discretize['bypass_if_possible']:
             print('All features are continuous; bypassing discretization and updating config...')
             update_config('discretize', func=None)
@@ -114,8 +117,8 @@ class AllA(object):
         X, Y = X[intersect_cols], Y[intersect_cols]
 
         # clean and preprocess data
-        self.X = preprocess(X, X_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
-        self.Y = preprocess(Y, Y_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
+        self.X = preprocess(X, self.X_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
+        self.Y = preprocess(Y, self.X_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
 
         self.has_loaded = True
     
@@ -173,6 +176,7 @@ class HAllA(AllA):
     '''
     def _reset_attributes(self):
         self.X, self.Y = None, None
+        self.X_types, self.Y_types = None, None
         self.X_hierarchy, self.Y_hierarchy = None, None
         self.similarity_table = None
         self.pvalue_table, self.qvalue_table = None, None
@@ -229,3 +233,19 @@ class HAllA(AllA):
                             self.similarity_table,
                             cmap=cmap, **kwargs)
     
+    def generate_diagnostic_plot(self, plot_dir='diagnostic'):
+        '''Generate a lattice plot for each significant association;
+        save all plots in the plot_dir folder under config.output['dir']
+        '''
+        # create the diagnostic directory under config.output['dir']
+        create_dir(join(config.output['dir'], plot_dir))
+        for i, block in enumerate(self.significant_blocks):
+            title = 'association_%d' % i
+            out_file = join(config.output['dir'], plot_dir, title)
+            x_data = self.X.to_numpy()[block[0],:]
+            y_data = self.Y.to_numpy()[block[1],:]
+            x_features = self.X.index.to_numpy()[block[0]]
+            y_features = self.Y.index.to_numpy()[block[1]]
+            x_types = np.array(self.X_types)[block[0]]
+            y_types = np.array(self.Y_types)[block[1]]
+            generate_lattice_plot(x_data, y_data, x_features, y_features, x_types, y_types, title, out_file)

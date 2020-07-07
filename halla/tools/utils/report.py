@@ -131,3 +131,58 @@ def report_significant_clusters(dir_name, significant_blocks, x_features, y_feat
     })
     # store into a file
     df.to_csv(filepath, sep='\t', index=False)
+
+def generate_lattice_plot(x_data, y_data, x_features, y_features, x_types, y_types, title, output_file,
+                            figsize=(12, 12)):
+    '''Generate and store lattice plot for each associationn, given:
+    - {x,y}_data    : the data for features in {x,y} involved in the association in numpy
+    - {x,y}_features: the names of the features in {x,y} involved in the association
+    - output_file   : the output file name
+    - title         : the plot title
+    - {x,y}_types   : data types in {x,y}'s features, which determines scatterplot/boxplot/confusion matrix
+    '''
+    if (len(x_data) != len(x_features) and len(x_data) != len(x_types)) or \
+        (len(y_data) != len(y_features) and len(y_data) != len(y_types)):
+        raise ValueError('{x,y}_data should have the same length as {x,y}_features and {x,y}_types!')
+    row_num = len(x_data) + len(y_data)
+    _, axs = plt.subplots(row_num, row_num, figsize=figsize)
+    # combine all data
+    all_data = np.concatenate((x_data, y_data), axis=0)
+    all_features = list(x_features) + list(y_features)
+    all_types = list(x_types) + list(y_types)
+    for i in range(row_num):
+        for j in range(row_num):
+            if i < j:
+                axs[i,j].axis('off')
+                continue
+            if i == j:
+                # 1) plot a histogram if i == j
+                sns.distplot(all_data[i], kde=False, ax=axs[i,j])
+            elif all_types[i] == all_types[j]:
+                if all_types[i] == object:
+                    # 2) plot confusion matrix if both are categorical
+                    conf_mat = np.zeros((max(all_data[i])+1, max(all_data[j])+1))
+                    for k in range(all_data[i]):
+                        conf_mat[all_data[i,k], all_data[j,k]] += 1
+                    sns.heatmap(conf_mat, ax=axs[i,j], annot=True, cbar=False)
+                else:
+                    # 3) plot scatterplot if both are continuous
+                    sns.scatterplot(x=all_data[j], y=all_data[i], ax=axs[i,j])
+            else:
+                # 4) plot boxplot if the data are mixed
+                if all_types[j] == float:
+                    sns.boxplot(x=all_data[j], y=all_data[i], orient='h', ax=axs[i,j])
+                else:
+                    sns.boxplot(x=all_data[j], y=all_data[i], ax=axs[i,j])
+            # remove ticks from inner plots & add labels to side plots
+            if j != 0:
+                axs[i,j].set_yticks([])
+            else:
+                axs[i,j].set_ylabel(all_features[i], fontdict=dict(weight='bold'))
+            if i != row_num - 1:
+                axs[i,j].set_xticks([])
+            else:
+                axs[i,j].set_xlabel(all_features[j], fontdict=dict(weight='bold'))
+    plt.subplots_adjust(wspace=0, hspace=0)
+    plt.savefig(output_file)
+    plt.close()

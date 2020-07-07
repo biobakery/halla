@@ -16,3 +16,4 @@ test_halla = HAllA(discretize_func='equal-freq', discretize_num_bins=4,
 test_halla.load(X_file, Y_file)
 test_halla.run()
 test_halla.generate_hallagram()
+test_halla.generate_diagnostic_plot()
