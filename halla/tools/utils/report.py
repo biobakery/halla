@@ -145,7 +145,7 @@ def generate_lattice_plot(x_data, y_data, x_features, y_features, x_types, y_typ
         (len(y_data) != len(y_features) and len(y_data) != len(y_types)):
         raise ValueError('{x,y}_data should have the same length as {x,y}_features and {x,y}_types!')
     row_num = len(x_data) + len(y_data)
-    _, axs = plt.subplots(row_num, row_num, figsize=figsize)
+    fig, axs = plt.subplots(row_num, row_num, figsize=figsize)
     # combine all data
     all_data = np.concatenate((x_data, y_data), axis=0)
     all_features = list(x_features) + list(y_features)
@@ -183,6 +183,7 @@ def generate_lattice_plot(x_data, y_data, x_features, y_features, x_types, y_typ
                 axs[i,j].set_xticks([])
             else:
                 axs[i,j].set_xlabel(all_features[j], fontdict=dict(weight='bold'))
+    fig.suptitle(title)    
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.savefig(output_file)
     plt.close()

@@ -240,8 +240,8 @@ class HAllA(AllA):
         # create the diagnostic directory under config.output['dir']
         create_dir(join(config.output['dir'], plot_dir))
         for i, block in enumerate(self.significant_blocks):
-            title = 'association_%d' % i
-            out_file = join(config.output['dir'], plot_dir, title)
+            title = 'Association %d' % (i+1)
+            out_file = join(config.output['dir'], plot_dir, 'association_%d' % i)
             x_data = self.X.to_numpy()[block[0],:]
             y_data = self.Y.to_numpy()[block[1],:]
             x_features = self.X.index.to_numpy()[block[0]]
