@@ -118,7 +118,7 @@ class AllA(object):
 
         # clean and preprocess data
         self.X = preprocess(X, self.X_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
-        self.Y = preprocess(Y, self.X_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
+        self.Y = preprocess(Y, self.Y_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
 
         self.has_loaded = True
     
