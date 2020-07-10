@@ -10,6 +10,7 @@ from os.path import dirname, abspath, join
 import sys
 import pandas as pd
 import shutil
+import time
 
 sys.path.append(dirname(dirname(abspath(__file__))))
                 
@@ -54,59 +55,75 @@ def parse_argument(args):
     return(params)
 
 if __name__ == '__main__':
+    print('Running simulation...')
     params = parse_argument(sys.argv)
 
     num_iters = params.iter
     halla_fdr, halla_power = [], []
     alla_fdr, alla_power = [], []
 
-    dataset_dir = 'simulation'
     x_feat_num, y_feat_num = params.xfeatures, params.yfeatures
     sample_num = params.samples
     association = params.association
     pdist_metric = params.metric
     noise_within, noise_between = params.noise_within, params.noise_between
     fdr_alpha = params.fdr_alpha
-    output_file = params.output
+    output_pref = params.output
+    dataset_dir = 'simulation/%s' % output_pref
+    result_dir = 'simulation_out/%s' % output_pref
 
-    X_file = join(dataset_dir, 'X_%s_%d_%d.txt' % (association, x_feat_num, sample_num))
-    Y_file = join(dataset_dir, 'Y_%s_%d_%d.txt' % (association, y_feat_num, sample_num))
-    A_file = join(dataset_dir, 'A_%s_%d_%d.txt' % (association, x_feat_num, y_feat_num))
+    start_time = time.time()
 
-    for _ in range(num_iters):
+    for i in range(num_iters):
+        print('Iteration', i+1)
+        dataset_iter_path = '%s_%d' % (dataset_dir, i)
         # 1.1) create a synthetic dataset
         os.system('python tools/synthetic_data.py -a %s -n %d -xf %d -yf %d -nw %f -nb %f  -o %s' % (
-            association, sample_num, x_feat_num, y_feat_num, noise_within, noise_between, dataset_dir))
+            association, sample_num, x_feat_num, y_feat_num, noise_within, noise_between,
+            dataset_iter_path))
 
+        X_file = join(dataset_iter_path, 'X_%s_%d_%d.txt' % (association, x_feat_num, sample_num))
+        Y_file = join(dataset_iter_path, 'Y_%s_%d_%d.txt' % (association, y_feat_num, sample_num))
+        A_file = join(dataset_iter_path, 'A_%s_%d_%d.txt' % (association, x_feat_num, y_feat_num))
         A = pd.read_table(A_file, index_col=0).to_numpy()
 
         # 1.2) run HAllA
         test_halla = HAllA(discretize_func='equal-freq', discretize_num_bins=3,
                       pdist_metric=pdist_metric, fnr_thresh=0.2, fdr_alpha=fdr_alpha,
-                      out_dir='simulation_out')
+                      out_dir=result_dir)
         test_halla.load(X_file, Y_file)
         test_halla.run()
         # 1.2) compute power and FDR
         halla_power.append(compute_result_power(test_halla.significant_blocks, A))
         halla_fdr.append(compute_result_fdr(test_halla.significant_blocks, A))
 
-        # 1.3) run AllA
+        # 1.3) run AllA; avoid repeating the same computation
         test_alla = AllA(discretize_func='equal-freq', discretize_num_bins=3,
                       pdist_metric=pdist_metric, fnr_thresh=0.2, fdr_alpha=fdr_alpha,
-                      out_dir='simulation_out')
-        test_alla.load(X_file, Y_file)
-        test_alla.run()
+                      out_dir=result_dir)
+        test_alla.similarity_table = test_halla.similarity_table
+        test_alla.pvalue_table     = test_halla.pvalue_table
+        test_alla.fdr_reject_table = test_halla.fdr_reject_table
+        test_alla.qvalue_table     = test_halla.qvalue_table
+        test_alla.X, test_alla.Y   = test_halla.X, test_halla.Y
+        test_alla._find_dense_associated_blocks()
+        # test_alla.load(X_file, Y_file)
+        # test_alla.run()
+
         # 1.3) compute power and FDR
         alla_power.append(compute_result_power(test_alla.significant_blocks, A))
         alla_fdr.append(compute_result_fdr(test_alla.significant_blocks, A))
     
     # remove all generated directories
-    shutil.rmtree('simulation')
-    shutil.rmtree('simulation_out')
+    # shutil.rmtree(iter_path)
+    # shutil.rmtree(result_dir)
 
     # 2) store results in a csv file
     pd.DataFrame(data={
        'type' : ['halla']*num_iters + ['alla']*num_iters,
        'power': halla_power + alla_power,
        'fdr'  : halla_fdr + alla_fdr, 
-    }).to_csv('%s.csv' % output_file)
+    }).to_csv('%s.csv' % output_pref)
+
+    total_time = time.time() - start_time
+    print('Total time is', total_time)
