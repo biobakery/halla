@@ -16,6 +16,7 @@ sys.path.append(dirname(dirname(abspath(__file__))))
                 
 from tools import HAllA, AllA
 from tools.utils.stats import compute_result_power, compute_result_fdr
+from tools.utils.filesystem import create_dir
 
 def parse_argument(args):
     parser = argparse.ArgumentParser(
@@ -62,6 +63,9 @@ if __name__ == '__main__':
     halla_fdr, halla_power = [], []
     alla_fdr, alla_power = [], []
 
+    create_dir('simulation')
+    create_dir('simulation_out')
+
     x_feat_num, y_feat_num = params.xfeatures, params.yfeatures
     sample_num = params.samples
     association = params.association
@@ -69,6 +73,7 @@ if __name__ == '__main__':
     noise_within, noise_between = params.noise_within, params.noise_between
     fdr_alpha = params.fdr_alpha
     output_pref = params.output
+    
     dataset_dir = 'simulation/%s' % output_pref
     result_dir = 'simulation_out/%s' % output_pref
 
