@@ -7,7 +7,7 @@ from .utils.tree import compare_and_find_dense_block
 from .utils.report import generate_hallagram, generate_clustermap, \
                           report_all_associations, report_significant_clusters, \
                           generate_lattice_plot
-from .utils.filesystem import create_dir
+from .utils.filesystem import reset_dir
 
 import pandas as pd
 import numpy as np
@@ -78,7 +78,7 @@ class AllA(object):
         '''
         # create directory
         dir_name = config.output['dir']
-        create_dir(dir_name)
+        reset_dir(dir_name)
 
         # generate all_associations.txt
         report_all_associations(dir_name,
@@ -238,7 +238,7 @@ class HAllA(AllA):
         save all plots in the plot_dir folder under config.output['dir']
         '''
         # create the diagnostic directory under config.output['dir']
-        create_dir(join(config.output['dir'], plot_dir))
+        reset_dir(join(config.output['dir'], plot_dir))
         for i, block in enumerate(self.significant_blocks):
             title = 'Association %d' % (i+1)
             out_file = join(config.output['dir'], plot_dir, 'association_%d' % i)
