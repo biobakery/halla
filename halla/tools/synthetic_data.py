@@ -17,7 +17,7 @@ from scipy.stats import ortho_group
 import math
 
 from utils.data import discretize_vector
-from utils.filesystem import create_dir
+from utils.filesystem import reset_dir
 
 def parse_argument(args):
     parser = argparse.ArgumentParser(
@@ -194,7 +194,7 @@ def store_tables(X, Y, A, association, out_dir):
     y_feat_num, _ = Y.shape
 
     # create directory
-    create_dir(out_dir)
+    reset_dir(out_dir)
     
     # store df in files
     filename_format = '%s_%s_%s_%s.txt' % ('%s', association, '%s', '%d')
