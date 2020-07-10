@@ -91,4 +91,5 @@ def compute_result_fdr(significant_blocks, true_assoc):
 		for i,j in itertools.product(block[0], block[1]):
 			predicted_positive += 1
 			if true_assoc[i][j] != 1: false_positive += 1
+	if predicted_positive == 0: return(np.nan)
 	return(false_positive * 1.0 / predicted_positive) 
