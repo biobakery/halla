@@ -58,6 +58,7 @@ def parse_argument(args):
 if __name__ == '__main__':
     print('Running simulation...')
     params = parse_argument(sys.argv)
+    print(params)
 
     num_iters = params.iter
     halla_fdr, halla_power = [], []
