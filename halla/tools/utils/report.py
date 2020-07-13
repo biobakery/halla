@@ -157,14 +157,16 @@ def generate_lattice_plot(x_data, y_data, x_features, y_features, x_types, y_typ
                 continue
             if i == j:
                 # 1) plot a histogram if i == j
-                sns.distplot(all_data[i], kde=False, ax=axs[i,j])
+                # categorical bins should not be set by default
+                bins = len(list(set(all_data[i]))) if all_types[i] == object else None
+                sns.distplot(all_data[i], kde=False, ax=axs[i,j], bins=bins)
             elif all_types[i] == all_types[j]:
                 if all_types[i] == object:
                     # 2) plot confusion matrix if both are categorical
                     conf_mat = np.zeros((max(all_data[i])+1, max(all_data[j])+1))
-                    for k in range(all_data[i]):
+                    for k in range(len(all_data[i])):
                         conf_mat[all_data[i,k], all_data[j,k]] += 1
-                    sns.heatmap(conf_mat, ax=axs[i,j], annot=True, cbar=False)
+                    sns.heatmap(conf_mat, ax=axs[i,j], annot=True, cbar=False, cmap='Blues', linewidths=0.1, linecolor='gray')
                 else:
                     # 3) plot scatterplot if both are continuous
                     sns.scatterplot(x=all_data[j], y=all_data[i], ax=axs[i,j])
@@ -174,16 +176,23 @@ def generate_lattice_plot(x_data, y_data, x_features, y_features, x_types, y_typ
                     sns.boxplot(x=all_data[j], y=all_data[i], orient='h', ax=axs[i,j])
                 else:
                     sns.boxplot(x=all_data[j], y=all_data[i], ax=axs[i,j])
-            # remove ticks from inner plots & add labels to side plots
-            if j != 0:
-                axs[i,j].set_yticks([])
+            # add y-ticks on the right side on histogram plots
+            if i == j:
+                axs[i,j].yaxis.tick_right()
+                if i != row_num - 1: axs[i,j].set_xticks([])
             else:
-                axs[i,j].set_ylabel(all_features[i], fontdict=dict(weight='bold'))
-            if i != row_num - 1:
-                axs[i,j].set_xticks([])
-            else:
-                axs[i,j].set_xlabel(all_features[j], fontdict=dict(weight='bold'))
+                # remove ticks from inner plots
+                if j != 0: axs[i,j].set_yticks([])
+                if i != row_num - 1: axs[i,j].set_xticks([])
+            # add labels to outer  plots
+            if j == 0: axs[i,j].set_ylabel(all_features[i], fontdict=dict(weight='bold'))
+            if i == row_num - 1: axs[i,j].set_xlabel(all_features[j], fontdict=dict(weight='bold'))
+            for spine in axs[i,j].spines:
+                axs[i,j].spines[spine].set_visible(True)
+    # align labels
+    fig.align_xlabels()
+    fig.align_ylabels()
     fig.suptitle(title)    
-    plt.subplots_adjust(wspace=0, hspace=0)
+    plt.subplots_adjust(wspace=.07, hspace=.07)
     plt.savefig(output_file)
     plt.close()
