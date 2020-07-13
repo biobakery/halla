@@ -106,11 +106,13 @@ def report_all_associations(dir_name, x_features, y_features, sim_table, pval_ta
     # store into a file
     df.to_csv(filepath, sep='\t', index=False)
 
-def report_significant_clusters(dir_name, significant_blocks, x_features, y_features, output_file='sig_clusters.txt'):
+def report_significant_clusters(dir_name, significant_blocks, scores, x_features, y_features,
+                                score_label='best_pvalue', output_file='sig_clusters.txt'):
     '''Store only the significant clusters, given:
     - dir_name          : output directory name
     - significant_blocks: a list of significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
+    - scores            : a list of scores for each significant blocks
     - {x,y}_features    : feature names of {x,y}
     - output_file       : the output file name
 
@@ -118,6 +120,7 @@ def report_significant_clusters(dir_name, significant_blocks, x_features, y_feat
     Store a .txt file that contains a table with column titles:
         'cluster_X', 'cluster_Y'
     '''
+    score_label = score_label.replace(' ', '_')
     filepath = join(dir_name, output_file)
     # initiate arrays for generating a pandas DataFrame later
     list_x_clust, list_y_clust = [], []
@@ -126,8 +129,10 @@ def report_significant_clusters(dir_name, significant_blocks, x_features, y_feat
         list_y_clust.append(';'.join([y_features[idx] for idx in block[1]]))
     # create a pandas DataFrame
     df = pd.DataFrame(data={
-        'cluster_X': list_x_clust,
-        'cluster_Y': list_y_clust
+        'cluster_rank': [i+1 for i in range(len(significant_blocks))],
+        'cluster_X'   : list_x_clust,
+        'cluster_Y'   : list_y_clust,
+        score_label   : scores
     })
     # store into a file
     df.to_csv(filepath, sep='\t', index=False)
