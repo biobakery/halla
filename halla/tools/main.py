@@ -23,7 +23,7 @@ class AllA(object):
                  pdist_metric=config.association['pdist_metric'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
-                 out_dir=config.output['dir'], verbose=config.output['verbose'],
+                 out_dir=config.output['dir'], verbose=config.output['verbose'], 
                  seed=None):
         # update AllA config setting
         update_config('discretize', bypass_if_possible=discretize_bypass_if_possible, func=discretize_func, num_bins=discretize_num_bins)
@@ -44,6 +44,7 @@ class AllA(object):
         self.pvalue_table, self.qvalue_table = None, None
         self.fdr_reject_table = None
         self.significant_blocks = None
+        self.significant_blocks_qvalues = None
         self.has_loaded = False
         self.has_run = False
 
@@ -66,8 +67,14 @@ class AllA(object):
     def _find_dense_associated_blocks(self):
         '''Find significant cells based on FDR reject table
         '''
+        def compare_qvalue(x):
+            return(self.qvalue_table[x[0][0], x[1][0]])
+        
         n, m = self.X.shape[0], self.Y.shape[0]
         self.significant_blocks = [[[x], [y]] for x in range(n) for y in range(m) if self.fdr_reject_table[x][y]]
+        # sort by the p-values in ascending order
+        self.significant_blocks.sort(key=compare_qvalue)
+        self.significant_blocks_qvalues = [self.qvalue_table[x[0][0]][x[1][0]] for x in self.significant_blocks]
     
     def _generate_reports(self):
         '''Generate reports and store in config.output['dir'] directory:
@@ -90,6 +97,7 @@ class AllA(object):
         # generate sig_clusters.txt
         report_significant_clusters(dir_name,
                                     self.significant_blocks,
+                                    self.significant_blocks_qvalues,
                                     self.X.index.to_numpy(),
                                     self.Y.index.to_numpy())
     
@@ -159,18 +167,18 @@ class HAllA(AllA):
                  pdist_metric=config.association['pdist_metric'], linkage_method=config.hierarchy['linkage_method'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
-                 fnr_thresh=config.stats['fnr_thresh'], verbose=config.output['verbose'],
-                 out_dir=config.output['dir'],
+                 fnr_thresh=config.stats['fnr_thresh'], rank_cluster=config.stats['rank_cluster'],
+                 out_dir=config.output['dir'], verbose=config.output['verbose'],
                  seed=None):
+        # TODO: add restrictions on the input - ensure the methods specified are available
         # retrieve AllA variables
         alla_vars = vars()
-        del alla_vars['linkage_method']
-        del alla_vars['fnr_thresh']
+        for key in ['linkage_method', 'fnr_thresh', 'rank_cluster']: del alla_vars[key]
         # call AllA init function
         AllA.__init__(**alla_vars)
 
         # update HAllA config settings
-        update_config('stats', fnr_thresh=fnr_thresh)
+        update_config('stats', fnr_thresh=fnr_thresh, rank_cluster=rank_cluster)
         update_config('hierarchy', linkage_method=linkage_method)
 
     '''Private functions
@@ -183,6 +191,7 @@ class HAllA(AllA):
         self.pvalue_table, self.qvalue_table = None, None
         self.fdr_reject_table = None
         self.significant_blocks = None
+        self.significant_blocks_qvalues = None
         self.has_loaded = False
         self.has_run = False
     
@@ -191,8 +200,18 @@ class HAllA(AllA):
         self.Y_hierarchy = HierarchicalTree(self.Y, config.association['pdist_metric'], config.hierarchy['linkage_method'])
 
     def _find_dense_associated_blocks(self):
+        def sort_by_best_qvalue(x):
+            qvalue_table = self.qvalue_table[x[0],:][:,x[1]]
+            return(qvalue_table.min())
+        def sort_by_avg_qvalue(x):
+            qvalue_table = self.qvalue_table[x[0],:][:,x[1]]
+            return(qvalue_table.mean())
         self.significant_blocks = compare_and_find_dense_block(self.X_hierarchy.tree, self.Y_hierarchy.tree,
                                      self.fdr_reject_table, fnr_thresh=config.stats['fnr_thresh'])
+        # sort significant blocks by the rank_cluster method
+        sort_func = sort_by_best_qvalue if config.stats['rank_cluster'] == 'best' else sort_by_avg_qvalue
+        self.significant_blocks.sort(key=sort_func)
+        self.significant_blocks_qvalues = [sort_func(x) for x in self.significant_blocks]
 
     def _generate_reports(self):
         '''Generate reports and store in config.output['dir'] directory
