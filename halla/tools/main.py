@@ -23,14 +23,13 @@ class AllA(object):
                  pdist_metric=config.association['pdist_metric'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
-                 fnr_thresh=config.stats['fnr_thresh'],
                  out_dir=config.output['dir'], verbose=config.output['verbose'],
                  seed=None):
         # update AllA config setting
         update_config('discretize', bypass_if_possible=discretize_bypass_if_possible, func=discretize_func, num_bins=discretize_num_bins)
         update_config('association', pdist_metric=pdist_metric)
         update_config('permute', func=permute_func, iters=permute_iters)
-        update_config('stats', fdr_alpha=fdr_alpha, fdr_method=fdr_method, fnr_thresh=fnr_thresh)
+        update_config('stats', fdr_alpha=fdr_alpha, fdr_method=fdr_method)
         update_config('output', dir=out_dir, verbose=verbose)
         # TODO: properly set verbose to False
         self._reset_attributes()
@@ -166,10 +165,12 @@ class HAllA(AllA):
         # retrieve AllA variables
         alla_vars = vars()
         del alla_vars['linkage_method']
+        del alla_vars['fnr_thresh']
         # call AllA init function
         AllA.__init__(**alla_vars)
 
         # update HAllA config settings
+        update_config('stats', fnr_thresh=fnr_thresh)
         update_config('hierarchy', linkage_method=linkage_method)
 
     '''Private functions
