@@ -146,16 +146,20 @@ class AllA(object):
         # generate reports
         self._generate_reports()
     
-    def generate_hallagram(self, cmap='RdBu_r', **kwargs):
+    def generate_hallagram(self, cmap='RdBu_r', figsize=(12, 12), text_scale=10, **kwargs):
         '''Generate a hallagram
         # TODO: store in config.output['dir'] directory?
         '''
+        if cmap is None:
+            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi'] else 'RdBu_r'
         generate_hallagram(self.significant_blocks,
                            self.X.index.to_numpy(),
                            self.Y.index.to_numpy(),
                            [idx for idx in range(self.X.shape[0])],
                            [idx for idx in range(self.Y.shape[0])],
                            self.similarity_table,
+                           figsize=figsize,
+                           text_scale=text_scale,
                            cmap=cmap, **kwargs)
 
 ########
@@ -241,16 +245,20 @@ class HAllA(AllA):
         # generate reports
         self._generate_reports()
     
-    def generate_hallagram(self, cmap='RdBu_r', **kwargs):
+    def generate_hallagram(self, cmap=None, figsize=(12, 12), text_scale=10, **kwargs):
         '''Generate a hallagram
         # TODO: store in config.output['dir'] directory?
         '''
+        if cmap is None:
+            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi'] else 'RdBu_r'
         generate_clustermap(self.significant_blocks,
                             self.X.index.to_numpy(),
                             self.Y.index.to_numpy(),
                             self.X_hierarchy.linkage,
                             self.Y_hierarchy.linkage,
                             self.similarity_table,
+                            figsize=figsize,
+                            text_scale=text_scale,
                             cmap=cmap, **kwargs)
     
     def generate_diagnostic_plot(self, plot_dir='diagnostic'):
