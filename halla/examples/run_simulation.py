@@ -31,12 +31,14 @@ def parse_argument(args):
     parser.add_argument('-a', '--association', help='association type {line, parabola, log, sine, step, mixed, categorical}; default: line',
                         default='line', choices=['line', 'parabola', 'log', 'sine', 'step', 'mixed', 'categorical'], required=False)
     parser.add_argument('-nw', '--noise-within', dest='noise_within', help='noise within blocks [0 (no noise)..1 (complete noise)]',
-                        default=0.55, type=float, required=False)
+                        default=0.5, type=float, required=False)
     parser.add_argument('-nb', '--noise-between', dest='noise_between', help='noise between associated blocks [0 (no noise)..1 (complete noise)]',
                         default=0.5, type=float, required=False)
     parser.add_argument('-fdr', '--fdr_alpha', help='FDR alpha', default=0.05, type=float, required=False)
+    parser.add_argument('-fnr', '--fnr_thresh', help='FNR threshold for HAllA', default=0.1, type=float, required=False)
     parser.add_argument('-m', '--metric', help='Similarity metric', default='pearson', choices=['pearson', 'spearman', 'nmi'], required=False)
     parser.add_argument('-o', '--output', help='Output file prefix', default='simul_out', required=False)
+    parser.add_argument('--skip_alla', default=False, action='store_true')
 
     # check requirements
     params = parser.parse_args()
@@ -73,7 +75,9 @@ if __name__ == '__main__':
     pdist_metric = params.metric
     noise_within, noise_between = params.noise_within, params.noise_between
     fdr_alpha = params.fdr_alpha
+    fnr_thresh = params.fnr_thresh
     output_pref = params.output
+    skip_alla = params.skip_alla
     
     dataset_dir = 'simulation/%s' % output_pref
     result_dir = 'simulation_out/%s' % output_pref
@@ -95,7 +99,7 @@ if __name__ == '__main__':
 
         # 1.2) run HAllA
         test_halla = HAllA(discretize_func='equal-freq', discretize_num_bins=3,
-                      pdist_metric=pdist_metric, fnr_thresh=0.2, fdr_alpha=fdr_alpha,
+                      pdist_metric=pdist_metric, fnr_thresh=fnr_thresh, fdr_alpha=fdr_alpha,
                       out_dir=result_dir)
         test_halla.load(X_file, Y_file)
         test_halla.run()
@@ -103,9 +107,10 @@ if __name__ == '__main__':
         halla_power.append(compute_result_power(test_halla.significant_blocks, A))
         halla_fdr.append(compute_result_fdr(test_halla.significant_blocks, A))
 
+        if skip_alla: continue
         # 1.3) run AllA; avoid repeating the same computation
         test_alla = AllA(discretize_func='equal-freq', discretize_num_bins=3,
-                      pdist_metric=pdist_metric, fnr_thresh=0.2, fdr_alpha=fdr_alpha,
+                      pdist_metric=pdist_metric, fdr_alpha=fdr_alpha,
                       out_dir=result_dir)
         test_alla.similarity_table = test_halla.similarity_table
         test_alla.pvalue_table     = test_halla.pvalue_table
@@ -125,11 +130,18 @@ if __name__ == '__main__':
     # shutil.rmtree(result_dir)
 
     # 2) store results in a csv file
-    pd.DataFrame(data={
-       'type' : ['halla']*num_iters + ['alla']*num_iters,
-       'power': halla_power + alla_power,
-       'fdr'  : halla_fdr + alla_fdr, 
-    }).to_csv('%s.csv' % output_pref)
+    if skip_alla:
+        pd.DataFrame(data={
+           'type' : ['halla']*num_iters,
+           'power': halla_power,
+           'fdr'  : halla_fdr, 
+        }).to_csv('%s.csv' % output_pref)
+    else:
+        pd.DataFrame(data={
+           'type' : ['halla']*num_iters + ['alla']*num_iters,
+           'power': halla_power + alla_power,
+           'fdr'  : halla_fdr + alla_fdr, 
+        }).to_csv('%s.csv' % output_pref)
 
     total_time = time.time() - start_time
     print('Total time is', total_time)
