@@ -9,20 +9,41 @@ from os.path import join
 def get_indices_map_dict(new_indices):
     return({ idx: i for i, idx in enumerate(new_indices) })
 
+def get_included_features(significant_blocks, num_x_features, num_y_features, trim=True):
+    '''if trim is True, returns only the included features in X and Y
+    '''
+    if trim:
+        included_x_features, included_y_features = [], []
+        for block in significant_blocks:
+            included_x_features = included_x_features + block[0]
+            included_y_features = included_y_features + block[1]
+        included_x_features = sorted(list(set(included_x_features)))
+        included_y_features = sorted(list(set(included_y_features)))
+    else:
+        included_x_features = [idx for idx in range(num_x_features)]
+        included_y_features = [idx for idx in range(num_y_features)]
+    return(included_x_features, included_y_features)
+
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table,
-                        figsize=(12, 12), cmap='RdBu_r', text_scale=10, **kwargs):
+                        trim=True, figsize=(12, 12), cmap='RdBu_r', text_scale=10, **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
     - {x,y}_features    : feature names of {x,y}
     - clust_{x,y}_idx   : the indices of {x,y} in clustered form 
     - sim_table         : similarity table with size [len(x_features), len(y_features)]
+    - trim              : if True, trim all features that are not significant
     - figsize           : figure size
     - cmap              : color map
     - text_scale        : how much the rank text size should be scaled
     - kwargs            : other keyword arguments to be passed to seaborn's heatmap()
     '''
-    clust_x_idx, clust_y_idx = np.asarray(clust_x_idx), np.asarray(clust_y_idx)
+    included_x_feat, included_y_feat = get_included_features(significant_blocks,
+                                                             len(x_features),
+                                                             len(y_features), trim)
+    # filter the indices with the included features
+    clust_x_idx = np.asarray([i for i in clust_x_idx if i in included_x_feat])
+    clust_y_idx = np.asarray([i for i in clust_y_idx if i in included_y_feat])
     # shuffle similarity table
     clust_sim_table = np.asarray(sim_table)[clust_x_idx,:][:,clust_y_idx]
     # shuffle features
@@ -33,7 +54,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     x_ori2clust_idx = get_indices_map_dict(clust_x_idx)
     y_ori2clust_idx = get_indices_map_dict(clust_y_idx)
 
-    vmax, vmin = np.max(sim_table), np.min(sim_table)
+    vmax, vmin = np.max(clust_sim_table), np.min(clust_sim_table)
     if vmin < 0 and vmax > 0:
         vmax = max(abs(vmin), vmax)
         vmin = -vmax
