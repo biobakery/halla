@@ -111,3 +111,24 @@ def compare_and_find_dense_block(X, Y, fdr_reject_table, fnr_thresh=0.1):
     final_blocks = []
     _check_iter_block(X, Y)
     return(final_blocks)
+
+def trim_block(block, fdr_reject_table):
+    '''Trim the sides if all points on the side are insignificant
+    # TODO: set a threshold?
+    '''
+    x_features, y_features = np.array(block[0]), np.array(block[1])
+    x_start, x_end = 0, len(x_features)-1
+    y_start, y_end = 0, len(y_features)-1
+    while x_start < x_end:
+        if fdr_reject_table[x_features[x_start],:][y_features].sum() > 0: break
+        x_start += 1
+    while x_end > x_start:
+        if fdr_reject_table[x_features[x_end],:][y_features].sum() > 0: break
+        x_end -= 1
+    while y_start < y_end:
+        if fdr_reject_table[:, y_features[y_start]][x_features].sum() > 0: break
+        y_start += 1
+    while y_end > y_start:
+        if fdr_reject_table[:, y_features[y_end]][x_features].sum() > 0: break
+        y_end -= 1
+    return([[x_features[x] for x in range(x_start, x_end+1)], [y_features[y] for y in range(y_start, y_end+1)]])
