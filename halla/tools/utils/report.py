@@ -25,7 +25,7 @@ def get_included_features(significant_blocks, num_x_features, num_y_features, tr
     return(included_x_features, included_y_features)
 
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table,
-                        trim=True, figsize=(12, 12), cmap='RdBu_r', text_scale=10, **kwargs):
+                        trim=True, figsize=(12, 12), cmap='RdBu_r', text_scale=10, output_file='out.png', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
@@ -82,7 +82,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
             path_effects.Stroke(linewidth=3, foreground='black'),
             path_effects.Normal(),
         ])
-    plt.show()
+    plt.savefig(output_file)
 
 def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table,
                         figsize=(12, 12), cmap='RdBu_r', text_scale=10, **kwargs):
