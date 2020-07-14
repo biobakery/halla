@@ -3,7 +3,7 @@ from .hierarchy import HierarchicalTree
 from .utils.data import preprocess, eval_type, is_all_cont
 from .utils.similarity import get_similarity_function
 from .utils.stats import get_pvalue_table, pvalues2qvalues
-from .utils.tree import compare_and_find_dense_block
+from .utils.tree import compare_and_find_dense_block, trim_block
 from .utils.report import generate_hallagram, generate_clustermap, \
                           report_all_associations, report_significant_clusters, \
                           generate_lattice_plot
@@ -212,6 +212,7 @@ class HAllA(AllA):
             return(qvalue_table.mean())
         self.significant_blocks = compare_and_find_dense_block(self.X_hierarchy.tree, self.Y_hierarchy.tree,
                                      self.fdr_reject_table, fnr_thresh=config.stats['fnr_thresh'])
+        self.significant_blocks = [trim_block(block, self.fdr_reject_table) for block in self.significant_blocks]
         # sort significant blocks by the rank_cluster method
         sort_func = sort_by_best_qvalue if config.stats['rank_cluster'] == 'best' else sort_by_avg_qvalue
         self.significant_blocks.sort(key=sort_func)
