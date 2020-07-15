@@ -64,6 +64,10 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     ax = sns.heatmap(clust_sim_table, xticklabels=clust_y_features, yticklabels=clust_x_features,
                         cmap=cmap, vmin=vmin, vmax=vmax, square=True,
                         cbar_kws={ 'shrink': 0.5 }, **kwargs)
+    ax.yaxis.tick_right()
+    ax.yaxis.set_label_position('right')
+    ax.set_yticklabels(clust_x_features, rotation=0, ha='left')
+    
     
     for rank, block in enumerate(significant_blocks):
         x_block, y_block = block[0], block[1]
@@ -85,7 +89,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     plt.savefig(output_file)
 
 def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table,
-                        figsize=(12, 12), cmap='RdBu_r', text_scale=10, **kwargs):
+                        figsize=(12, 12), cmap='RdBu_r', text_scale=10, output_file='out.png', **kwargs):
     '''Plot a clustermap given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
@@ -124,7 +128,7 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
             path_effects.Stroke(linewidth=3, foreground='black'),
             path_effects.Normal(),
         ])
-    plt.show()
+    plt.savefig(output_file)
 
 def report_all_associations(dir_name, x_features, y_features, sim_table, pval_table, qval_table, output_file='all_associations.txt'):
     '''Store the association between each feature in X and Y along with p-values and q-values, given:
