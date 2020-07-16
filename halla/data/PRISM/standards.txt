@@ -1,0 +1,466 @@
+C18-neg_Cluster_0004	4-hydroxystyrene
+C18-neg_Cluster_0019	p-hydroxyphenylacetate
+C18-neg_Cluster_0025	acesulfame
+C18-neg_Cluster_0031	phenyllactate
+C18-neg_Cluster_0045	azelate
+C18-neg_Cluster_0064	sebacate
+C18-neg_Cluster_0079	undecanedionate
+C18-neg_Cluster_0090	acetytyrosine
+C18-neg_Cluster_0107	myristic acid
+C18-neg_Cluster_0111	dodecanedioic acid
+C18-neg_Cluster_0144	2-hydroxymyristic acid
+C18-neg_Cluster_0164	palmitoleic acid
+C18-neg_Cluster_0171	palmitic acid
+C18-neg_Cluster_0177	tetradecanedioate
+C18-neg_Cluster_0183	1,2,3,4-tetrahydro-b-carboline-1,3-dicarboxylic acid
+C18-neg_Cluster_0219	2-hydroxyhexadecanoate
+C18-neg_Cluster_0244	alpha-linolenic acid
+C18-neg_Cluster_0246	linoleic acid
+C18-neg_Cluster_0250	oleic acid
+C18-neg_Cluster_0256	stearic acid
+C18-neg_Cluster_0268	hexadecanedioic acid
+C18-neg_Cluster_0351	eicosapentaenoic acid
+C18-neg_Cluster_0354	arachidonic acid
+C18-neg_Cluster_0361	eicosatrienoic acid
+C18-neg_Cluster_0373	eicosenoate
+C18-neg_Cluster_0393	12.13-diHOME
+C18-neg_Cluster_0394	9.10-diHOME
+C18-neg_Cluster_0472	docosahexaenoic acid
+C18-neg_Cluster_0486	carnosol
+C18-neg_Cluster_0490	docosapentaenoic acid
+C18-neg_Cluster_0506	adrenic acid
+C18-neg_Cluster_0515	palmitoylethanolamide
+C18-neg_Cluster_0530	13-docosenoate
+C18-neg_Cluster_0563	palmitoylethanolamide
+C18-neg_Cluster_0591	eicosatrienoic acid
+C18-neg_Cluster_0672	nervonic acid
+C18-neg_Cluster_0709	arachidonic acid
+C18-neg_Cluster_0729	docosapentaenoic acid 
+C18-neg_Cluster_0731	lithocholic acid
+C18-neg_Cluster_0830	hyodeoxycholate/ursodeoxycholate*
+C18-neg_Cluster_0832	chenodeoxycholate
+C18-neg_Cluster_0833	deoxycholic acid
+C18-neg_Cluster_0863	docosapentaenoic acid
+C18-neg_Cluster_0900	ketodeoxycholate
+C18-neg_Cluster_0901	7-ketodeoxycholate
+C18-neg_Cluster_0927	alpha-muricholate
+C18-neg_Cluster_0930	cholate
+C18-neg_Cluster_1045	chenodeoxycholate
+C18-neg_Cluster_1060	chenodeoxycholate
+C18-neg_Cluster_1081	glycolithocholic acid
+C18-neg_Cluster_1129	chenodeoxycholate
+C18-neg_Cluster_1131	arachidonic acid
+C18-neg_Cluster_1178	cholate
+C18-neg_Cluster_1196	glycodeoxycholic acid
+C18-neg_Cluster_1197	glycoursodeoxycholic acid
+C18-neg_Cluster_1258	cholate
+C18-neg_Cluster_1273	cholate
+C18-neg_Cluster_1275	oleanolic acid
+C18-neg_Cluster_1292	chenodeoxycholate
+C18-neg_Cluster_1324	docosapentaenoic acid 
+C18-neg_Cluster_1372	cholate
+C18-neg_Cluster_1385	maslinic acid
+C18-neg_Cluster_1465	taurolithocholic acid
+C18-neg_Cluster_1574	taurochenodesoxycholic acid
+C18-neg_Cluster_1575	taurodeoxycholic acid
+C18-neg_Cluster_1576	taurohyodeoxycholate/ tauroursodeoxycholate
+C18-neg_Cluster_1596	oleanolic acid
+C18-neg_Cluster_1620	arachidonic acid
+C18-neg_Cluster_1621	cholate
+C18-neg_Cluster_1680	maslinic acid
+C18-neg_Cluster_1722	cholate
+C18-neg_Cluster_1803	maslinic acid
+C18-neg_Cluster_1941	arachidonic acid
+C18-neg_Cluster_2021	urobilin
+C18-neg_Cluster_2068	maslinic acid
+C8-pos_Cluster_0100	7-hexadecenoic acid methyl ester
+C8-pos_Cluster_0123	sphingosine
+C8-pos_Cluster_0136	piperine
+C8-pos_Cluster_0166	sphingosine
+C8-pos_Cluster_0168	palmitoylethanolamide
+C8-pos_Cluster_0253	sphingosine
+C8-pos_Cluster_0264	linoleoyl ethanolamide 
+C8-pos_Cluster_0277	stearoyl ethanolamide
+C8-pos_Cluster_0288	palmitoyl glycerol
+C8-pos_Cluster_0313	C16:1 MAG*
+C8-pos_Cluster_0338	C18:0e MAG
+C8-pos_Cluster_0339	linoleoyl ethanolamide 
+C8-pos_Cluster_0341	N-oleoylethanolamine 
+C8-pos_Cluster_0354	C16:1 MAG
+C8-pos_Cluster_0410	C18:0e MAG
+C8-pos_Cluster_0416	cholesterol
+C8-pos_Cluster_0446	C18:0 MAG
+C8-pos_Cluster_0467	C18:0 MAG
+C8-pos_Cluster_0478	cholestenone
+C8-pos_Cluster_0515	beta-sitosterol
+C8-pos_Cluster_0554	cholestenone
+C8-pos_Cluster_0629	cholestenone
+C8-pos_Cluster_0678	C22:1 MAG
+C8-pos_Cluster_0705	cholestenone
+C8-pos_Cluster_0737	epoxysqualene
+C8-pos_Cluster_0868	C24:0 TAG
+C8-pos_Cluster_0878	C16:0 LPC
+C8-pos_Cluster_0915	C20:0 LPE
+C8-pos_Cluster_0936	C18:3 LPC
+C8-pos_Cluster_0939	C18:2 LPC
+C8-pos_Cluster_0945	C18:1 LPC
+C8-pos_Cluster_0949	C18:0 LPC
+C8-pos_Cluster_0988	sphingosine
+C8-pos_Cluster_1004	C16:0 ceramide (d18:1)
+C8-pos_Cluster_1012	C20:5 LPC
+C8-pos_Cluster_1070	C30:0 DAG
+C8-pos_Cluster_1146	C32:2 DAG*
+C8-pos_Cluster_1186	C32:0 DAG
+C8-pos_Cluster_1262	C34:3 DAG*
+C8-pos_Cluster_1271	C34:2 DAG*
+C8-pos_Cluster_1277	C34:1 DAG*
+C8-pos_Cluster_1282	C34:3 DAG
+C8-pos_Cluster_1291	C34:2 DAG
+C8-pos_Cluster_1302	C34:0 DAG*
+C8-pos_Cluster_1303	C14:0 CE
+C8-pos_Cluster_1351	C36:4 DAG*
+C8-pos_Cluster_1358	C36:3 DAG*
+C8-pos_Cluster_1364	C36:2 DAG*
+C8-pos_Cluster_1367	C36:4 DAG
+C8-pos_Cluster_1369	C16:1 CE
+C8-pos_Cluster_1373	C36:3 DAG
+C8-pos_Cluster_1375	C16:0 CE
+C8-pos_Cluster_1377	C36:2 DAG
+C8-pos_Cluster_1386	C16:1 CE*
+C8-pos_Cluster_1393	C36:0 DAG
+C8-pos_Cluster_1395	C16:0 CE
+C8-pos_Cluster_1468	C18:3 CE
+C8-pos_Cluster_1473	C38:5 DAG*
+C8-pos_Cluster_1478	C18:2 CE
+C8-pos_Cluster_1490	C18:1 CE
+C8-pos_Cluster_1494	C18:3 CE*
+C8-pos_Cluster_1495	linoleoyl ethanolamide 
+C8-pos_Cluster_1502	C18:0 CE
+C8-pos_Cluster_1504	C18:2 CE*
+C8-pos_Cluster_1514	C18:1 CE  
+C8-pos_Cluster_1521	C14:0 SM
+C8-pos_Cluster_1525	C18:0 CE
+C8-pos_Cluster_1597	C20:4 CE
+C8-pos_Cluster_1610	C20:3 CE
+C8-pos_Cluster_1614	C20:5 CE
+C8-pos_Cluster_1623	C20:4 CE
+C8-pos_Cluster_1635	C20:3 CE*
+C8-pos_Cluster_1647	C16:1 SM
+C8-pos_Cluster_1657	C16:0 SM
+C8-pos_Cluster_1712	C22:5 CE
+C8-pos_Cluster_1722	C22:4 CE
+C8-pos_Cluster_1726	C22:6 CE
+C8-pos_Cluster_1727	C34:0 PE
+C8-pos_Cluster_1736	C22:5 CE*
+C8-pos_Cluster_1742	C22:4 CE*
+C8-pos_Cluster_1758	C18:0 SM
+C8-pos_Cluster_1761	C32:1 PC
+C8-pos_Cluster_1791	C42:0 TAG
+C8-pos_Cluster_1799	C42:0 TAG
+C8-pos_Cluster_1800	C34:1 PC plasmalogen-A
+C8-pos_Cluster_1817	C34:2 PC
+C8-pos_Cluster_1821	C34:1 PC
+C8-pos_Cluster_1833	C36:5 PC plasmalogen-A
+C8-pos_Cluster_1835	C36:5 PC plasmalogen-B
+C8-pos_Cluster_1837	C44:1 TAG
+C8-pos_Cluster_1848	C44:0 TAG*
+C8-pos_Cluster_1849	cholestenone
+C8-pos_Cluster_1854	C44:1 TAG
+C8-pos_Cluster_1856	C36:2 PC plasmalogen
+C8-pos_Cluster_1861	C44:0 TAG
+C8-pos_Cluster_1873	C36:4 PC-A
+C8-pos_Cluster_1874	C36:4 PC-B
+C8-pos_Cluster_1879	C36:3 PC
+C8-pos_Cluster_1884	C22:1 SM
+C8-pos_Cluster_1886	C36:2 PC
+C8-pos_Cluster_1888	C22:0 SM
+C8-pos_Cluster_1889	C36:1 PC
+C8-pos_Cluster_1900	cholestenone
+C8-pos_Cluster_1902	C46:2 TAG*
+C8-pos_Cluster_1907	C46:1 TAG*
+C8-pos_Cluster_1912	C46:0 TAG*
+C8-pos_Cluster_1915	C46:2 TAG
+C8-pos_Cluster_1922	C46:1 TAG
+C8-pos_Cluster_1932	C46:0 TAG
+C8-pos_Cluster_1965	C24:1 SM
+C8-pos_Cluster_1970	C24:0 SM
+C8-pos_Cluster_1976	C48:2 TAG*
+C8-pos_Cluster_1980	C48:4 TAG
+C8-pos_Cluster_1987	C48:3 TAG
+C8-pos_Cluster_1992	C48:0 TAG*
+C8-pos_Cluster_1995	C48:2 TAG
+C8-pos_Cluster_1997	C48:1 TAG
+C8-pos_Cluster_2003	C48:0 TAG
+C8-pos_Cluster_2019	C24:1 SM 
+C8-pos_Cluster_2022	C49:1 TAG
+C8-pos_Cluster_2040	C50:4 TAG*
+C8-pos_Cluster_2046	C50:3 TAG*
+C8-pos_Cluster_2048	C50:5 TAG
+C8-pos_Cluster_2056	C50:4 TAG
+C8-pos_Cluster_2064	C50:1 TAG*
+C8-pos_Cluster_2069	C50:3 TAG
+C8-pos_Cluster_2075	C50:2 TAG
+C8-pos_Cluster_2081	C50:1 TAG
+C8-pos_Cluster_2088	C50:0 TAG
+C8-pos_Cluster_2094	C51:3 TAG*
+C8-pos_Cluster_2102	C51:2 TAG*
+C8-pos_Cluster_2117	C51:2 TAG*
+C8-pos_Cluster_2119	C52:6 TAG*
+C8-pos_Cluster_2124	C52:5 TAG*
+C8-pos_Cluster_2128	C52:7 TAG
+C8-pos_Cluster_2130	C51:0 TAG*
+C8-pos_Cluster_2132	C52:4 TAG*
+C8-pos_Cluster_2134	C52:6 TAG
+C8-pos_Cluster_2136	C52:3 TAG*
+C8-pos_Cluster_2138	C52:5 TAG
+C8-pos_Cluster_2140	C52:2 TAG*
+C8-pos_Cluster_2141	C52:4 TAG
+C8-pos_Cluster_2147	C52:1 TAG*
+C8-pos_Cluster_2149	C52:3 TAG
+C8-pos_Cluster_2154	C52:0 TAG*
+C8-pos_Cluster_2156	C52:2 TAG
+C8-pos_Cluster_2161	C52:1 TAG
+C8-pos_Cluster_2168	C52:0 TAG
+C8-pos_Cluster_2178	C53:3 TAG*
+C8-pos_Cluster_2192	C53:3 TAG*
+C8-pos_Cluster_2197	C54:9 TAG
+C8-pos_Cluster_2201	C54:6 TAG*
+C8-pos_Cluster_2202	C54:8 TAG
+C8-pos_Cluster_2207	C54:5 TAG*
+C8-pos_Cluster_2210	C54:7 TAG
+C8-pos_Cluster_2211	C54:4 TAG*
+C8-pos_Cluster_2215	C54:6 TAG
+C8-pos_Cluster_2218	C54:3 TAG*
+C8-pos_Cluster_2220	C54:5 TAG
+C8-pos_Cluster_2226	C54:4 TAG
+C8-pos_Cluster_2233	C54:3 TAG
+C8-pos_Cluster_2240	C54:2 TAG
+C8-pos_Cluster_2242	C54:1 TAG
+C8-pos_Cluster_2277	C55:3 TAG*
+C8-pos_Cluster_2284	C55:2 TAG*
+C8-pos_Cluster_2286	C56:6 TAG*
+C8-pos_Cluster_2293	C56:7 TAG
+C8-pos_Cluster_2297	C56:4 TAG*
+C8-pos_Cluster_2300	C56:6 TAG
+C8-pos_Cluster_2303	C56:3 TAG*
+C8-pos_Cluster_2304	C56:5 TAG
+C8-pos_Cluster_2306	C56:2 TAG*
+C8-pos_Cluster_2307	C56:4 TAG
+C8-pos_Cluster_2308	C56:1 TAG*
+C8-pos_Cluster_2311	C56:3 TAG
+C8-pos_Cluster_2313	C56:2 TAG
+C8-pos_Cluster_2319	C56:1 TAG
+C8-pos_Cluster_2341	C58:7 TAG
+C8-pos_Cluster_2345	C58:6 TAG
+HILIC-neg_Cluster_0003	propionate
+HILIC-neg_Cluster_0013	butyrate / isobutytare*
+HILIC-neg_Cluster_0015	alanine
+HILIC-neg_Cluster_0016	oxalate
+HILIC-neg_Cluster_0020	lactate
+HILIC-neg_Cluster_0030	methylbutyric aid / valeric / isovaleric*
+HILIC-neg_Cluster_0032	2-aminobutyric acid
+HILIC-neg_Cluster_0033	malonate
+HILIC-neg_Cluster_0034	alpha-hydroxybutyrate
+HILIC-neg_Cluster_0035	serine
+HILIC-neg_Cluster_0036	glycerate
+HILIC-neg_Cluster_0040	pyrocatechol
+HILIC-neg_Cluster_0049	uracil
+HILIC-neg_Cluster_0059	proline
+HILIC-neg_Cluster_0061	fumarate/maleate*
+HILIC-neg_Cluster_0062	alpha-ketoisovalerate
+HILIC-neg_Cluster_0064	caproic acid
+HILIC-neg_Cluster_0066	valine
+HILIC-neg_Cluster_0069	succite
+HILIC-neg_Cluster_0070	hydroxyisovaleric acid
+HILIC-neg_Cluster_0073	threonine
+HILIC-neg_Cluster_0079	4-hydroxybenzaldehyde
+HILIC-neg_Cluster_0082	nicotinate
+HILIC-neg_Cluster_0084	4-methylcatechol
+HILIC-neg_Cluster_0085	taurine
+HILIC-neg_Cluster_0087	thymine
+HILIC-neg_Cluster_0103	acetylalanine
+HILIC-neg_Cluster_0105	leucine
+HILIC-neg_Cluster_0112	asparagine
+HILIC-neg_Cluster_0113	2-hydroxy-3-methylpentanoic acid /  leucinic acid
+HILIC-neg_Cluster_0117	aspartate
+HILIC-neg_Cluster_0118	malate
+HILIC-neg_Cluster_0120	adenine
+HILIC-neg_Cluster_0122	erythronic acid
+HILIC-neg_Cluster_0123	hypoxanthine
+HILIC-neg_Cluster_0125	phenylacetate
+HILIC-neg_Cluster_0129	salicylate
+HILIC-neg_Cluster_0133	4-nitrophenol
+HILIC-neg_Cluster_0156	caprylic acid
+HILIC-neg_Cluster_0159	alpha-ketoglutarate
+HILIC-neg_Cluster_0161	2-methylglutaric acid
+HILIC-neg_Cluster_0162	glutamine
+HILIC-neg_Cluster_0166	glutamate
+HILIC-neg_Cluster_0169	2-hydroxyglutarate
+HILIC-neg_Cluster_0173	methionine
+HILIC-neg_Cluster_0174	tartarate
+HILIC-neg_Cluster_0176	xylose
+HILIC-neg_Cluster_0181	hydrocinnamic acid
+HILIC-neg_Cluster_0182	guanine
+HILIC-neg_Cluster_0187	xanthine
+HILIC-neg_Cluster_0192	ribitol
+HILIC-neg_Cluster_0199	dihydroxybenzoic acid
+HILIC-neg_Cluster_0201	histidine
+HILIC-neg_Cluster_0203	orotate
+HILIC-neg_Cluster_0204	imidazolelactate
+HILIC-neg_Cluster_0220	3-methyladipate-pimelate
+HILIC-neg_Cluster_0230	levoglucosan
+HILIC-neg_Cluster_0232	acesulfame
+HILIC-neg_Cluster_0237	fucose
+HILIC-neg_Cluster_0242	phenylalanine
+HILIC-neg_Cluster_0247	L-phenyllactic acid
+HILIC-neg_Cluster_0254	urate
+HILIC-neg_Cluster_0283	shikimate
+HILIC-neg_Cluster_0288	suberate
+HILIC-neg_Cluster_0290	arginine
+HILIC-neg_Cluster_0296	citrulline
+HILIC-neg_Cluster_0299	ascorbate
+HILIC-neg_Cluster_0321	fructose/glucose/galactose*
+HILIC-neg_Cluster_0324	tyrosine
+HILIC-neg_Cluster_0328	homovanillate
+HILIC-neg_Cluster_0331	sorbitol
+HILIC-neg_Cluster_0332	saccharin
+HILIC-neg_Cluster_0335	4-pyridoxate
+HILIC-neg_Cluster_0365	azelaic acid
+HILIC-neg_Cluster_0372	N-acetylglutamate
+HILIC-neg_Cluster_0392	citrate
+HILIC-neg_Cluster_0401	glucurote
+HILIC-neg_Cluster_0441	sebacate
+HILIC-neg_Cluster_0452	tryptophan
+HILIC-neg_Cluster_0480	1-3-7-trimethylurate
+HILIC-neg_Cluster_0552	pantothete
+HILIC-neg_Cluster_0562	ethyl glucuronide
+HILIC-neg_Cluster_0622	1,2,3,4-tetrahydro-1-methyl-beta-carboline-3-carboxylic acid
+HILIC-neg_Cluster_0677	cystine
+HILIC-neg_Cluster_0697	pentadecanoate
+HILIC-neg_Cluster_0706	uridine
+HILIC-neg_Cluster_0707	pseudouridine
+HILIC-neg_Cluster_0740	deoxyinosine
+HILIC-neg_Cluster_0824	inosine
+HILIC-neg_Cluster_0841	heptadecanoate
+HILIC-neg_Cluster_0909	guanosine
+HILIC-neg_Cluster_1002	eicosapentaenoic acid
+HILIC-neg_Cluster_1088	linoleoyl ethanolamide 
+HILIC-neg_Cluster_1126	docosapentaenoate
+HILIC-neg_Cluster_1170	lactose
+HILIC-neg_Cluster_1300	riboflavin
+HILIC-neg_Cluster_1303	lithocholate
+HILIC-neg_Cluster_1325	linoleoyl ethanolamide
+HILIC-neg_Cluster_1360	chenodeoxycholate/deoxycholate*
+HILIC-neg_Cluster_1403	cholate
+HILIC-neg_Cluster_1571	glycocholate
+HILIC-neg_Cluster_1675	taurodeoxycholate/taurochenodeoxycholate*
+HILIC-pos_Cluster_0007	putrescine
+HILIC-pos_Cluster_0008	alanine
+HILIC-pos_Cluster_0009	beta-alanine
+HILIC-pos_Cluster_0022	choline
+HILIC-pos_Cluster_0024	serine
+HILIC-pos_Cluster_0032	cytosine
+HILIC-pos_Cluster_0033	histamine
+HILIC-pos_Cluster_0036	creatinine
+HILIC-pos_Cluster_0038	N-acetylputrescine
+HILIC-pos_Cluster_0041	proline
+HILIC-pos_Cluster_0046	valine
+HILIC-pos_Cluster_0048	betaine
+HILIC-pos_Cluster_0049	threonine
+HILIC-pos_Cluster_0054	trimethylbenzene*
+HILIC-pos_Cluster_0062	nicotinic acid
+HILIC-pos_Cluster_0066	taurine
+HILIC-pos_Cluster_0079	pyroglutamic acid
+HILIC-pos_Cluster_0081	pipecolic acid
+HILIC-pos_Cluster_0082	N-methylproline
+HILIC-pos_Cluster_0086	N-acetylputrescine
+HILIC-pos_Cluster_0089	hydroxyproline
+HILIC-pos_Cluster_0090	creatine
+HILIC-pos_Cluster_0091	leucine
+HILIC-pos_Cluster_0092	isoleucine
+HILIC-pos_Cluster_0099	asparagine
+HILIC-pos_Cluster_0100	ornithine
+HILIC-pos_Cluster_0108	hypoxanthine
+HILIC-pos_Cluster_0110	1-methylnicotinamide
+HILIC-pos_Cluster_0113	trigonelline
+HILIC-pos_Cluster_0114	2-hydroxyphenethylamine
+HILIC-pos_Cluster_0116	urocanic acid
+HILIC-pos_Cluster_0121	imidazole propionate
+HILIC-pos_Cluster_0134	proline betaine
+HILIC-pos_Cluster_0150	4-guanidinobutanoic acid
+HILIC-pos_Cluster_0151	butyrobetaine
+HILIC-pos_Cluster_0152	acetylcholine
+HILIC-pos_Cluster_0156	glutamine
+HILIC-pos_Cluster_0157	lysine
+HILIC-pos_Cluster_0160	glutamate
+HILIC-pos_Cluster_0167	methionine
+HILIC-pos_Cluster_0172	triethanolamine
+HILIC-pos_Cluster_0177	4-hydroxy-3-methylacetophenone
+HILIC-pos_Cluster_0184	pyridoxamine
+HILIC-pos_Cluster_0191	methylpyridonecarboxamide
+HILIC-pos_Cluster_0230	carnitine
+HILIC-pos_Cluster_0244	methionine sulfoxide
+HILIC-pos_Cluster_0245	1-methylguanine
+HILIC-pos_Cluster_0246	7-methylguanine
+HILIC-pos_Cluster_0248	phenylalanine
+HILIC-pos_Cluster_0254	3-methylxanthine
+HILIC-pos_Cluster_0268	pyridoxamine
+HILIC-pos_Cluster_0272	3-methylhistidine
+HILIC-pos_Cluster_0295	arginine
+HILIC-pos_Cluster_0298	dimethyllysine
+HILIC-pos_Cluster_0306	citrulline
+HILIC-pos_Cluster_0333	tyrosine
+HILIC-pos_Cluster_0374	N-acetylspermidine
+HILIC-pos_Cluster_0378	NMMA
+HILIC-pos_Cluster_0379	trimethyllysine
+HILIC-pos_Cluster_0383	kynurenic acid
+HILIC-pos_Cluster_0384	N-acetylglutamic acid
+HILIC-pos_Cluster_0405	caffeine
+HILIC-pos_Cluster_0419	N-acetylhistidine
+HILIC-pos_Cluster_0422	5-acetylamino-6-amino-3-methyluracil
+HILIC-pos_Cluster_0446	ADMA/SDMA*
+HILIC-pos_Cluster_0447	ADMA
+HILIC-pos_Cluster_0453	C2 carnitine
+HILIC-pos_Cluster_0455	tryptophan
+HILIC-pos_Cluster_0495	N-acetylglutamic acid
+HILIC-pos_Cluster_0521	L-1,2,3,4-tetrahydro-beta-carboline-3-carboxylic acid*
+HILIC-pos_Cluster_0524	N-acetyl-L-arginine
+HILIC-pos_Cluster_0540	pantothenate
+HILIC-pos_Cluster_0590	carnosine
+HILIC-pos_Cluster_0625	C4 carnitine
+HILIC-pos_Cluster_0657	geranyl acetoacetate*
+HILIC-pos_Cluster_0658	geranyl acetoacetate*
+HILIC-pos_Cluster_0667	anserine
+HILIC-pos_Cluster_0728	2-deoxyadenosine
+HILIC-pos_Cluster_0734	deoxyinosine
+HILIC-pos_Cluster_0790	C3-DC-CH3 carnitine
+HILIC-pos_Cluster_0797	thiamine
+HILIC-pos_Cluster_0817	atenolol
+HILIC-pos_Cluster_0822	inosine
+HILIC-pos_Cluster_0906	threosphingosine
+HILIC-pos_Cluster_0913	ethyl 9-hexadecenoate
+HILIC-pos_Cluster_0914	8-hydroxy-deoxyguanosine
+HILIC-pos_Cluster_0927	piperine
+HILIC-pos_Cluster_0936	diacetylspermine
+HILIC-pos_Cluster_0998	threosphingosine
+HILIC-pos_Cluster_1017	sphinganine
+HILIC-pos_Cluster_1113	phytosphingosine
+HILIC-pos_Cluster_1148	linoleoyl ethanolamide 
+HILIC-pos_Cluster_1160	linoleoyl ethanolamide
+HILIC-pos_Cluster_1370	5alpha-cholestanol
+HILIC-pos_Cluster_1374	C14 carnitine
+HILIC-pos_Cluster_1486	C16 carnitine
+HILIC-pos_Cluster_1580	C18:2 carnitine
+HILIC-pos_Cluster_1586	C18:1 carnitine
+HILIC-pos_Cluster_1593	C18 carnitine
+HILIC-pos_Cluster_1673	C20:4 carnitine
+HILIC-pos_Cluster_1684	C16:0 LPE
+HILIC-pos_Cluster_1691	C20 carnitine
+HILIC-pos_Cluster_1773	C16:1 LPC plasmalogen*
+HILIC-pos_Cluster_1855	C18:1 LPC plasmalogen*
+HILIC-pos_Cluster_1893	C18:1 LPC*
+HILIC-pos_Cluster_1899	C18:0 LPC
+HILIC-pos_Cluster_2052	bilirubin
+HILIC-pos_Cluster_2093	urobilin*
+HILIC-pos_Cluster_2293	C16:0 SM
+HILIC-pos_Cluster_2372	C36:2 PC*
