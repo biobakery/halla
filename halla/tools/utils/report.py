@@ -5,6 +5,7 @@ import numpy as np
 import scipy.cluster.hierarchy as sch
 import pandas as pd
 from os.path import join
+import itertools
 
 def get_indices_map_dict(new_indices):
     return({ idx: i for i, idx in enumerate(new_indices) })
@@ -24,18 +25,21 @@ def get_included_features(significant_blocks, num_x_features, num_y_features, tr
         included_y_features = [idx for idx in range(num_y_features)]
     return(included_x_features, included_y_features)
 
-def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table,
-                        trim=True, figsize=(12, 12), cmap='RdBu_r', text_scale=10, output_file='out.png', **kwargs):
+def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table, masked=False,
+                        trim=True, figsize=(12, 12), cmap='RdBu_r', text_scale=10, block_border_width=4,
+                        output_file='out.png', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
     - {x,y}_features    : feature names of {x,y}
     - clust_{x,y}_idx   : the indices of {x,y} in clustered form 
     - sim_table         : similarity table with size [len(x_features), len(y_features)]
+    - masked            : if True, mask all cells not included in significant blocks
     - trim              : if True, trim all features that are not significant
     - figsize           : figure size
     - cmap              : color map
     - text_scale        : how much the rank text size should be scaled
+    - block_border_width: the border width for all blocks
     - kwargs            : other keyword arguments to be passed to seaborn's heatmap()
     '''
     included_x_feat, included_y_feat = get_included_features(significant_blocks,
@@ -44,8 +48,16 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     # filter the indices with the included features
     clust_x_idx = np.asarray([i for i in clust_x_idx if i in included_x_feat])
     clust_y_idx = np.asarray([i for i in clust_y_idx if i in included_y_feat])
+    # if masked, replace all insignificant cells to NAs
+    clust_sim_table = np.copy(sim_table)
+    if masked:
+        dummy_table = np.full(clust_sim_table.shape, np.nan)
+        for block in significant_blocks:
+            for x, y in itertools.product(block[0], block[1]):
+                dummy_table[x,y] = clust_sim_table[x,y]
+        clust_sim_table = dummy_table
     # shuffle similarity table
-    clust_sim_table = np.asarray(sim_table)[clust_x_idx,:][:,clust_y_idx]
+    clust_sim_table = clust_sim_table[clust_x_idx,:][:,clust_y_idx]
     # shuffle features
     clust_x_features = np.asarray(x_features)[clust_x_idx]
     clust_y_features = np.asarray(y_features)[clust_y_idx]
@@ -54,27 +66,29 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     x_ori2clust_idx = get_indices_map_dict(clust_x_idx)
     y_ori2clust_idx = get_indices_map_dict(clust_y_idx)
 
-    vmax, vmin = np.max(clust_sim_table), np.min(clust_sim_table)
+    vmax, vmin = np.max(sim_table), np.min(sim_table)
     if vmin < 0 and vmax > 0:
         vmax = max(abs(vmin), vmax)
         vmin = -vmax
 
     # begin plotting
+    sns.set_style("whitegrid")
     _, ax = plt.subplots(figsize=figsize)
-    ax = sns.heatmap(clust_sim_table, xticklabels=clust_y_features, yticklabels=clust_x_features,
+    ax = sns.heatmap(clust_sim_table, xticklabels = clust_y_features,
                         cmap=cmap, vmin=vmin, vmax=vmax, square=True,
                         cbar_kws={ 'shrink': 0.5 }, **kwargs)
     ax.yaxis.tick_right()
     ax.yaxis.set_label_position('right')
     ax.set_yticklabels(clust_x_features, rotation=0, ha='left')
-    
+    if masked:
+        ax.grid(color='xkcd:light grey')
     
     for rank, block in enumerate(significant_blocks):
         x_block, y_block = block[0], block[1]
         clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
         clust_y_block = [y_ori2clust_idx[idx] for idx in y_block]
-        ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1)
-        ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1)
+        ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, linewidths=block_border_width)
+        ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, linewidths=block_border_width)
         # add rank text
         text_content = str(rank + 1)
         text_size = (min(max(clust_y_block) - min(clust_y_block),

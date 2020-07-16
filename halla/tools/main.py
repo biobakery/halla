@@ -212,7 +212,7 @@ class HAllA(AllA):
             return(qvalue_table.mean())
         self.significant_blocks = compare_and_find_dense_block(self.X_hierarchy.tree, self.Y_hierarchy.tree,
                                      self.fdr_reject_table, fnr_thresh=config.stats['fnr_thresh'])
-        self.significant_blocks = [trim_block(block, self.fdr_reject_table) for block in self.significant_blocks]
+        # self.significant_blocks = [trim_block(block, self.fdr_reject_table) for block in self.significant_blocks]
         # sort significant blocks by the rank_cluster method
         sort_func = sort_by_best_qvalue if config.stats['rank_cluster'] == 'best' else sort_by_avg_qvalue
         self.significant_blocks.sort(key=sort_func)
