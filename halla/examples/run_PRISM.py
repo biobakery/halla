@@ -30,5 +30,7 @@ generate_hallagram(test_halla.significant_blocks[:20],
                    test_halla.X_hierarchy.tree.pre_order(),
                    test_halla.Y_hierarchy.tree.pre_order(),
                    test_halla.similarity_table,
-                   figsize=(50, 35),
+                   x_label='Metabolites', y_label='Microbiomes',
+                   label_args={'labelpad': 15, 'weight': 'bold', 'fontsize': 'large'},
+                   figsize=(75, 50),
                    text_scale=8, output_file='PRISM-hallagram.png')

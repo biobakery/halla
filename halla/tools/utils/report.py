@@ -25,15 +25,17 @@ def get_included_features(significant_blocks, num_x_features, num_y_features, tr
         included_y_features = [idx for idx in range(num_y_features)]
     return(included_x_features, included_y_features)
 
-def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table, masked=False,
-                        trim=True, figsize=(12, 12), cmap='RdBu_r', text_scale=10, block_border_width=4,
-                        output_file='out.png', **kwargs):
+def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table,
+                        x_label='', y_label='', label_args={}, masked=False, trim=True, figsize=(12, 12), cmap='RdBu_r',
+                        text_scale=10, block_border_width=4, output_file='out.png', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
     - {x,y}_features    : feature names of {x,y}
     - clust_{x,y}_idx   : the indices of {x,y} in clustered form 
     - sim_table         : similarity table with size [len(x_features), len(y_features)]
+    - {x,y}_label       : axis label
+    - label_args        : arguments for axis label
     - masked            : if True, mask all cells not included in significant blocks
     - trim              : if True, trim all features that are not significant
     - figsize           : figure size
@@ -72,23 +74,28 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
         vmin = -vmax
 
     # begin plotting
-    sns.set_style("whitegrid")
+    sns.set_style('whitegrid')
     _, ax = plt.subplots(figsize=figsize)
     ax = sns.heatmap(clust_sim_table, xticklabels = clust_y_features,
                         cmap=cmap, vmin=vmin, vmax=vmax, square=True,
-                        cbar_kws={ 'shrink': 0.5 }, **kwargs)
+                        cbar_kws={ 'shrink': 0.5 }, zorder=3, **kwargs)
     ax.yaxis.tick_right()
     ax.yaxis.set_label_position('right')
     ax.set_yticklabels(clust_x_features, rotation=0, ha='left')
     if masked:
-        ax.grid(color='xkcd:light grey')
+        # minor ticks
+        ax.set_xticks(np.arange(0, clust_sim_table.shape[1], 1), minor=True)
+        ax.set_yticks(np.arange(0, clust_sim_table.shape[0], 1), minor=True)
+        ax.grid(which='minor', color='xkcd:light grey', zorder=0)
+    ax.set_xlabel(x_label, **label_args)
+    ax.set_ylabel(y_label, **label_args)
     
     for rank, block in enumerate(significant_blocks):
         x_block, y_block = block[0], block[1]
         clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
         clust_y_block = [y_ori2clust_idx[idx] for idx in y_block]
-        ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, linewidths=block_border_width)
-        ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, linewidths=block_border_width)
+        ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, linewidths=block_border_width, zorder=4)
+        ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, linewidths=block_border_width, zorder=4)
         # add rank text
         text_content = str(rank + 1)
         text_size = (min(max(clust_y_block) - min(clust_y_block),
@@ -100,7 +107,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
             path_effects.Stroke(linewidth=3, foreground='black'),
             path_effects.Normal(),
         ])
-    plt.savefig(output_file)
+    plt.savefig(output_file, bbox_inches='tight')
 
 def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table,
                         figsize=(12, 12), cmap='RdBu_r', text_scale=10, output_file='out.png', **kwargs):
@@ -142,7 +149,7 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
             path_effects.Stroke(linewidth=3, foreground='black'),
             path_effects.Normal(),
         ])
-    plt.savefig(output_file)
+    plt.savefig(output_file, bbox_inches='tight')
 
 def report_all_associations(dir_name, x_features, y_features, sim_table, pval_table, qval_table, output_file='all_associations.txt'):
     '''Store the association between each feature in X and Y along with p-values and q-values, given:
