@@ -21,3 +21,19 @@ Available pairwise distance metrics:
 - `nmi`
 - `pearson`
 - `spearman`
+
+### Notes on installation
+
+1. [Installing `rpy2` on macOS](https://stackoverflow.com/questions/52361732/installing-rpy2-on-macos)
+2. Installing the necessary R packages
+
+TODO: put these in the installation file
+
+```
+from rpy2.robjects.packages import importr
+
+utils = importr('utils')
+utils.chooseCRANmirror(ind=1)
+utils.install_packages('EnvStats')
+utils.install_packages('https://cran.r-project.org/src/contrib/Archive/eva/eva_0.2.5.tar.gz')
+```

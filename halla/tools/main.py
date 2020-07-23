@@ -21,14 +21,14 @@ class AllA(object):
     def __init__(self, discretize_bypass_if_possible=config.discretize['bypass_if_possible'],
                  discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
                  pdist_metric=config.association['pdist_metric'],
-                 permute_func=config.permute['func'], permute_iters=config.permute['iters'],
+                 permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
-                 out_dir=config.output['dir'], verbose=config.output['verbose'], 
+                 out_dir=config.output['dir'], verbose=config.output['verbose'],
                  seed=None):
         # update AllA config setting
         update_config('discretize', bypass_if_possible=discretize_bypass_if_possible, func=discretize_func, num_bins=discretize_num_bins)
         update_config('association', pdist_metric=pdist_metric)
-        update_config('permute', func=permute_func, iters=permute_iters)
+        update_config('permute', func=permute_func, iters=permute_iters, speedup=permute_speedup)
         update_config('stats', fdr_alpha=fdr_alpha, fdr_method=fdr_method)
         update_config('output', dir=out_dir, verbose=verbose)
         # TODO: properly set verbose to False
@@ -57,7 +57,9 @@ class AllA(object):
         # obtain p-values
         confp = config.permute
         self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=dist_metric,
-                                                   permute_func=confp['func'], permute_iters=confp['iters'], seed=self.seed)
+                                                   permute_func=confp['func'], permute_iters=confp['iters'],
+                                                   permute_speedup=confp['speedup'],
+                                                   alpha=config.stats['fdr_alpha'], seed=self.seed)
         
         # obtain q-values
         self.fdr_reject_table, self.qvalue_table = pvalues2qvalues(self.pvalue_table.flatten(), config.stats['fdr_alpha'])
@@ -169,7 +171,7 @@ class HAllA(AllA):
     def __init__(self, discretize_bypass_if_possible=config.discretize['bypass_if_possible'],
                  discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
                  pdist_metric=config.association['pdist_metric'], linkage_method=config.hierarchy['linkage_method'],
-                 permute_func=config.permute['func'], permute_iters=config.permute['iters'],
+                 permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'], rank_cluster=config.stats['rank_cluster'],
                  out_dir=config.output['dir'], verbose=config.output['verbose'],
