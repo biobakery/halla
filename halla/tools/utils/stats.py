@@ -1,24 +1,70 @@
 from .similarity import does_return_pval, get_similarity_function
 
 import numpy as np
-from scipy.stats import percentileofscore
 import scipy.spatial.distance as spd
 from statsmodels.stats.multitest import multipletests
+from scipy.stats import genpareto
 import itertools
 
-def compute_permutation_test_pvalue(x, y, pdist_metric='nmi',
-									permute_func='gpd', iters=10000, seed=None):
+# retrieve package named 'eva' from R for GPD-related calculations
+from rpy2.robjects.packages import importr
+from rpy2.robjects.vectors import FloatVector
+eva = importr('eva')
+
+'''P-value computations by permutation test
+'''
+def compute_pvalue_ecdf(permuted_scores, gt_score, n):
+	'''Compute the p-value using empirical cumulative distribution function given
+	- permuted_scores: the scores computed by deriving association between x and shuffled y
+	- gt_score       : the test statistic
+	- n              : the number of iterations
+	'''
+	permuted_scores = np.array(permuted_scores)
+	low_bound, up_bound = min(gt_score, -gt_score), max(gt_score, -gt_score)
+	pval = ((permuted_scores < low_bound).sum() + (permuted_scores > up_bound).sum() + 1) / n
+	return(min(1.0, pval))
+
+def compute_pvalue_gpd(permuted_scores, gt_score, n):
+	'''Approximate the p-value using generalized pareto distribution given
+	Code converted to python from R: https://github.com/goncalves-lab/waddR/blob/master/R/PValues.R
+	- permuted_scores: the scores computed by deriving association between x and shuffled y
+	- gt_score       : the test statistic
+	- n              : the number of iterations
+	'''
+	# sort permuted_scores
+	permuted_scores = sorted(permuted_scores, reverse=True)
+	# compute from the right tail
+	gt_score = abs(gt_score)
+	#--approximate the gpd tail--
+	# set the initial exceedance threshold
+	n_exceed = 250
+	while n_exceed >= 10:
+		exceedances = permuted_scores[:n_exceed]
+		# check if the n_exceed largest permutation values follow GPD
+		#   with Anderson-Darling goodness-of-fit test
+		ad_pval = eva.gpdAd(FloatVector(exceedances)).rx2('p.value')[0]
+		# H0 = exceedances come from a GPD
+		if ad_pval > 0.05: break
+		n_exceed -= 10
+	# compute the exceedance threshold t
+	t = float((permuted_scores[n_exceed] + permuted_scores[n_exceed-1])/2)
+	# estimate shape and scale params with maximum likelihood
+	gpd_fit = eva.gpdFit(FloatVector(permuted_scores), threshold=t, method='mle')
+	scale, shape = gpd_fit.rx2('par.ests')[0], gpd_fit.rx2('par.ests')[1]
+
+	# compute GPD p-value
+	f_gpd = genpareto.cdf(x=gt_score-t, c=shape, scale=scale)
+	pval = 2 * (n_exceed / len(permuted_scores) * (1 - f_gpd) + 1 / len(permuted_scores))
+	return(pval)
+
+def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd',
+									iters=10000, speedup=True, alpha=0.05, seed=None):
 	'''Compute two-sided p-value using permutation test of the pairwise similarity between
 		an X feature and a Y feature.
 	'''
 	def _compute_score(feat1, feat2):
 		score = spd.cdist(feat1, feat2, metric=get_similarity_function(pdist_metric))
 		return(score[0,0]) # original shape is (1,1)
-
-	def _compute_pvalue(permuted_scores, gt_score, n):
-		low_bound, up_bound = min(gt_score, -gt_score), max(gt_score, -gt_score)
-		pval = ((permuted_scores < low_bound).sum() + (permuted_scores > up_bound).sum() + 1) / n
-		return(min(1.0, pval))
 
 	if seed:
 		np.random.seed(seed)
@@ -29,17 +75,34 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi',
 	# compute the ground truth scores for comparison later
 	gt_score = _compute_score(x, y)
 	permuted_y = np.copy(y[0])
+	best_pvalue = 1.0
+	for iter in range(iters):
+		np.random.shuffle(permuted_y)
+		# compute permuted score and append to the list
+		permuted_dist_scores.append(_compute_score(x, permuted_y.reshape(y.shape)))
+		if (iter+1) % 100 == 0 and speedup:
+			curr_pvalue = compute_pvalue_ecdf(permuted_dist_scores, gt_score, iter+1)
+			if curr_pvalue <= best_pvalue:
+				best_pvalue = curr_pvalue
+			elif curr_pvalue > alpha and (iter+1) >= 300:
+				# only break if curr_pvalue > best_pvalue, curr_pvalue > alpha, iters >= 300 (arbitrary)
+				break
 	if permute_func == 'ecdf': # empirical cumulative dist. function
-		for _ in range(iters):
-			np.random.shuffle(permuted_y)
-			# compute permuted score and append to the list
-			permuted_dist_scores.append(_compute_score(x, permuted_y.reshape(y.shape)))
-		# compute the significance
-		pvalue = _compute_pvalue(np.array(permuted_dist_scores), gt_score, iters)
-	return(pvalue)
-				
-def get_pvalue_table(X, Y, pdist_metric='nmi',
-					 permute_func='gpd', permute_iters=1000, seed=None):
+		return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, iters))
+	
+	# gpd algorithm - Knijnenburg2009, Ge2012
+	# compute M - # null samples exceeding the test statistic
+	M = len([1 for score in permuted_dist_scores if score > gt_score])
+
+	# if M >= 10, use ecdf
+	if M >= 10:
+		return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, iters))
+	
+	# use gpd
+	return(compute_pvalue_gpd(permuted_dist_scores, gt_score, iters))
+
+def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters=1000,
+					 permute_speedup=True, alpha=0.05, seed=None):
 	'''Obtain pairwise p-value tables given features in X and Y
 	'''
 	# initiate table
@@ -51,7 +114,8 @@ def get_pvalue_table(X, Y, pdist_metric='nmi',
 				if does_return_pval(pdist_metric) else \
 				compute_permutation_test_pvalue(
 					X[i,:], Y[j,:], pdist_metric=pdist_metric,
-					permute_func=permute_func, iters=permute_iters, seed=seed)
+					permute_func=permute_func, iters=permute_iters, speedup=permute_speedup,
+					alpha=alpha, seed=seed)
 	return(pvalue_table)
 
 def pvalues2qvalues(pvalues, alpha=0.05):
