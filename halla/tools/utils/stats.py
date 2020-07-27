@@ -31,31 +31,43 @@ def compute_pvalue_gpd(permuted_scores, gt_score, n):
 	- gt_score       : the test statistic
 	- n              : the number of iterations
 	'''
-	# sort permuted_scores
-	permuted_scores = sorted(permuted_scores, reverse=True)
-	# compute from the right tail
-	gt_score = abs(gt_score)
-	#--approximate the gpd tail--
-	# set the initial exceedance threshold
-	n_exceed = 250
-	while n_exceed >= 10:
-		exceedances = permuted_scores[:n_exceed]
-		# check if the n_exceed largest permutation values follow GPD
-		#   with Anderson-Darling goodness-of-fit test
-		ad_pval = eva.gpdAd(FloatVector(exceedances)).rx2('p.value')[0]
-		# H0 = exceedances come from a GPD
-		if ad_pval > 0.05: break
-		n_exceed -= 10
-	# compute the exceedance threshold t
-	t = float((permuted_scores[n_exceed] + permuted_scores[n_exceed-1])/2)
-	# estimate shape and scale params with maximum likelihood
-	gpd_fit = eva.gpdFit(FloatVector(permuted_scores), threshold=t, method='mle')
-	scale, shape = gpd_fit.rx2('par.ests')[0], gpd_fit.rx2('par.ests')[1]
 
-	# compute GPD p-value
-	f_gpd = genpareto.cdf(x=gt_score-t, c=shape, scale=scale)
-	pval = 2 * (n_exceed / len(permuted_scores) * (1 - f_gpd) + 1 / len(permuted_scores))
-	return(pval)
+	def get_pvalue(sorted_scores, stat, n):
+		# approximate the gpd tail
+		n_exceed = 250
+		while n_exceed >= 10:
+			exceedances = sorted_scores[:n_exceed]
+			# check if the n_exceed largest permutation values follow GPD
+			#   with Anderson-Darling goodness-of-fit test
+			try:
+				ad = eva.gpdAd(FloatVector(exceedances))
+				ad_pval = ad.rx2('p.value')[0]
+			except:
+				n_exceed -= 10
+				continue
+			# H0 = exceedances come from a GPD
+			if ad_pval > 0.05: break
+			n_exceed -= 10
+		# compute the exceedance threshold t
+		t = float((sorted_scores[n_exceed] + sorted_scores[n_exceed-1])/2)
+		# estimate shape and scale params with maximum likelihood
+		gpd_fit = eva.gpdFit(FloatVector(sorted_scores), threshold=t, method='mle')
+		scale, shape = gpd_fit.rx2('par.ests')[0], gpd_fit.rx2('par.ests')[1]
+
+		# compute GPD p-value
+		f_gpd = genpareto.cdf(x=gt_score-t, c=shape, scale=scale)
+		return(n_exceed / n * (1 - f_gpd))
+
+	gt_score = abs(gt_score)
+	# 1) compute left tail
+	left_scores = [-1 * score for score in permuted_scores]
+	left_sorted_scores = sorted(left_scores, reverse=True)
+	left_pval = get_pvalue(left_sorted_scores, gt_score, n)
+
+	# 2) compute right tail
+	right_sorted_scores = sorted(permuted_scores, reverse=True)
+	right_pval = get_pvalue(right_sorted_scores, gt_score, n)
+	return(left_pval + right_pval)
 
 def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd',
 									iters=10000, speedup=True, alpha=0.05, seed=None):
@@ -92,7 +104,9 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
 	
 	# gpd algorithm - Knijnenburg2009, Ge2012
 	# compute M - # null samples exceeding the test statistic
-	M = len([1 for score in permuted_dist_scores if score > gt_score])
+	neg_gt_score, pos_gt_score = min(gt_score, -gt_score), max(gt_score, -gt_score)
+	M = len([1 for score in permuted_dist_scores if score < neg_gt_score]) + \
+		len([1 for score in permuted_dist_scores if score > pos_gt_score])
 
 	# if M >= 10, use ecdf
 	if M >= 10:
