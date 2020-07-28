@@ -1,10 +1,12 @@
 from .similarity import does_return_pval, get_similarity_function
 
 import numpy as np
+import sys
 import scipy.spatial.distance as spd
 from statsmodels.stats.multitest import multipletests
 from scipy.stats import genpareto
 import itertools
+import ray
 
 # retrieve package named 'eva' from R for GPD-related calculations
 from rpy2.robjects.packages import importr
@@ -69,11 +71,16 @@ def compute_pvalue_gpd(permuted_scores, gt_score, n):
 	right_pval = get_pvalue(right_sorted_scores, gt_score, n)
 	return(left_pval + right_pval)
 
+@ray.remote
 def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd',
 									iters=10000, speedup=True, alpha=0.05, seed=None):
 	'''Compute two-sided p-value using permutation test of the pairwise similarity between
 		an X feature and a Y feature.
 	'''
+	sys.path.append('./../../')
+	from tools.utils.similarity import get_similarity_function
+	from tools.utils.stats import compute_pvalue_ecdf, compute_pvalue_gpd
+	
 	def _compute_score(feat1, feat2):
 		score = spd.cdist(feat1, feat2, metric=get_similarity_function(pdist_metric))
 		return(score[0,0]) # original shape is (1,1)
@@ -101,7 +108,6 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
 				break
 	if permute_func == 'ecdf': # empirical cumulative dist. function
 		return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, iters))
-	
 	# gpd algorithm - Knijnenburg2009, Ge2012
 	# compute M - # null samples exceeding the test statistic
 	neg_gt_score, pos_gt_score = min(gt_score, -gt_score), max(gt_score, -gt_score)
@@ -122,14 +128,18 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
 	# initiate table
 	n, m = X.shape[0], Y.shape[0]
 	pvalue_table = np.zeros((n, m))
-	for i in range(n):
-		for j in range(m):
-			pvalue_table[i,j] = get_similarity_function(pdist_metric)(X[i,:], Y[j,:], return_pval=True)[1] \
-				if does_return_pval(pdist_metric) else \
-				compute_permutation_test_pvalue(
-					X[i,:], Y[j,:], pdist_metric=pdist_metric,
-					permute_func=permute_func, iters=permute_iters, speedup=permute_speedup,
-					alpha=alpha, seed=seed)
+	if does_return_pval(pdist_metric):
+		for i in range(n):
+			for j in range(m):
+				pvalue_table[i,j] = get_similarity_function(pdist_metric)(X[i,:], Y[j,:], return_pval=True)[1]
+	else:
+		ray.init(include_dashboard=False)
+		# execute in parallel
+		futures = [compute_permutation_test_pvalue.remote(X[i,:], Y[j,:], pdist_metric=pdist_metric,
+															permute_func=permute_func, iters=permute_iters,
+															speedup=permute_speedup, alpha=alpha, seed=seed) \
+																for i in range(n) for j in range(m)]
+		pvalue_table = np.array(ray.get(futures)).reshape((n, m))
 	return(pvalue_table)
 
 def pvalues2qvalues(pvalues, alpha=0.05):
