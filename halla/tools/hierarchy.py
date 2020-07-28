@@ -13,6 +13,7 @@ class HierarchicalTree(object):
         - linkage_method: the hierarchical linkage method
         '''
         self.distance_matrix = similarity2distance(spd.pdist(matrix, metric=get_similarity_function(pdist_metric)), pdist_metric)
+        self.distance_matrix = np.clip(self.distance_matrix, a_min=0, a_max=None)
         self.distance_matrix_sqr = spd.squareform(self.distance_matrix)
         self._generate_hierarchical_clusters(linkage_method)
     

@@ -38,7 +38,6 @@ def parse_argument(args):
     parser.add_argument('-fnr', '--fnr_thresh', help='FNR threshold for HAllA', default=0.2, type=float, required=False)
     parser.add_argument('-m', '--metric', help='Similarity metric', default='pearson', choices=['pearson', 'spearman', 'nmi', 'dcor'], required=False)
     parser.add_argument('-o', '--output', help='Output file prefix', default='simul_out', required=False)
-    parser.add_argument('--skip_alla', default=False, action='store_true')
 
     # check requirements
     params = parser.parse_args()
@@ -57,21 +56,14 @@ def parse_argument(args):
         raise ValueError('Noise within/between must be [0..1]')
     return(params)
 
-def store_result(halla_power, halla_fdr, halla_dur, num_iters, output_pref, alla_power=None, alla_fdr=None):
-    if skip_alla:
-        pd.DataFrame(data={
-           'type' : ['halla']*num_iters,
-           'power': halla_power,
-           'fdr'  : halla_fdr, 
-           'duration': halla_dur,
-        }).to_csv('%s.csv' % output_pref)
-    else:
-        pd.DataFrame(data={
-           'type' : ['halla']*num_iters + ['alla']*num_iters,
-           'power': halla_power + alla_power,
-           'fdr'  : halla_fdr + alla_fdr,
-           'duration': halla_dur + [-1]*num_iters,
-        }).to_csv('%s.csv' % output_pref)
+def store_result(halla_power, halla_fdr, halla_dur, halla_fnr, num_iters, output_pref):
+    pd.DataFrame(data={
+       'type'         : ['halla']*num_iters,
+       'power'        : halla_power,
+       'fdr'          : halla_fdr, 
+       'fnr_threshold': halla_fnr,
+       'duration'     : halla_dur,
+    }).to_csv('%s.csv' % output_pref)
 
 if __name__ == '__main__':
     print('Running simulation...')
@@ -80,8 +72,7 @@ if __name__ == '__main__':
 
     num_iters = params.iter
     halla_fdr, halla_power = [], []
-    alla_fdr, alla_power = [], []
-    halla_dur = []
+    halla_dur, halla_fnr = [], []
 
     create_dir('simulation')
     create_dir('simulation_out')
@@ -92,9 +83,7 @@ if __name__ == '__main__':
     pdist_metric = params.metric
     noise_within, noise_between = params.noise_within, params.noise_between
     fdr_alpha = params.fdr_alpha
-    fnr_thresh = params.fnr_thresh
     output_pref = params.output
-    skip_alla = params.skip_alla
     
     dataset_dir = 'simulation/%s' % output_pref
     result_dir = 'simulation_out/%s' % output_pref
@@ -118,7 +107,7 @@ if __name__ == '__main__':
 
         # 1.2) run HAllA
         test_halla = HAllA(discretize_func='equal-freq', discretize_num_bins=4,
-                      pdist_metric=pdist_metric, fnr_thresh=fnr_thresh, fdr_alpha=fdr_alpha,
+                      pdist_metric=pdist_metric, fnr_thresh=0.1, fdr_alpha=fdr_alpha,
                       out_dir=result_dir)
         test_halla.load(X_file, Y_file)
         test_halla.run()
@@ -129,29 +118,18 @@ if __name__ == '__main__':
         halla_power.append(compute_result_power(test_halla.significant_blocks, A))
         halla_fdr.append(compute_result_fdr(test_halla.significant_blocks, A))
         halla_dur.append(iter_end_time - iter_start_time)
+        halla_fnr.append('0.1')
 
-        if skip_alla: continue
-        # 1.3) run AllA; avoid repeating the same computation
-        test_alla = AllA(discretize_func='equal-freq', discretize_num_bins=4,
-                      pdist_metric=pdist_metric, fdr_alpha=fdr_alpha,
-                      out_dir=result_dir + '_alla')
-        test_alla.similarity_table = test_halla.similarity_table
-        test_alla.pvalue_table     = test_halla.pvalue_table
-        test_alla.fdr_reject_table = test_halla.fdr_reject_table
-        test_alla.qvalue_table     = test_halla.qvalue_table
-        test_alla.X, test_alla.Y   = test_halla.X, test_halla.Y
-        test_alla._find_dense_associated_blocks()
-        # test_alla.load(X_file, Y_file)
-        # test_alla.run()
+        for fnr_thresh in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7]:
+            test_halla._find_dense_associated_blocks(fnr_thresh=fnr_thresh)
+            test_halla._generate_reports(dir_name='%s_%.1f' % (result_dir, fnr_thresh))
 
-        # 1.3) compute power and FDR
-        alla_power.append(compute_result_power(test_alla.significant_blocks, A))
-        alla_fdr.append(compute_result_fdr(test_alla.significant_blocks, A))
+            halla_power.append(compute_result_power(test_halla.significant_blocks, A))
+            halla_fdr.append(compute_result_fdr(test_halla.significant_blocks, A))
+            halla_dur.append(0)
+            halla_fnr.append(str(fnr_thresh))
 
-        if skip_alla:
-            store_result(halla_power, halla_fdr, halla_dur, num_iters, output_pref)
-        else:
-            store_result(halla_power, halla_fdr, halla_dur, num_iters, output_pref, alla_power, alla_fdr)
+        store_result(halla_power, halla_fdr, halla_dur, halla_fnr, num_iters, output_pref)
     
     # remove all generated directories
     # shutil.rmtree(iter_path)
