@@ -133,7 +133,7 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
 			for j in range(m):
 				pvalue_table[i,j] = get_similarity_function(pdist_metric)(X[i,:], Y[j,:], return_pval=True)[1]
 	else:
-		ray.init(include_dashboard=False)
+		ray.init()
 		# execute in parallel
 		futures = [compute_permutation_test_pvalue.remote(X[i,:], Y[j,:], pdist_metric=pdist_metric,
 															permute_func=permute_func, iters=permute_iters,
