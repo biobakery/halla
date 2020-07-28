@@ -78,14 +78,14 @@ class AllA(object):
         self.significant_blocks.sort(key=compare_qvalue)
         self.significant_blocks_qvalues = [self.qvalue_table[x[0][0]][x[1][0]] for x in self.significant_blocks]
     
-    def _generate_reports(self):
+    def _generate_reports(self, dir_name=None):
         '''Generate reports and store in config.output['dir'] directory:
         1) all_associations.txt: stores the associations between each feature in X and Y along with its
                                 p-values and q-values in a table
         2) sig_clusters.txt    : stores only the significant clusters
         '''
         # create directory
-        dir_name = config.output['dir']
+        if dir_name is None: dir_name = config.output['dir']
         reset_dir(dir_name)
 
         # generate all_associations.txt
@@ -206,25 +206,26 @@ class HAllA(AllA):
         self.X_hierarchy = HierarchicalTree(self.X, config.association['pdist_metric'], config.hierarchy['linkage_method'])
         self.Y_hierarchy = HierarchicalTree(self.Y, config.association['pdist_metric'], config.hierarchy['linkage_method'])
 
-    def _find_dense_associated_blocks(self):
+    def _find_dense_associated_blocks(self, fnr_thresh=None):
         def sort_by_best_qvalue(x):
             qvalue_table = self.qvalue_table[x[0],:][:,x[1]]
             return(qvalue_table.min())
         def sort_by_avg_qvalue(x):
             qvalue_table = self.qvalue_table[x[0],:][:,x[1]]
             return(qvalue_table.mean())
+        if fnr_thresh is None: fnr_thresh = config.stats['fnr_thresh']
         self.significant_blocks = compare_and_find_dense_block(self.X_hierarchy.tree, self.Y_hierarchy.tree,
-                                     self.fdr_reject_table, fnr_thresh=config.stats['fnr_thresh'])
+                                     self.fdr_reject_table, fnr_thresh=fnr_thresh)
         # self.significant_blocks = [trim_block(block, self.fdr_reject_table) for block in self.significant_blocks]
         # sort significant blocks by the rank_cluster method
         sort_func = sort_by_best_qvalue if config.stats['rank_cluster'] == 'best' else sort_by_avg_qvalue
         self.significant_blocks.sort(key=sort_func)
         self.significant_blocks_qvalues = [sort_func(x) for x in self.significant_blocks]
 
-    def _generate_reports(self):
+    def _generate_reports(self, dir_name=None):
         '''Generate reports and store in config.output['dir'] directory
         '''
-        AllA._generate_reports(self)
+        AllA._generate_reports(self, dir_name)
 
     '''Public functions
     '''
