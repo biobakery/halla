@@ -57,20 +57,19 @@ def parse_argument(args):
         raise ValueError('Noise within/between must be [0..1]')
     return(params)
 
-def store_result(halla_power, halla_fdr, halla_dur, num_iters, output_pref, alla_power=None, alla_fdr=None):
+def store_result(halla_power, halla_fdr, halla_dur, output_pref, alla_power=None, alla_fdr=None):
     if skip_alla:
         pd.DataFrame(data={
-           'type' : ['halla']*num_iters,
            'power': halla_power,
            'fdr'  : halla_fdr, 
            'duration': halla_dur,
         }).to_csv('%s.csv' % output_pref)
     else:
         pd.DataFrame(data={
-           'type' : ['halla']*num_iters + ['alla']*num_iters,
+           'type' : ['halla']*len(halla_power) + ['alla']*len(alla_power),
            'power': halla_power + alla_power,
            'fdr'  : halla_fdr + alla_fdr,
-           'duration': halla_dur + [-1]*num_iters,
+           'duration': halla_dur + [-1]*len(alla_power),
         }).to_csv('%s.csv' % output_pref)
 
 if __name__ == '__main__':
@@ -149,9 +148,9 @@ if __name__ == '__main__':
         alla_fdr.append(compute_result_fdr(test_alla.significant_blocks, A))
 
         if skip_alla:
-            store_result(halla_power, halla_fdr, halla_dur, num_iters, output_pref)
+            store_result(halla_power, halla_fdr, halla_dur, output_pref)
         else:
-            store_result(halla_power, halla_fdr, halla_dur, num_iters, output_pref, alla_power, alla_fdr)
+            store_result(halla_power, halla_fdr, halla_dur, output_pref, alla_power, alla_fdr)
     
     # remove all generated directories
     # shutil.rmtree(iter_path)

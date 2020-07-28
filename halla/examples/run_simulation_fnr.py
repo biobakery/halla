@@ -58,7 +58,6 @@ def parse_argument(args):
 
 def store_result(halla_power, halla_fdr, halla_dur, halla_fnr, num_iters, output_pref):
     pd.DataFrame(data={
-       'type'         : ['halla']*num_iters,
        'power'        : halla_power,
        'fdr'          : halla_fdr, 
        'fnr_threshold': halla_fnr,
