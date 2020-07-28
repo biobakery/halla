@@ -133,13 +133,15 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
 			for j in range(m):
 				pvalue_table[i,j] = get_similarity_function(pdist_metric)(X[i,:], Y[j,:], return_pval=True)[1]
 	else:
-		ray.init(include_dashboard=False)
+		ray.init(redis_max_memory=6000 * 1024 * 1024, memory=4000 * 1024 * 1024, object_store_memory=3000 * 1024 * 1024,
+				 driver_object_store_memory=1500 * 1024 * 1024, include_webui=False)
 		# execute in parallel
 		futures = [compute_permutation_test_pvalue.remote(X[i,:], Y[j,:], pdist_metric=pdist_metric,
 															permute_func=permute_func, iters=permute_iters,
 															speedup=permute_speedup, alpha=alpha, seed=seed) \
 																for i in range(n) for j in range(m)]
 		pvalue_table = np.array(ray.get(futures)).reshape((n, m))
+		ray.shutdown()
 	return(pvalue_table)
 
 def pvalues2qvalues(pvalues, alpha=0.05):
