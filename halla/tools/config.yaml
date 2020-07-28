@@ -8,7 +8,7 @@ hierarchy:
   linkage_method: 'average' # https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.linkage.html
 permute:
   iters: 1000
-  func: 'ecdf' # 'ecdf' or 'gpd'
+  func: 'gpd' # 'ecdf' or 'gpd'
   speedup: True # whether to stop permutation early if not significant
 stats:
   fdr_alpha: 0.05
