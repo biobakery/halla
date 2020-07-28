@@ -124,6 +124,7 @@ class AllA(object):
         # filter tables by intersect columns
         intersect_cols = [col for col in X.columns if col in Y.columns]
         X, Y = X[intersect_cols], Y[intersect_cols]
+        self.X_ori, self.Y_ori = X, Y
 
         # clean and preprocess data
         self.X = preprocess(X, self.X_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
@@ -153,7 +154,7 @@ class AllA(object):
         # TODO: store in config.output['dir'] directory?
         '''
         if cmap is None:
-            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi'] else 'RdBu_r'
+            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor'] else 'RdBu_r'
         generate_hallagram(self.significant_blocks,
                            self.X.index.to_numpy(),
                            self.Y.index.to_numpy(),
@@ -253,7 +254,7 @@ class HAllA(AllA):
         # TODO: store in config.output['dir'] directory?
         '''
         if cmap is None:
-            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi'] else 'RdBu_r'
+            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor'] else 'RdBu_r'
         generate_clustermap(self.significant_blocks,
                             self.X.index.to_numpy(),
                             self.Y.index.to_numpy(),
