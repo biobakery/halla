@@ -215,10 +215,11 @@ def report_significant_clusters(dir_name, significant_blocks, scores, x_features
     # store into a file
     df.to_csv(filepath, sep='\t', index=False)
 
-def generate_lattice_plot(x_data, y_data, x_features, y_features, x_types, y_types, title, output_file,
-                            figsize=(12, 12)):
+def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_features, x_types, y_types,
+                            title, output_file, figsize=(12, 12)):
     '''Generate and store lattice plot for each associationn, given:
-    - {x,y}_data    : the data for features in {x,y} involved in the association in numpy
+    - {x,y}_data    : the data for features in {x,y} involved in the association in numpy (the discretized data if discretized)
+    - {x,y}_ori_data: the original data for features in {x,y} involved in the association in numpy
     - {x,y}_features: the names of the features in {x,y} involved in the association
     - output_file   : the output file name
     - title         : the plot title
@@ -231,6 +232,7 @@ def generate_lattice_plot(x_data, y_data, x_features, y_features, x_types, y_typ
     fig, axs = plt.subplots(row_num, row_num, figsize=figsize)
     # combine all data
     all_data = np.concatenate((x_data, y_data), axis=0)
+    all_ori_data = np.concatenate((x_ori_data, y_ori_data), axis=0)
     all_features = list(x_features) + list(y_features)
     all_types = list(x_types) + list(y_types)
     for i in range(row_num):
@@ -240,9 +242,21 @@ def generate_lattice_plot(x_data, y_data, x_features, y_features, x_types, y_typ
                 continue
             if i == j:
                 # 1) plot a histogram if i == j
-                # categorical bins should not be set by default
-                bins = len(list(set(all_data[i]))) if all_types[i] == object else None
-                sns.distplot(all_data[i], kde=False, ax=axs[i,j], bins=bins)
+                
+                if all_types[i] == float:
+                    # continuous data:
+                    # - if discretized, show CDF of original data and histogram of discretized data
+                    # - if not, just show the histogram of original data
+                    sns.distplot(all_ori_data[i], hist_kws={ 'cumulative': True }, kde=False, ax=axs[i,j])
+                    if not np.all(all_ori_data[i] == all_data[i]): # if discretized
+                        ori_data, disc_data = all_ori_data[i], all_data[i]
+                        freq = { x: (disc_data == x).sum() for x in range(disc_data.min(), disc_data.max()+1) }
+                        avg = { x: ori_data[disc_data == x].sum()*1.0/freq[x] for x in range(disc_data.min(), disc_data.max()+1) }
+                        new_data = np.array([avg[k] for k in disc_data])
+                        sns.distplot(new_data, kde=False, ax=axs[i,j], bins=len(avg.keys()))
+                else:
+                    # categorical data: bins should not be set by default
+                    sns.countplot(x=all_data[i], ax=axs[i,j])
             elif all_types[i] == all_types[j]:
                 if all_types[i] == object:
                     # 2) plot confusion matrix if both are categorical
@@ -252,17 +266,18 @@ def generate_lattice_plot(x_data, y_data, x_features, y_features, x_types, y_typ
                     sns.heatmap(conf_mat, ax=axs[i,j], annot=True, cbar=False, cmap='Blues', linewidths=0.1, linecolor='gray')
                 else:
                     # 3) plot scatterplot if both are continuous
-                    sns.scatterplot(x=all_data[j], y=all_data[i], ax=axs[i,j])
+                    sns.scatterplot(x=all_ori_data[j], y=all_ori_data[i], ax=axs[i,j])
             else:
                 # 4) plot boxplot if the data are mixed
                 if all_types[j] == float:
-                    sns.boxplot(x=all_data[j], y=all_data[i], orient='h', ax=axs[i,j])
+                    sns.boxplot(x=all_ori_data[j], y=all_data[i], orient='h', ax=axs[i,j])
                 else:
-                    sns.boxplot(x=all_data[j], y=all_data[i], ax=axs[i,j])
+                    sns.boxplot(x=all_data[j], y=all_ori_data[i], ax=axs[i,j])
             # add y-ticks on the right side on histogram plots
             if i == j:
                 axs[i,j].yaxis.tick_right()
                 if i != row_num - 1: axs[i,j].set_xticks([])
+                axs[i,j].set_ylabel('')
             else:
                 # remove ticks from inner plots
                 if j != 0: axs[i,j].set_yticks([])
