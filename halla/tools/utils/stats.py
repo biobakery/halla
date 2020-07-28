@@ -140,6 +140,7 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
 															speedup=permute_speedup, alpha=alpha, seed=seed) \
 																for i in range(n) for j in range(m)]
 		pvalue_table = np.array(ray.get(futures)).reshape((n, m))
+		ray.shutdown()
 	return(pvalue_table)
 
 def pvalues2qvalues(pvalues, alpha=0.05):
