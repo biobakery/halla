@@ -37,6 +37,7 @@ def compute_pvalue_gpd(permuted_scores, gt_score, n):
 	def get_pvalue(sorted_scores, stat, n):
 		# approximate the gpd tail
 		n_exceed = 250
+		is_gpd_fitted = False
 		while n_exceed >= 10:
 			exceedances = sorted_scores[:n_exceed]
 			# check if the n_exceed largest permutation values follow GPD
@@ -48,8 +49,13 @@ def compute_pvalue_gpd(permuted_scores, gt_score, n):
 				n_exceed -= 10
 				continue
 			# H0 = exceedances come from a GPD
-			if ad_pval > 0.05: break
+			if ad_pval > 0.05:
+				is_gpd_fitted = True
+				break
 			n_exceed -= 10
+		if not is_gpd_fitted:
+			print('GPD good fit is never reached - use ECDF instead...')
+			return(None)
 		# compute the exceedance threshold t
 		t = float((sorted_scores[n_exceed] + sorted_scores[n_exceed-1])/2)
 		# estimate shape and scale params with maximum likelihood
@@ -69,6 +75,7 @@ def compute_pvalue_gpd(permuted_scores, gt_score, n):
 	# 2) compute right tail
 	right_sorted_scores = sorted(permuted_scores, reverse=True)
 	right_pval = get_pvalue(right_sorted_scores, gt_score, n)
+	if left_pval is None or right_pval is None: return(None)
 	return(left_pval + right_pval)
 
 @ray.remote
@@ -118,8 +125,11 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
 	if M >= 10:
 		return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, iters))
 	
-	# use gpd
-	return(compute_pvalue_gpd(permuted_dist_scores, gt_score, iters))
+	# attempt to use gpd
+	pval = compute_pvalue_gpd(permuted_dist_scores, gt_score, iters)
+	if pval is None:
+		return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, iters))
+	return(pval)
 
 def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters=1000,
 					 permute_speedup=True, alpha=0.05, seed=None):
