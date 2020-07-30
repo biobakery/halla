@@ -242,18 +242,15 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                 continue
             if i == j:
                 # 1) plot a histogram if i == j
-                
                 if all_types[i] == float:
-                    # continuous data:
-                    # - if discretized, show CDF of original data and histogram of discretized data
-                    # - if not, just show the histogram of original data
-                    sns.distplot(all_ori_data[i], hist_kws={ 'cumulative': True }, kde=False, ax=axs[i,j])
+                    # continuous data: show CDF of the original data
+                    # - if discretized, show borders between categories
+                    sns.distplot(all_ori_data[i], kde_kws={ 'cumulative': True, 'color': '#4b98db' }, color='w', ax=axs[i,j])
                     if not np.all(all_ori_data[i] == all_data[i]): # if discretized
-                        ori_data, disc_data = all_ori_data[i], all_data[i]
-                        freq = { x: (disc_data == x).sum() for x in range(disc_data.min(), disc_data.max()+1) }
-                        avg = { x: ori_data[disc_data == x].sum()*1.0/freq[x] for x in range(disc_data.min(), disc_data.max()+1) }
-                        new_data = np.array([avg[k] for k in disc_data])
-                        sns.distplot(new_data, kde=False, ax=axs[i,j], bins=len(avg.keys()))
+                        ori_data, disc_data = np.array(all_ori_data[i]), np.array(all_data[i])
+                        border_points = [ori_data[disc_data ==  x].min() for x in range(disc_data.min()+1, disc_data.max()+1)]
+                        for point in border_points:
+                            axs[i,j].axvline(x=point, ymax=0.9, color='k', ls='--')
                 else:
                     # categorical data: bins should not be set by default
                     sns.countplot(x=all_data[i], ax=axs[i,j])
