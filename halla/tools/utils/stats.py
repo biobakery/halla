@@ -100,7 +100,7 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
 			curr_pvalue = compute_pvalue_ecdf(permuted_dist_scores, gt_score, iter+1)
 			if curr_pvalue <= best_pvalue:
 				best_pvalue = curr_pvalue
-			elif curr_pvalue > alpha and (iter+1) >= 300:
+			elif curr_pvalue > min(alpha * 1.25, 1) and (iter+1) >= 300:
 				# only break if curr_pvalue > best_pvalue, curr_pvalue > alpha, iters >= 300 (arbitrary)
 				break
 	if permute_func == 'ecdf': # empirical cumulative dist. function
