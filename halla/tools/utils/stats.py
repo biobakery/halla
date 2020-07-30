@@ -6,7 +6,7 @@ import scipy.spatial.distance as spd
 from statsmodels.stats.multitest import multipletests
 from scipy.stats import genpareto
 import itertools
-import ray
+from multiprocessing import Pool
 
 # retrieve package named 'eva' from R for GPD-related calculations
 from rpy2.robjects.packages import importr
@@ -71,14 +71,6 @@ def compute_pvalue_gpd(permuted_scores, gt_score, n):
 	sorted_scores = sorted(permuted_scores, reverse=True)
 	return(get_pvalue(sorted_scores, gt_score, n))
 
-@ray.remote
-def compute_permutation_test_pvalue_parallel(x, y, pdist_metric='nmi', permute_func='gpd',
-									iters=10000, speedup=True, alpha=0.05, seed=None):
-	sys.path.append('./../../')
-	from tools.utils.similarity import get_similarity_function
-	from tools.utils.stats import compute_pvalue_ecdf, compute_pvalue_gpd, compute_permutation_test_pvalue
-	return(compute_permutation_test_pvalue(x, y, pdist_metric, permute_func, iters, speedup, alpha, seed))
-
 def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd',
 									iters=10000, speedup=True, alpha=0.05, seed=None):
 	'''Compute two-sided p-value using permutation test of the pairwise similarity between
@@ -108,7 +100,7 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
 			curr_pvalue = compute_pvalue_ecdf(permuted_dist_scores, gt_score, iter+1)
 			if curr_pvalue <= best_pvalue:
 				best_pvalue = curr_pvalue
-			elif curr_pvalue > alpha and (iter+1) >= 300:
+			elif curr_pvalue > min(alpha * 1.25, 1) and (iter+1) >= 300:
 				# only break if curr_pvalue > best_pvalue, curr_pvalue > alpha, iters >= 300 (arbitrary)
 				break
 	if permute_func == 'ecdf': # empirical cumulative dist. function
@@ -140,14 +132,12 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
 			for j in range(m):
 				pvalue_table[i,j] = get_similarity_function(pdist_metric)(X[i,:], Y[j,:], return_pval=True)[1]
 	else:
-		ray.init()
-		# execute in parallel
-		futures = [compute_permutation_test_pvalue_parallel.remote(X[i,:], Y[j,:], pdist_metric=pdist_metric,
-															permute_func=permute_func, iters=permute_iters,
-															speedup=permute_speedup, alpha=alpha, seed=seed) \
-																for i in range(n) for j in range(m)]
-		pvalue_table = np.array(ray.get(futures)).reshape((n, m))
-		ray.shutdown()
+		with Pool() as pool:
+			pvalue_table = pool.starmap(compute_permutation_test_pvalue, [(X[i,:], Y[j,:], pdist_metric,
+																			permute_func, permute_iters,
+																			permute_speedup, alpha, seed)\
+				                                                        	for i in range(n) for j in range(m)])
+		pvalue_table = np.array(pvalue_table).reshape((n, m))
 	return(pvalue_table)
 
 def pvalues2qvalues(pvalues, alpha=0.05):
