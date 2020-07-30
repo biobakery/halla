@@ -16,14 +16,14 @@ eva = importr('eva')
 '''P-value computations by permutation test
 '''
 def compute_pvalue_ecdf(permuted_scores, gt_score, n):
-	'''Compute the p-value using empirical cumulative distribution function given
+	'''Compute the right-tailed test p-value using empirical cumulative distribution function given
 	- permuted_scores: the scores computed by deriving association between x and shuffled y
 	- gt_score       : the test statistic
 	- n              : the number of iterations
 	'''
 	permuted_scores = np.array(permuted_scores)
-	low_bound, up_bound = min(gt_score, -gt_score), max(gt_score, -gt_score)
-	pval = ((permuted_scores < low_bound).sum() + (permuted_scores > up_bound).sum() + 1) / n
+	gt_score = np.abs(gt_score)
+	pval = ((permuted_scores > gt_score).sum() + 1) / n
 	return(min(1.0, pval))
 
 def compute_pvalue_gpd(permuted_scores, gt_score, n):
@@ -67,30 +67,28 @@ def compute_pvalue_gpd(permuted_scores, gt_score, n):
 		return(n_exceed / n * (1 - f_gpd))
 
 	gt_score = abs(gt_score)
-	# 1) compute left tail
-	left_scores = [-1 * score for score in permuted_scores]
-	left_sorted_scores = sorted(left_scores, reverse=True)
-	left_pval = get_pvalue(left_sorted_scores, gt_score, n)
-
-	# 2) compute right tail
-	right_sorted_scores = sorted(permuted_scores, reverse=True)
-	right_pval = get_pvalue(right_sorted_scores, gt_score, n)
-	if left_pval is None or right_pval is None: return(None)
-	return(left_pval + right_pval)
+	# approximate the tail
+	sorted_scores = sorted(permuted_scores, reverse=True)
+	return(get_pvalue(sorted_scores, gt_score, n))
 
 @ray.remote
+def compute_permutation_test_pvalue_parallel(x, y, pdist_metric='nmi', permute_func='gpd',
+									iters=10000, speedup=True, alpha=0.05, seed=None):
+	sys.path.append('./../../')
+	from tools.utils.similarity import get_similarity_function
+	from tools.utils.stats import compute_pvalue_ecdf, compute_pvalue_gpd, compute_permutation_test_pvalue
+	return(compute_permutation_test_pvalue(x, y, pdist_metric, permute_func, iters, speedup, alpha, seed))
+
 def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd',
 									iters=10000, speedup=True, alpha=0.05, seed=None):
 	'''Compute two-sided p-value using permutation test of the pairwise similarity between
-		an X feature and a Y feature.
+		an X feature and a Y feature by:
+		- set all scores and test statistic to be absolute values
+		- do right-tailed test
 	'''
-	sys.path.append('./../../')
-	from tools.utils.similarity import get_similarity_function
-	from tools.utils.stats import compute_pvalue_ecdf, compute_pvalue_gpd
-	
 	def _compute_score(feat1, feat2):
 		score = spd.cdist(feat1, feat2, metric=get_similarity_function(pdist_metric))
-		return(score[0,0]) # original shape is (1,1)
+		return(np.abs(score[0,0])) # original shape is (1,1)
 
 	if seed:
 		np.random.seed(seed)
@@ -117,9 +115,8 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
 		return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, iters))
 	# gpd algorithm - Knijnenburg2009, Ge2012
 	# compute M - # null samples exceeding the test statistic
-	neg_gt_score, pos_gt_score = min(gt_score, -gt_score), max(gt_score, -gt_score)
-	M = len([1 for score in permuted_dist_scores if score < neg_gt_score]) + \
-		len([1 for score in permuted_dist_scores if score > pos_gt_score])
+	# recall that gt_score is positive
+	M = len([1 for score in permuted_dist_scores if score > gt_score])
 
 	# if M >= 10, use ecdf
 	if M >= 10:
@@ -145,7 +142,7 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
 	else:
 		ray.init()
 		# execute in parallel
-		futures = [compute_permutation_test_pvalue.remote(X[i,:], Y[j,:], pdist_metric=pdist_metric,
+		futures = [compute_permutation_test_pvalue_parallel.remote(X[i,:], Y[j,:], pdist_metric=pdist_metric,
 															permute_func=permute_func, iters=permute_iters,
 															speedup=permute_speedup, alpha=alpha, seed=seed) \
 																for i in range(n) for j in range(m)]
