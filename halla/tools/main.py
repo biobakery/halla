@@ -121,6 +121,10 @@ class AllA(object):
             print('All features are continuous; bypassing discretization and updating config...')
             update_config('discretize', func=None)
 
+        if remove_na:
+            X = X.dropna(axis='columns')
+            Y = Y.dropna(axis='columns')
+
         # filter tables by intersect columns
         intersect_cols = [col for col in X.columns if col in Y.columns]
         X, Y = X[intersect_cols], Y[intersect_cols]
