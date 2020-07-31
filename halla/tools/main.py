@@ -276,8 +276,11 @@ class HAllA(AllA):
             out_file = join(config.output['dir'], plot_dir, 'association_%d' % i)
             x_data = self.X.to_numpy()[block[0],:]
             y_data = self.Y.to_numpy()[block[1],:]
+            x_ori_data = self.X_ori.to_numpy()[block[0],:]
+            y_ori_data = self.Y_ori.to_numpy()[block[1],:]
             x_features = self.X.index.to_numpy()[block[0]]
             y_features = self.Y.index.to_numpy()[block[1]]
             x_types = np.array(self.X_types)[block[0]]
             y_types = np.array(self.Y_types)[block[1]]
-            generate_lattice_plot(x_data, y_data, x_features, y_features, x_types, y_types, title, out_file)
+            generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data,
+                                    x_features, y_features, x_types, y_types, title, out_file)
