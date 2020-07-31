@@ -86,12 +86,7 @@ def test_generator_gpd(mu_pair, var_pair, corr, sample_size):
         if expected_pvalue <= 0.05: # significant
             self.assertLessEqual(abs(test_pvalue - expected_pvalue), eps)
         else:
-            if test_pvalue <= 0.05:
-                x_new, y_new = np.random.multivariate_normal(mu_pair, cov_matrix, 100).T
-                _, true_pvalue = spearmanr(x_new, y_new)
-                self.assertTrue(test_pvalue <= 0.05 and true_pvalue <= 0.05)
-            else:
-                self.assertTrue(test_pvalue > 0.05)
+            self.assertTrue(test_pvalue > 0.05)
     return test
 
 corrs = [0.8, 0.03, -0.15, -0.4]
