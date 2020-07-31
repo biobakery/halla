@@ -92,6 +92,7 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
 	gt_score = _compute_score(x, y)
 	permuted_y = np.copy(y[0])
 	best_pvalue = 1.0
+	permutation_num = iters
 	for iter in range(iters):
 		np.random.shuffle(permuted_y)
 		# compute permuted score and append to the list
@@ -100,24 +101,24 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
 			curr_pvalue = compute_pvalue_ecdf(permuted_dist_scores, gt_score, iter+1)
 			if curr_pvalue <= best_pvalue:
 				best_pvalue = curr_pvalue
-			elif curr_pvalue > min(alpha * 1.25, 1) and (iter+1) >= 300:
+			elif curr_pvalue > alpha and (iter+1) >= 300:
 				# only break if curr_pvalue > best_pvalue, curr_pvalue > alpha, iters >= 300 (arbitrary)
+				permutation_num = iter + 1
 				break
 	if permute_func == 'ecdf': # empirical cumulative dist. function
-		return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, iters))
+		return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, permutation_num))
 	# gpd algorithm - Knijnenburg2009, Ge2012
 	# compute M - # null samples exceeding the test statistic
 	# recall that gt_score is positive
 	M = len([1 for score in permuted_dist_scores if score > gt_score])
-
 	# if M >= 10, use ecdf
 	if M >= 10:
-		return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, iters))
+		return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, permutation_num))
 	
 	# attempt to use gpd
-	pval = compute_pvalue_gpd(permuted_dist_scores, gt_score, iters)
+	pval = compute_pvalue_gpd(permuted_dist_scores, gt_score, permutation_num)
 	if pval is None:
-		return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, iters))
+		return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, permutation_num))
 	return(pval)
 
 def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters=1000,
