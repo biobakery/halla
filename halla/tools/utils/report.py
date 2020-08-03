@@ -216,7 +216,7 @@ def report_significant_clusters(dir_name, significant_blocks, scores, x_features
     df.to_csv(filepath, sep='\t', index=False)
 
 def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_features, x_types, y_types,
-                            title, output_file, figsize=(12, 12)):
+                            title, output_file, axis_stretch=1.5, figsize=(12, 12)):
     '''Generate and store lattice plot for each associationn, given:
     - {x,y}_data    : the data for features in {x,y} involved in the association in numpy (the discretized data if discretized)
     - {x,y}_ori_data: the original data for features in {x,y} involved in the association in numpy
@@ -248,9 +248,18 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                     sns.distplot(all_ori_data[i], kde_kws={ 'cumulative': True, 'color': '#4b98db' }, color='w', ax=axs[i,j])
                     if not np.all(all_ori_data[i] == all_data[i]): # if discretized
                         ori_data, disc_data = np.array(all_ori_data[i]), np.array(all_data[i])
-                        border_points = [ori_data[disc_data ==  x].min() for x in range(disc_data.min()+1, disc_data.max()+1)]
-                        for point in border_points:
-                            axs[i,j].axvline(x=point, ymax=0.9, color='k', ls='--')
+                        y_min, y_max = 0.0, 1.1
+                        x_min, x_max = ori_data.min() * axis_stretch, ori_data.max() * axis_stretch
+                        border_x = [(ori_data[disc_data ==  x].max()+ori_data[disc_data == x+1].min())/2 for x in range(disc_data.min(), disc_data.max())]
+                        border_y = [len(ori_data[disc_data <=  x])*1.0/len(ori_data) for x in range(disc_data.min(), disc_data.max())]
+                        # normalize border_x
+                        border_x_norm = [(x - x_min) / (x_max - x_min) for x in border_x]
+                        border_y_norm = [(y - y_min) / (y_max - y_min) for y in border_y]
+                        for k in range(len(border_x)):
+                            axs[i,j].axvline(x=border_x[k], ymax=border_y_norm[k], color='k', ls='--')
+                            axs[i,j].axhline(y=border_y[k], xmin=border_x_norm[k], color='k', ls='--')
+                    axs[i,j].set_xlim(x_min, x_max)
+                    axs[i,j].set_ylim(y_min, y_max)
                 else:
                     # categorical data: bins should not be set by default
                     sns.countplot(x=all_data[i], ax=axs[i,j])
@@ -264,12 +273,18 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                 else:
                     # 3) plot scatterplot if both are continuous
                     sns.scatterplot(x=all_ori_data[j], y=all_ori_data[i], ax=axs[i,j])
+                    axs[i,j].set_xlim(axis_stretch * all_ori_data[i].min(), axis_stretch * all_ori_data[i].max())
+                    axs[i,j].set_ylim(axis_stretch * all_ori_data[j].min(), axis_stretch * all_ori_data[j].max())
             else:
                 # 4) plot boxplot if the data are mixed
                 if all_types[j] == float:
                     sns.boxplot(x=all_ori_data[j], y=all_data[i], orient='h', ax=axs[i,j])
+                    sns.stripplot(x=all_ori_data[j], y=all_data[i], orient='h', color=".3", ax=axs[i,j])
+                    axs[i,j].set_xlim(axis_stretch * all_ori_data[j].min(), axis_stretch * all_ori_data[j].max())
                 else:
                     sns.boxplot(x=all_data[j], y=all_ori_data[i], ax=axs[i,j])
+                    sns.stripplot(x=all_data[j], y=all_ori_data[i], color=".3", ax=axs[i,j])
+                    axs[i,j].set_ylim(axis_stretch * all_ori_data[i].min(), axis_stretch * all_ori_data[i].max())
             # add y-ticks on the right side on histogram plots
             if i == j:
                 axs[i,j].yaxis.tick_right()
@@ -288,6 +303,6 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
     fig.align_xlabels()
     fig.align_ylabels()
     fig.suptitle(title)    
-    plt.subplots_adjust(wspace=.07, hspace=.07)
+    plt.subplots_adjust(wspace=.05, hspace=.05)
     plt.savefig(output_file)
     plt.close()
