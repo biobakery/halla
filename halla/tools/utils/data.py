@@ -65,8 +65,9 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
         else:
             num_bins = min(num_bins, len(set(ar)))
         if func == 'equal-freq':
-            # TODO: handle missing data?
             discretized_result = pd.cut(ar, bins=num_bins, labels=False)
+        # assign missing values to a separate bin
+        discretized_result[np.isnan(discretized_result)] = np.nanmax(discretized_result) + 1
         return(discretized_result)
         
     # TODO: store available discretization functions somewhere

@@ -9,20 +9,21 @@ Some main changes compared to the original HAllA code include:
 - the use of yaml for config, which is automatically converted into a `Struct` object by `config-loader.py`
 - refactor HAllA into a class to enable both creating the class object and calling it via a terminal command
 
-### Loading data
+## Loading data
 
-TODO:
-- What to do with missing data?
-- Test on real data to further 'generalize' parsing
+### Handling missing data
 
-### Hierarchical clustering
+- For continuous data, omit missing data in the similarity/distance computation
+- For categorical data, assign missing values as a separate category
+
+## Hierarchical clustering
 
 Available pairwise distance metrics:
 - `nmi`
 - `pearson`
 - `spearman`
 
-### Notes on installation
+## Notes on installation
 
 1. [Installing `rpy2` on macOS](https://stackoverflow.com/questions/52361732/installing-rpy2-on-macos)
 2. Installing the necessary R packages
