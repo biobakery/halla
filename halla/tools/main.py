@@ -106,7 +106,7 @@ class AllA(object):
     '''Public functions
     '''
     def load(self, X_file, Y_file=None):
-        # TODO: currently assumes no missing value and header+index col are provided
+        # TODO: currently assumes header+index col are provided
         X, self.X_types = eval_type(pd.read_table(X_file, index_col=0))
         Y, self.Y_types = eval_type(pd.read_table(Y_file, index_col=0)) if Y_file \
             else (X.copy(deep=True), np.copy(self.X_types))
