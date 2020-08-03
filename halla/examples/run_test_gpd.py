@@ -16,9 +16,7 @@ A = pd.read_table(A_file, index_col=0).to_numpy()
 
 # parse arguments
 parser = argparse.ArgumentParser(description='Run simulations to test GPD')
-parser.add_argument('-f', '--func', help='Permutation function', choices=['gpd', 'ecdf'], default='ecdf')
 parser.add_argument('-o', '--output', help='Output directory', required=True)
-parser.add_argument('--speedup', help='Speedup permutation', default=False, action='store_true')
 params = parser.parse_args()
 
 pdist_metric = 'spearman'
@@ -26,7 +24,7 @@ pdist_metric = 'spearman'
 start_time = time.time()
 
 test_halla = HAllA(pdist_metric=pdist_metric, out_dir='simulation_out/%s' % params.output,
-                    permute_func=params.func, permute_iters=1000, permute_speedup=params.speedup)
+                    permute_iters=1000)
 
 test_halla.load(X_file, Y_file)
 test_halla.run()

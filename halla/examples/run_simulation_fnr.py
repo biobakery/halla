@@ -84,8 +84,8 @@ if __name__ == '__main__':
     fdr_alpha = params.fdr_alpha
     output_pref = params.output
     
-    dataset_dir = 'simulation/%s' % output_pref
-    result_dir = 'simulation_out/%s' % output_pref
+    dataset_dir = 'local_tests/simulation/%s' % output_pref
+    result_dir = 'local_tests/simulation_out/%s' % output_pref
 
     start_time = time.time()
 
