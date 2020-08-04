@@ -55,7 +55,7 @@ def parse_argument(args):
     return(params)
 
 def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, association='line',
-                        noise_within=0.25, noise_between=0.25, noise_within_std=0.7, noise_between_std=0.7):
+                        noise_within=0.25, noise_between=0.25, noise_within_std=1.0, noise_between_std=1.0):
     '''Generate synthetic data with the following steps:
     1) generate a base B [-1, 1] from uniform distribution
     2) derive base_X and base_Y from B with noise = between_noise
