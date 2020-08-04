@@ -6,7 +6,8 @@ import numpy as np
 def remove_missing_values(x, y):
     '''Given x and y, remove pairs that contain missing values
     '''
-    nas = np.logical_or(np.isnan(x), np.isnan(y))
+    # nan != nan = TRUE
+    nas = np.logical_or(x != x, y != y)
     return(x[~nas], y[~nas])
 
 '''Similarity wrapper functions (note: not distance!)
