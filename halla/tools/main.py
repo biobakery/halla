@@ -18,15 +18,17 @@ from os.path import join
 # AllA
 ########
 class AllA(object):
-    def __init__(self, discretize_bypass_if_possible=config.discretize['bypass_if_possible'],
-                 discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
+    def __init__(self, entropy_thresh_frac=config.preprocess['entropy_thresh_frac'],
+                 discretize_bypass_if_possible=config.preprocess['discretize_bypass_if_possible'],
+                 discretize_func=config.preprocess['discretize_func'], discretize_num_bins=config.preprocess['discretize_num_bins'],
                  pdist_metric=config.association['pdist_metric'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  out_dir=config.output['dir'], verbose=config.output['verbose'],
                  seed=None):
         # update AllA config setting
-        update_config('discretize', bypass_if_possible=discretize_bypass_if_possible, func=discretize_func, num_bins=discretize_num_bins)
+        update_config('preprocess', entropy_thresh_frac=entropy_thresh_frac, discretize_bypass_if_possible=discretize_bypass_if_possible,
+                                    discretize_func=discretize_func, discretize_num_bins=discretize_num_bins)
         update_config('association', pdist_metric=pdist_metric)
         update_config('permute', func=permute_func, iters=permute_iters, speedup=permute_speedup)
         update_config('stats', fdr_alpha=fdr_alpha, fdr_method=fdr_method)
@@ -111,24 +113,30 @@ class AllA(object):
         Y, self.Y_types = eval_type(pd.read_table(Y_file, index_col=0)) if Y_file \
             else (X.copy(deep=True), np.copy(self.X_types))
 
+        confp = config.preprocess
+
         # if not all types are continuous but pdist_metric is only for continuous types
         # TODO: add more appropriate distance metrics
         if not (is_all_cont(self.X_types) and is_all_cont(self.X_types)) and config.association['pdist_metric'] != 'nmi':
             raise ValueError('pdist_metric should be nmi if not all features are continuous...')
         # if all features are continuous and distance metric != nmi, discretization can be bypassed
         if is_all_cont(self.X_types) and is_all_cont(self.X_types) and \
-            config.association['pdist_metric'].lower() != 'nmi' and config.discretize['bypass_if_possible']:
+            config.association['pdist_metric'].lower() != 'nmi' and confp['discretize_bypass_if_possible']:
             print('All features are continuous; bypassing discretization and updating config...')
             update_config('discretize', func=None)
 
         # filter tables by intersect columns
         intersect_cols = [col for col in X.columns if col in Y.columns]
         X, Y = X[intersect_cols], Y[intersect_cols]
-        self.X_ori, self.Y_ori = X, Y
 
         # clean and preprocess data
-        self.X = preprocess(X, self.X_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
-        self.Y = preprocess(Y, self.Y_types, discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'])
+        func_args = {
+            'entropy_thresh_frac'     : confp['entropy_thresh_frac'],
+            'discretize_func'    : confp['discretize_func'],
+            'discretize_num_bins': confp['discretize_num_bins']
+        }
+        self.X, self.X_ori, self.X_types = preprocess(X, self.X_types, **func_args)
+        self.Y, self.Y_ori, self.Y_types = preprocess(Y, self.Y_types, **func_args)
 
         self.has_loaded = True
     
@@ -169,8 +177,9 @@ class AllA(object):
 # HAllA
 ########
 class HAllA(AllA):
-    def __init__(self, discretize_bypass_if_possible=config.discretize['bypass_if_possible'],
-                 discretize_func=config.discretize['func'], discretize_num_bins=config.discretize['num_bins'],
+    def __init__(self, entropy_thresh_frac=config.preprocess['entropy_thresh_frac'],
+                 discretize_bypass_if_possible=config.preprocess['discretize_bypass_if_possible'],
+                 discretize_func=config.preprocess['discretize_func'], discretize_num_bins=config.preprocess['discretize_num_bins'],
                  pdist_metric=config.association['pdist_metric'], linkage_method=config.hierarchy['linkage_method'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],

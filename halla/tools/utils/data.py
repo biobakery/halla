@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from scipy.stats import rankdata
+from scipy.stats import rankdata, entropy
 import pandas as pd
 
 def eval_type(df):
@@ -65,7 +65,10 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
         else:
             num_bins = min(num_bins, len(set(ar)))
         if func == 'equal-freq':
-            discretized_result = pd.cut(ar, bins=num_bins, labels=False)
+            order = rankdata(ar, method='min') - 1 # order starts with 0
+            bin_size = np.ceil(len(ar) / float(num_bins))
+            # rankdata to have increment of 1
+            discretized_result = rankdata((order / bin_size).astype(int), method='dense')
         # assign missing values to a separate bin
         discretized_result[np.isnan(discretized_result)] = np.nanmax(discretized_result) + 1
         return(discretized_result)
@@ -76,25 +79,40 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
     if ar_type == object:
         return(_discretize_categorical(ar))
     return(_discretize_continuous(ar, func, num_bins))
-    
-def preprocess(df, types, discretize_func=None, discretize_num_bins=None):
+
+def keep_by_entropy(x, thresh_frac=0):
+    '''Decide if the feature should be kept based on the entropy using log base 2 given:
+    - x          : the vector
+    - thresh_frac: the entropy threshold fraction
+    '''
+    x = x.to_list()
+    _, count = np.unique(x, return_counts=True)
+    return(entropy(count, base=2) > thresh_frac * np.log2(len(count)))
+
+def preprocess(df, types, entropy_thresh_frac=0, discretize_func=None, discretize_num_bins=None):
     '''Preprocess input data
-    1) handle missing values # TODO
+    1) remove features with low entropy
     2) discretize values if needed
-    3) remove features with low entropy # TODO
 
     Args:
     - df                 : a panda dataframe
+    - types              : a numpy list indicating the type of each feature
+    - entropy_thresh_frac: the entropy threshold fraction of the feature's vector length
     - discretize_func    : function for discretizing
     - discretize_num_bins: # bins for discretizing #TODO: different bins for different features?
     '''
+    # 1) remove features with low entropy
+    kept_rows = df.apply(keep_by_entropy, 1, thresh_frac=entropy_thresh_frac)
+    types, df = types[kept_rows], df[kept_rows]
+
+    # 2) discretize values if needed
     updated_df = df.copy(deep=True)
     for row_i, type_i in enumerate(types):
         updated_df.iloc[row_i] = discretize_vector(updated_df.iloc[row_i].to_numpy(), type_i,
                                                    func=discretize_func,
                                                    num_bins=discretize_num_bins)
 
-    return(updated_df)
+    return(updated_df, df, types)
 
 def is_all_cont(types):
     '''Check if all types are continuous
