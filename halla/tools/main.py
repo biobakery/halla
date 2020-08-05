@@ -123,7 +123,7 @@ class AllA(object):
         if is_all_cont(self.X_types) and is_all_cont(self.X_types) and \
             config.association['pdist_metric'].lower() != 'nmi' and confp['discretize_bypass_if_possible']:
             print('All features are continuous; bypassing discretization and updating config...')
-            update_config('discretize', func=None)
+            update_config('preprocess', discretize_func=None)
 
         # filter tables by intersect columns
         intersect_cols = [col for col in X.columns if col in Y.columns]
@@ -251,7 +251,6 @@ class HAllA(AllA):
 
         # step 2: hierarchical clustering
         self._run_clustering()
-        
         # step 3: iteratively finding densely-associated blocks
         self._find_dense_associated_blocks()
 
