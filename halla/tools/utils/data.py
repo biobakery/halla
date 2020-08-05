@@ -68,7 +68,7 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
             order = rankdata(ar, method='min') - 1 # order starts with 0
             bin_size = np.ceil(len(ar) / float(num_bins))
             # rankdata to have increment of 1
-            discretized_result = rankdata((order / bin_size).astype(int), method='dense')
+            discretized_result = rankdata((order / bin_size).astype(int), method='dense') - 1
         # assign missing values to a separate bin
         discretized_result[np.isnan(discretized_result)] = np.nanmax(discretized_result) + 1
         return(discretized_result)
