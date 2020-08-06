@@ -1,5 +1,5 @@
 preprocess:
-  max_freq_thresh: 0.8 # for filtering out features where the % of the most occurrence > threshold
+  max_freq_thresh: 1 # for filtering out features where the % of the most occurrence > threshold, disabled if None
   discretize_bypass_if_possible: True # bypass discretization if all features are continuous and pdist_metric not nmi
   discretize_func: ~ # None, 'equal-freq'
   discretize_num_bins: ~

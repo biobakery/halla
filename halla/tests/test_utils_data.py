@@ -71,3 +71,13 @@ class TestDataUtils(unittest.TestCase):
         ar = [1, 1, 0, 0, 0, 0, 0, 1, 0, 1]
         df_row = pd.DataFrame(ar).T.iloc[0]
         self.assertTrue(data.keep_feature(df_row, 0.61))
+    
+    def test_keep_feature_4(self):
+        ar = [1, 1, 1, 1, 1, 1, 1, 1]
+        df_row = pd.DataFrame(ar).T.iloc[0]
+        self.assertTrue(data.keep_feature(df_row, None))
+    
+    def test_keep_feature_4(self):
+        ar = [1, 1, 1, 1, 1, 1, 1, 1]
+        df_row = pd.DataFrame(ar).T.iloc[0]
+        self.assertFalse(data.keep_feature(df_row, 1))

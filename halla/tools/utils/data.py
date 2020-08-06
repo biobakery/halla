@@ -83,10 +83,11 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
 def keep_feature(x, max_freq_thresh=0.8):
     '''Decide if the feature should be kept based on the maximum frequency threshold, given:
     - x              : the vector from a DataFrame row
-    - max_freq_thresh: the threshold for maximum frequency in fraction [0..1]
+    - max_freq_thresh: the threshold for maximum frequency in fraction [0..1], disabled if None
     '''
     x = x.to_list()
     _, count = np.unique(x, return_counts=True)
+    if max_freq_thresh is None: return(True)
     return(count.max() / count.sum() < max_freq_thresh)
 
 def preprocess(df, types, max_freq_thresh=0.8, discretize_func=None, discretize_num_bins=None):
@@ -97,7 +98,7 @@ def preprocess(df, types, max_freq_thresh=0.8, discretize_func=None, discretize_
     Args:
     - df                 : a panda dataframe
     - types              : a numpy list indicating the type of each feature
-    - max_freq_thresh    : the threshold for maximum frequency in fraction [0..1]
+    - max_freq_thresh    : the threshold for maximum frequency in fraction [0..1], disabled if None
     - discretize_func    : function for discretizing
     - discretize_num_bins: # bins for discretizing #TODO: different bins for different features?
     '''
