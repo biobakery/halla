@@ -281,12 +281,12 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
             else:
                 # 4) plot boxplot if the data are mixed
                 if all_types[j] == float:
-                    sns.boxplot(x=all_ori_data[j], y=all_data[i], orient='h', ax=axs[i,j])
-                    sns.stripplot(x=all_ori_data[j], y=all_data[i], orient='h', color=".3", ax=axs[i,j])
+                    sns.boxplot(x=all_ori_data[j], y=all_data[i], orient='h', color='w', ax=axs[i,j])
+                    sns.stripplot(x=all_ori_data[j], y=all_data[i], jitter=0.25, orient='h', ax=axs[i,j])
                     axs[i,j].set_xlim(all_ori_data[j].min() - axis_stretch, all_ori_data[j].max() + axis_stretch)
                 else:
-                    sns.boxplot(x=all_data[j], y=all_ori_data[i], ax=axs[i,j])
-                    sns.stripplot(x=all_data[j], y=all_ori_data[i], color=".3", ax=axs[i,j])
+                    sns.boxplot(x=all_data[j], y=all_ori_data[i], color='w', ax=axs[i,j])
+                    sns.stripplot(x=all_data[j], y=all_ori_data[i], jitter=0.25, ax=axs[i,j])
                     axs[i,j].set_ylim(all_ori_data[i].min() - axis_stretch, all_ori_data[i].max() + axis_stretch)
             # add y-ticks on the right side on histogram plots
             if i == j:
