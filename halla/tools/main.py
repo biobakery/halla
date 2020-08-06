@@ -18,7 +18,7 @@ from os.path import join
 # AllA
 ########
 class AllA(object):
-    def __init__(self, entropy_thresh_frac=config.preprocess['entropy_thresh_frac'],
+    def __init__(self, max_freq_thresh=config.preprocess['max_freq_thresh'],
                  discretize_bypass_if_possible=config.preprocess['discretize_bypass_if_possible'],
                  discretize_func=config.preprocess['discretize_func'], discretize_num_bins=config.preprocess['discretize_num_bins'],
                  pdist_metric=config.association['pdist_metric'],
@@ -27,7 +27,7 @@ class AllA(object):
                  out_dir=config.output['dir'], verbose=config.output['verbose'],
                  seed=None):
         # update AllA config setting
-        update_config('preprocess', entropy_thresh_frac=entropy_thresh_frac, discretize_bypass_if_possible=discretize_bypass_if_possible,
+        update_config('preprocess', max_freq_thresh=max_freq_thresh, discretize_bypass_if_possible=discretize_bypass_if_possible,
                                     discretize_func=discretize_func, discretize_num_bins=discretize_num_bins)
         update_config('association', pdist_metric=pdist_metric)
         update_config('permute', func=permute_func, iters=permute_iters, speedup=permute_speedup)
@@ -131,7 +131,7 @@ class AllA(object):
 
         # clean and preprocess data
         func_args = {
-            'entropy_thresh_frac'     : confp['entropy_thresh_frac'],
+            'max_freq_thresh'     : confp['max_freq_thresh'],
             'discretize_func'    : confp['discretize_func'],
             'discretize_num_bins': confp['discretize_num_bins']
         }
@@ -177,7 +177,7 @@ class AllA(object):
 # HAllA
 ########
 class HAllA(AllA):
-    def __init__(self, entropy_thresh_frac=config.preprocess['entropy_thresh_frac'],
+    def __init__(self, max_freq_thresh=config.preprocess['max_freq_thresh'],
                  discretize_bypass_if_possible=config.preprocess['discretize_bypass_if_possible'],
                  discretize_func=config.preprocess['discretize_func'], discretize_num_bins=config.preprocess['discretize_num_bins'],
                  pdist_metric=config.association['pdist_metric'], linkage_method=config.hierarchy['linkage_method'],
