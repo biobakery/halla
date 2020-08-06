@@ -80,16 +80,16 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
         return(_discretize_categorical(ar))
     return(_discretize_continuous(ar, func, num_bins))
 
-def keep_by_entropy(x, thresh_frac=0):
-    '''Decide if the feature should be kept based on the entropy using log base 2 given:
-    - x          : the vector
-    - thresh_frac: the entropy threshold fraction
+def keep_feature(x, max_freq_thresh=0.8):
+    '''Decide if the feature should be kept based on the maximum frequency threshold, given:
+    - x              : the vector from a DataFrame row
+    - max_freq_thresh: the threshold for maximum frequency in fraction [0..1]
     '''
     x = x.to_list()
     _, count = np.unique(x, return_counts=True)
-    return(entropy(count, base=2) > thresh_frac * np.log2(len(count)))
+    return(count.max() / count.sum() < max_freq_thresh)
 
-def preprocess(df, types, entropy_thresh_frac=0, discretize_func=None, discretize_num_bins=None):
+def preprocess(df, types, max_freq_thresh=0.8, discretize_func=None, discretize_num_bins=None):
     '''Preprocess input data
     1) remove features with low entropy
     2) discretize values if needed
@@ -97,12 +97,12 @@ def preprocess(df, types, entropy_thresh_frac=0, discretize_func=None, discretiz
     Args:
     - df                 : a panda dataframe
     - types              : a numpy list indicating the type of each feature
-    - entropy_thresh_frac: the entropy threshold fraction of the feature's vector length
+    - max_freq_thresh    : the threshold for maximum frequency in fraction [0..1]
     - discretize_func    : function for discretizing
     - discretize_num_bins: # bins for discretizing #TODO: different bins for different features?
     '''
     # 1) remove features with low entropy
-    kept_rows = df.apply(keep_by_entropy, 1, thresh_frac=entropy_thresh_frac)
+    kept_rows = df.apply(keep_feature, 1, max_freq_thresh=max_freq_thresh)
     types, df = types[kept_rows], df[kept_rows]
 
     # 2) discretize values if needed
