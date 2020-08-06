@@ -44,13 +44,30 @@ class TestDataUtils(unittest.TestCase):
         self.assertTrue(compare_numpy_array(res, expected_res))
 
     def test_dicretize_vector_continuous_equal_freq(self):
-        ar = np.array([1,1,1,1,1,1,2,2,2,3,3,3,4,4,4,4,5,5,5,6,6])
+        ar = np.array([1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6])
         res = data.discretize_vector(ar, func='equal-freq', num_bins=5)
-        expected_res = pd.cut(ar, bins=5, labels=False)
+        expected_res = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3])
         self.assertTrue(compare_numpy_array(res, expected_res))
 
     def test_dicretize_vector_continuous_missing_data(self):
-        ar = np.array([1,1,2,2,np.nan,3,3,np.nan])
+        ar = np.array([1, 1, 2, 2, np.nan, 3, 3, np.nan])
         res = data.discretize_vector(ar, func='equal-freq', num_bins=3)
-        expected_res = np.array([0,0,1,1,3,2,2,3])
+        expected_res = np.array([0, 0, 0, 0, 2, 1, 1, 2])
         self.assertTrue(compare_numpy_array(res, expected_res))
+    
+    '''Tests on keep_feature function
+    '''
+    def test_keep_feature_1(self):
+        ar = [1, 1, 0, 0, 0, 0, 0, 1, 0, 1]
+        df_row = pd.DataFrame(ar).T.iloc[0]
+        self.assertFalse(data.keep_feature(df_row, 0.5))
+    
+    def test_keep_feature_2(self):
+        ar = [1, 1, 0, 0, 0, 0, 0, 1, 0, 1]
+        df_row = pd.DataFrame(ar).T.iloc[0]
+        self.assertFalse(data.keep_feature(df_row, 0.6))
+    
+    def test_keep_feature_3(self):
+        ar = [1, 1, 0, 0, 0, 0, 0, 1, 0, 1]
+        df_row = pd.DataFrame(ar).T.iloc[0]
+        self.assertTrue(data.keep_feature(df_row, 0.61))
