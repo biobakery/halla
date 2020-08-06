@@ -187,7 +187,7 @@ def report_all_associations(dir_name, x_features, y_features, sim_table, pval_ta
     df.to_csv(filepath, sep='\t', index=False)
 
 def report_significant_clusters(dir_name, significant_blocks, scores, x_features, y_features,
-                                score_label='best_pvalue', output_file='sig_clusters.txt'):
+                                score_label='best_adjusted_pvalue', output_file='sig_clusters.txt'):
     '''Store only the significant clusters, given:
     - dir_name          : output directory name
     - significant_blocks: a list of significant blocks in the original indices, e.g.,
@@ -216,14 +216,15 @@ def report_significant_clusters(dir_name, significant_blocks, scores, x_features
     df.to_csv(filepath, sep='\t', index=False)
 
 def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_features, x_types, y_types,
-                            title, output_file, axis_stretch=1.5, figsize=(12, 12)):
+                            title, output_file, axis_stretch=0.5, figsize=(12, 12)):
     '''Generate and store lattice plot for each associationn, given:
     - {x,y}_data    : the data for features in {x,y} involved in the association in numpy (the discretized data if discretized)
     - {x,y}_ori_data: the original data for features in {x,y} involved in the association in numpy
     - {x,y}_features: the names of the features in {x,y} involved in the association
-    - output_file   : the output file name
-    - title         : the plot title
     - {x,y}_types   : data types in {x,y}'s features, which determines scatterplot/boxplot/confusion matrix
+    - title         : the plot title
+    - output_file   : the output file name
+    - axis_stretch  : stretch both axes of continuous data by the value, e.g., x --> [x_min - axis_stretch, x_max + axis_stretch]
     '''
     if (len(x_data) != len(x_features) and len(x_data) != len(x_types)) or \
         (len(y_data) != len(y_features) and len(y_data) != len(y_types)):
@@ -245,12 +246,14 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                 if all_types[i] == float:
                     # continuous data: show CDF of the original data
                     # - if discretized, show borders between categories
-                    sns.distplot(all_ori_data[i], kde_kws={ 'cumulative': True, 'color': '#4b98db' }, color='w', ax=axs[i,j])
+                    y_min, y_max = 0.0, 1.1
+                    x_min, x_max = all_ori_data[i].min() - axis_stretch, all_ori_data[i].max() + axis_stretch
+                    sorted_data = np.sort(np.concatenate(([x_min], np.unique(all_ori_data[i]), [x_max])))
+                    cdf_line = [(all_ori_data[i] <= val).sum()/len(all_ori_data[i]) for val in sorted_data]
+                    sns.lineplot(x=sorted_data, y=cdf_line, ax=axs[i,j])
                     if not np.all(all_ori_data[i] == all_data[i]): # if discretized
                         ori_data, disc_data = np.array(all_ori_data[i]), np.array(all_data[i])
-                        y_min, y_max = 0.0, 1.1
-                        x_min, x_max = ori_data.min() * axis_stretch, ori_data.max() * axis_stretch
-                        border_x = [(ori_data[disc_data ==  x].max()+ori_data[disc_data == x+1].min())/2 for x in range(disc_data.min(), disc_data.max())]
+                        border_x = [ori_data[disc_data ==  x].max() for x in range(disc_data.min(), disc_data.max())]
                         border_y = [len(ori_data[disc_data <=  x])*1.0/len(ori_data) for x in range(disc_data.min(), disc_data.max())]
                         # normalize border_x
                         border_x_norm = [(x - x_min) / (x_max - x_min) for x in border_x]
@@ -273,18 +276,18 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                 else:
                     # 3) plot scatterplot if both are continuous
                     sns.scatterplot(x=all_ori_data[j], y=all_ori_data[i], ax=axs[i,j])
-                    axs[i,j].set_xlim(axis_stretch * all_ori_data[i].min(), axis_stretch * all_ori_data[i].max())
-                    axs[i,j].set_ylim(axis_stretch * all_ori_data[j].min(), axis_stretch * all_ori_data[j].max())
+                    axs[i,j].set_xlim(all_ori_data[i].min() - axis_stretch, all_ori_data[i].max() + axis_stretch)
+                    axs[i,j].set_ylim(all_ori_data[j].min() - axis_stretch, all_ori_data[j].max() + axis_stretch)
             else:
                 # 4) plot boxplot if the data are mixed
                 if all_types[j] == float:
                     sns.boxplot(x=all_ori_data[j], y=all_data[i], orient='h', ax=axs[i,j])
                     sns.stripplot(x=all_ori_data[j], y=all_data[i], orient='h', color=".3", ax=axs[i,j])
-                    axs[i,j].set_xlim(axis_stretch * all_ori_data[j].min(), axis_stretch * all_ori_data[j].max())
+                    axs[i,j].set_xlim(all_ori_data[j].min() - axis_stretch, all_ori_data[j].max() + axis_stretch)
                 else:
                     sns.boxplot(x=all_data[j], y=all_ori_data[i], ax=axs[i,j])
                     sns.stripplot(x=all_data[j], y=all_ori_data[i], color=".3", ax=axs[i,j])
-                    axs[i,j].set_ylim(axis_stretch * all_ori_data[i].min(), axis_stretch * all_ori_data[i].max())
+                    axs[i,j].set_ylim(all_ori_data[i].min() - axis_stretch, all_ori_data[i].max() + axis_stretch)
             # add y-ticks on the right side on histogram plots
             if i == j:
                 axs[i,j].yaxis.tick_right()
