@@ -1,11 +1,11 @@
 import pkg_resources  # part of setuptools to retrieve version
 import datetime
+from os.path import join
 
 class HAllALogger(object):
     def __init__(self, name, config):
         self.name = name
         self.verbose = config.output['verbose']
-        self.performance_txt = 'HAllA version:\t' + pkg_resources.require('HAllA')[0].version + '\n'
         self.durations = [] # details on durations for certain steps
         self.results = []   # details on results from certain steps
         self.log_config(config)
@@ -23,7 +23,7 @@ class HAllALogger(object):
             for key_2 in config_dict[key_1]:
                 log_txt += '    %-*s: ' % (30, format_text(key_2)) + str(config_dict[key_1][key_2]) + '\n'
         if return_text:
-            return('\n--Configuration parameters--\n' + log_txt)
+            return(log_txt)
         if not self.verbose: return
         print('Setting config parameters (irrelevant parameters will be ignored)...')
         print(log_txt)
@@ -35,7 +35,7 @@ class HAllALogger(object):
     def log_step_end(self, label, dur_second, sub=False):
         decorator = '--' if sub else '=='
         dur_str = str(datetime.timedelta(seconds=dur_second))
-        self.durations.append((label, dur_str))
+        self.durations.append((label, dur_second))
         if self.verbose:
             print('%s Completed; total duration: %s %s\n' % (decorator, dur_str, decorator))
 
@@ -45,3 +45,20 @@ class HAllALogger(object):
     def log_result(self, label, content):
         self.results.append((label, content))
         if self.verbose: print('  ', label, content)
+    
+    def write_performance_log(self, dir_name, config, file_name='performance.txt'):
+        performance_txt = 'HAllA version:\t' + pkg_resources.require('HAllA')[0].version + '\n'
+        # add config details
+        performance_txt += '\n--Configuration parameters--\n' + self.log_config(config, return_text=True)
+        # add result details
+        performance_txt += '\n--Results--\n' + \
+                           '\n'.join(['%-*s: ' % (60, item[0]) + str(item[1]) for item in self.results]) + '\n'
+        # add duration details
+        performance_txt += '\n--Durations--\n' + \
+                           '\n'.join(['%-*s: ' % (60, item[0]) + str(datetime.timedelta(seconds=item[1])) \
+                                      for item in self.durations]) + '\n'
+        tot_dur = sum(item[1] for item in self.durations)
+        performance_txt += '%-*s: ' % (60, 'Total execution time') + str(datetime.timedelta(seconds=tot_dur))
+        file = open(join(dir_name, file_name), 'w')
+        file.write(performance_txt)
+        file.close() 

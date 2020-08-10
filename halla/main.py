@@ -82,6 +82,8 @@ class AllA(object):
         self.fdr_reject_table = self.fdr_reject_table.reshape(self.pvalue_table.shape)
 
         end_time = time.time()
+        self.logger.log_message('Results:')
+        self.logger.log_result('Number of significant associations', self.fdr_reject_table.sum())
         self.logger.log_step_end('Computing pairwise similarities, p-values, q-values', end_time - start_time, sub=True)
     
     def _find_dense_associated_blocks(self):
@@ -100,6 +102,8 @@ class AllA(object):
         self.significant_blocks_qvalues = [self.qvalue_table[x[0][0]][x[1][0]] for x in self.significant_blocks]
 
         end_time = time.time()
+        self.logger.log_message('Results:')
+        self.logger.log_result('Number of significant clusters', len(self.significant_blocks))
         self.logger.log_step_end('Finding densely associated blocks', end_time - start_time, sub=True)
     
     def _generate_reports(self):
@@ -112,7 +116,10 @@ class AllA(object):
 
         # create directory
         dir_name = config.output['dir']
-        reset_dir(dir_name)
+        reset_dir(dir_name, verbose=config.output['verbose'])
+
+        # generate performance.txt
+        self.logger.write_performance_log(dir_name, config)
 
         # generate all_associations.txt
         report_all_associations(dir_name,
@@ -272,6 +279,8 @@ class HAllA(AllA):
         self.significant_blocks.sort(key=sort_func)
         self.significant_blocks_qvalues = [sort_func(x) for x in self.significant_blocks]
         end_time = time.time()
+        self.logger.log_message('Results:')
+        self.logger.log_result('Number of significant clusters', len(self.significant_blocks))
         self.logger.log_step_end('Finding densely associated blocks', end_time - start_time, sub=True)
 
     def _generate_reports(self):
