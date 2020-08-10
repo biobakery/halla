@@ -5,14 +5,14 @@ import seaborn as sns
 
 sys.path.append(dirname(dirname(abspath(__file__))))
 
-from tools import HAllA
+from halla import HAllA
 
-gene_file  = join(dirname(abspath(__file__)), '../data', 'nutrimouse', 'gene.txt')
-lipid_file = join(dirname(abspath(__file__)), '../data', 'nutrimouse', 'lipid.txt')
+gene_file  = join(dirname(abspath(__file__)), 'gene.txt')
+lipid_file = join(dirname(abspath(__file__)), 'lipid.txt')
 
 pdist_metric = 'spearman'
 
-halla = HAllA(pdist_metric=pdist_metric, out_dir='local_tests/out', seed=123)
+halla = HAllA(pdist_metric=pdist_metric, out_dir='out', seed=123)
 halla.load(lipid_file, gene_file)
 halla.run()
 

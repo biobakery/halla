@@ -14,7 +14,7 @@ conversion_class_file = join(dirname(abspath(__file__)), dir_path, 'standards.tx
 
 pdist_metric = 'spearman'
 
-test_halla = HAllA(pdist_metric=pdist_metric, out_dir='local_tests/PRISM_out', seed=123)
+test_halla = HAllA(pdist_metric=pdist_metric, out_dir='PRISM_out', seed=123)
 test_halla.load(X_file, Y_file)
 test_halla.run()
 

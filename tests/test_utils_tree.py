@@ -3,9 +3,8 @@ import sys
 from os.path import dirname, abspath
 import numpy as np
 from scipy.cluster.hierarchy import linkage, to_tree, ClusterNode
-sys.path.append(dirname(dirname(abspath(__file__))))
+from halla.utils import tree
 
-from tools.utils import tree
 from utils import compare_numpy_array
 
 def generate_test_x_and_y_trees():

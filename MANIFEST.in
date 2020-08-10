@@ -2,4 +2,4 @@ include history.md
 include LICENSE
 include readme.md
 include setup.py
-include examples/demo.fastq
+include requirements.txt

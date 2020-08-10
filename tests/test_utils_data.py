@@ -1,12 +1,8 @@
 import unittest
-import sys
-from os.path import dirname, abspath
 import numpy as np
 import pandas as pd
+from halla.utils import data
 
-sys.path.append(dirname(dirname(abspath(__file__))))
-
-from tools.utils import data
 from utils import compare_numpy_array
 
 class TestDataUtils(unittest.TestCase):

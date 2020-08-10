@@ -1,7 +1,6 @@
+# HAllA History #
 
-# Template History #
+## v0.0.1 2020-08-07 ##
 
-## v0.0.9 01-04-2020 ##
-
-* Short decription on the patch or the feature released in this version. 
+* Add initial workflows and examples
 
