@@ -8,3 +8,6 @@
 
 * Implement logging - can be turned off using `verbose` parameter
 
+## v0.0.3 2020-08-10 ##
+
+* Enhance clustermap - add more parameters (mask, x_label, y_label, etc)
