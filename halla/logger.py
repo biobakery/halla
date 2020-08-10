@@ -29,10 +29,19 @@ class HAllALogger(object):
         print(log_txt)
 
     def log_step_start(self, message, sub=False):
+        '''Log the beginning of a step (or a sub-step):
+        - a (main) step: == message ==
+        - a (sub)  step: -- message --
+        '''
         decorator = '--' if sub else '=='
         if self.verbose: print('%s %s %s' % (decorator, message, decorator))
     
     def log_step_end(self, label, dur_second, sub=False):
+        '''Log the end of a step (or a sub-step):
+        - a (main) step: == Completed; total duration: time ==
+        - a (sub)  step: -- Completed; total duration: time --
+        The (label, dur_second) is added to self.durations array to be printed in performance.txt
+        '''
         decorator = '--' if sub else '=='
         dur_str = str(datetime.timedelta(seconds=dur_second))
         self.durations.append((label, dur_second))
@@ -40,13 +49,24 @@ class HAllALogger(object):
             print('%s Completed; total duration: %s %s\n' % (decorator, dur_str, decorator))
 
     def log_message(self, message):
+        '''Log a message
+        '''
         if self.verbose: print(message)
     
     def log_result(self, label, content):
+        '''Log results with prefix '  '
+        The (label, content) is added to self.results array to be printed in performance.txt
+        '''
         self.results.append((label, content))
         if self.verbose: print('  ', label, content)
     
     def write_performance_log(self, dir_name, config, file_name='performance.txt'):
+        '''Write performance.txt which contains:
+        - halla version
+        - configuration parameters
+        - results details
+        - durations details
+        '''
         performance_txt = 'HAllA version:\t' + pkg_resources.require('HAllA')[0].version + '\n'
         # add config details
         performance_txt += '\n--Configuration parameters--\n' + self.log_config(config, return_text=True)

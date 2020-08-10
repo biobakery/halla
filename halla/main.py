@@ -15,7 +15,6 @@ import numpy as np
 import scipy.spatial.distance as spd
 from os.path import join
 import time
-import datetime
 
 ########
 # AllA
