@@ -37,9 +37,10 @@ class AllA(object):
         update_config('permute', func=permute_func, iters=permute_iters, speedup=permute_speedup)
         update_config('stats', fdr_alpha=fdr_alpha, fdr_method=fdr_method)
         self._reset_attributes()
-        self.name = 'AllA'
-        self.logger = HAllALogger(name=self.name, verbose=verbose)
         self.seed = seed
+        if not hasattr(self, 'name'):
+            self.name = 'AllA'
+            self.logger = HAllALogger(name=self.name, config=config)
     
     '''Private functions
     '''
@@ -55,20 +56,19 @@ class AllA(object):
         self.has_run = False
 
     def _compute_pairwise_similarities(self):
-        verbose = config.output['verbose']
         dist_metric = config.association['pdist_metric']
 
+        self.logger.log_step_start('Step 1: Computing pairwise similarities, p-values, and q-values', sub=True)
         start_time = time.time()
 
-        if verbose: print('[%s] Step 1: Computing pairwise similarities' % self.name)
         X, Y = self.X.to_numpy(), self.Y.to_numpy()
 
-        # obtain similarity matrix  
-        if verbose: print('[%s_1] Generating the similarity table...' % self.name)
+        # obtain similarity matrix 
+        self.logger.log_message('Generating the similarity table...')
         self.similarity_table = spd.cdist(X, Y, metric=get_similarity_function(dist_metric))
 
         # obtain p-values
-        if verbose: print('[%s_1] Generating the p-value table...' % self.name)
+        self.logger.log_message('Generating the p-value table...')
         confp = config.permute
         self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=dist_metric,
                                                    permute_func=confp['func'], permute_iters=confp['iters'],
@@ -76,10 +76,13 @@ class AllA(object):
                                                    alpha=config.stats['fdr_alpha'], seed=self.seed)
         
         # obtain q-values
-        if verbose: print('[%s_1] Generating the q-value table...' % self.name)
+        self.logger.log_message('Generating the q-value table...')
         self.fdr_reject_table, self.qvalue_table = pvalues2qvalues(self.pvalue_table.flatten(), config.stats['fdr_alpha'])
         self.qvalue_table = self.qvalue_table.reshape(self.pvalue_table.shape)
         self.fdr_reject_table = self.fdr_reject_table.reshape(self.pvalue_table.shape)
+
+        end_time = time.time()
+        self.logger.log_step_end('Computing pairwise similarities, p-values, q-values', end_time - start_time, sub=True)
     
     def _find_dense_associated_blocks(self):
         '''Find significant cells based on FDR reject table
@@ -87,13 +90,17 @@ class AllA(object):
         def compare_qvalue(x):
             return(self.qvalue_table[x[0][0], x[1][0]])
 
-        if config.output['verbose']: print('[%s] Step 2: Finding densely associated blocks...' % self.name)
+        self.logger.log_step_start('Step 2: Finding densely associated blocks', sub=True)
+        start_time = time.time()
 
         n, m = self.X.shape[0], self.Y.shape[0]
         self.significant_blocks = [[[x], [y]] for x in range(n) for y in range(m) if self.fdr_reject_table[x][y]]
         # sort by the p-values in ascending order
         self.significant_blocks.sort(key=compare_qvalue)
         self.significant_blocks_qvalues = [self.qvalue_table[x[0][0]][x[1][0]] for x in self.significant_blocks]
+
+        end_time = time.time()
+        self.logger.log_step_end('Finding densely associated blocks', end_time - start_time, sub=True)
     
     def _generate_reports(self):
         '''Generate reports and store in config.output['dir'] directory:
@@ -101,7 +108,7 @@ class AllA(object):
                                 p-values and q-values in a table
         2) sig_clusters.txt    : stores only the significant clusters
         '''
-        if config.output['verbose']: print('---Generating reports---')
+        self.logger.log_step_start('Generating reports')
 
         # create directory
         dir_name = config.output['dir']
@@ -125,15 +132,14 @@ class AllA(object):
     '''Public functions
     '''
     def load(self, X_file, Y_file=None):
+        self.logger.log_step_start('Loading and preprocessing data')
         confp = config.preprocess
-        verbose = config.output['verbose']
 
-        if verbose: print('---Loading and preprocessing data---')
+        start_time = time.time()
 
         X, self.X_types = eval_type(pd.read_table(X_file, index_col=0))
         Y, self.Y_types = eval_type(pd.read_table(Y_file, index_col=0)) if Y_file \
             else (X.copy(deep=True), np.copy(self.X_types))
-
 
         # if not all types are continuous but pdist_metric is only for continuous types
         # TODO: add more appropriate distance metrics
@@ -142,7 +148,7 @@ class AllA(object):
         # if all features are continuous and distance metric != nmi, discretization can be bypassed
         if is_all_cont(self.X_types) and is_all_cont(self.X_types) and \
             config.association['pdist_metric'].lower() != 'nmi' and confp['discretize_bypass_if_possible']:
-            if verbose: print('[DATA_LOADING] All features are continuous; bypassing discretization and updating config...')
+            self.logger.log_message('All features are continuous; bypassing discretization and updating config...')
             update_config('preprocess', discretize_func=None)
 
         # filter tables by intersect columns
@@ -159,11 +165,13 @@ class AllA(object):
         self.Y, self.Y_ori, self.Y_types = preprocess(Y, self.Y_types, **func_args)
 
         self.has_loaded = True
-        if verbose:
-            print('[DATA_LOADING] Preprocessing step completed:')
-            print('\tThe shape of X is', self.X.shape)
-            print('\tThe shape of Y is', self.Y.shape)
-    
+        end_time = time.time()
+
+        self.logger.log_message('Preprocessing step completed:')
+        self.logger.log_result('The final shape of X', self.X.shape)
+        self.logger.log_result('The final shape of Y', self.Y.shape)
+        self.logger.log_step_end('Loading and preprocessing data', end_time - start_time)
+
     def run(self):
         '''Run AllA:
         1) compute pairwise similarity matrix and p-values
@@ -172,8 +180,7 @@ class AllA(object):
         if self.has_loaded == False:
             raise RuntimeError('load function has not been called!')
 
-        verbose = config.output['verbose']
-        if verbose: print('---Performing AllA---')
+        self.logger.log_step_start('Performing %s' % self.name)
 
         # step 1: computing pairwise similarity matrix
         self._compute_pairwise_similarities()
@@ -214,6 +221,7 @@ class HAllA(AllA):
                  out_dir=config.output['dir'], verbose=config.output['verbose'],
                  seed=None):
         # TODO: add restrictions on the input - ensure the methods specified are available
+        self.name = 'HAllA'
         # retrieve AllA variables
         alla_vars = vars()
         for key in ['linkage_method', 'fnr_thresh', 'rank_cluster']: del alla_vars[key]
@@ -223,7 +231,7 @@ class HAllA(AllA):
         # update HAllA config settings
         update_config('stats', fnr_thresh=fnr_thresh, rank_cluster=rank_cluster)
         update_config('hierarchy', linkage_method=linkage_method)
-        self.name = 'HAllA'
+        self.logger = HAllALogger(self.name, config=config)
 
     '''Private functions
     '''
@@ -240,9 +248,12 @@ class HAllA(AllA):
         self.has_run = False
     
     def _run_clustering(self):
-        if config.output['verbose']: print('[%s] Step 2: Performing hierarchical clustering...' % self.name)
+        self.logger.log_step_start('Step 2: Performing hierarchical clustering', sub=True)
+        start_time = time.time()
         self.X_hierarchy = HierarchicalTree(self.X, config.association['pdist_metric'], config.hierarchy['linkage_method'])
         self.Y_hierarchy = HierarchicalTree(self.Y, config.association['pdist_metric'], config.hierarchy['linkage_method'])
+        end_time = time.time()
+        self.logger.log_step_end('Performing hierarchical clustering', end_time - start_time, sub=True)
 
     def _find_dense_associated_blocks(self):
         def sort_by_best_qvalue(x):
@@ -252,14 +263,16 @@ class HAllA(AllA):
             qvalue_table = self.qvalue_table[x[0],:][:,x[1]]
             return(qvalue_table.mean())
         
-        if config.output['verbose']: print('[%s] Step 3: Finding densely associated blocks...' % self.name)
+        self.logger.log_step_start('Step 3: Finding densely associated blocks', sub=True)
+        start_time = time.time()
         self.significant_blocks = compare_and_find_dense_block(self.X_hierarchy.tree, self.Y_hierarchy.tree,
                                      self.fdr_reject_table, fnr_thresh=config.stats['fnr_thresh'])
-        # self.significant_blocks = [trim_block(block, self.fdr_reject_table) for block in self.significant_blocks]
         # sort significant blocks by the rank_cluster method
         sort_func = sort_by_best_qvalue if config.stats['rank_cluster'] == 'best' else sort_by_avg_qvalue
         self.significant_blocks.sort(key=sort_func)
         self.significant_blocks_qvalues = [sort_func(x) for x in self.significant_blocks]
+        end_time = time.time()
+        self.logger.log_step_end('Finding densely associated blocks', end_time - start_time, sub=True)
 
     def _generate_reports(self):
         '''Generate reports and store in config.output['dir'] directory
@@ -277,8 +290,7 @@ class HAllA(AllA):
         if self.has_loaded == False:
             raise RuntimeError('load function has not been called!')
 
-        verbose = config.output['verbose']
-        if verbose: print('---Performing HAllA---')
+        self.logger.log_step_start('Performing %s' % self.name)
 
         # step 1: computing pairwise similarity matrix
         self._compute_pairwise_similarities()

@@ -16,5 +16,5 @@ halla = HAllA(pdist_metric=pdist_metric, out_dir='out', seed=123)
 halla.load(lipid_file, gene_file)
 halla.run()
 
-sns.set(font_scale = 0.7)
-halla.generate_hallagram(figsize=(20, 5), dendrogram_ratio=(0.05, 0.15), cbar_pos=None)
+# sns.set(font_scale = 0.7)
+# halla.generate_hallagram(figsize=(20, 5), dendrogram_ratio=(0.05, 0.15), cbar_pos=None)
