@@ -1,13 +1,6 @@
-# HAllA revised version
+# HAllA revised version 0.0.1
 
-Note: the python setup is not yet finalized.
-
-An example code `run_example.py` is currently provided under `halla` directory.
-
-Some main changes compared to the original HAllA code include:
-
-- the use of yaml for config, which is automatically converted into a `Struct` object by `config-loader.py`
-- refactor HAllA into a class to enable both creating the class object and calling it via a terminal command
+Example codes can be found under `examples` directory.
 
 ## Loading data
 
@@ -22,13 +15,14 @@ Available pairwise distance metrics:
 - `nmi`
 - `pearson`
 - `spearman`
+- `dcor`
 
 ## Notes on installation
 
 1. [Installing `rpy2` on macOS](https://stackoverflow.com/questions/52361732/installing-rpy2-on-macos)
 2. Installing the necessary R packages
 
-TODO: put these in the installation file
+TODO: put these in the installation README
 
 ```
 from rpy2.robjects.packages import importr
