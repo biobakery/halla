@@ -1,34 +1,42 @@
-from setuptools import setup
+'''HAllA setup
 
-# Include the readme file in the build
-def readme():
-    with open('README.rst') as f:
-        return f.read()
+To install: python setup.py install
+'''
 
-# TODO: Edit the function parameter with the relevant information on this package
+import sys
+
+try:
+	import setuptools
+except ImportError:
+	sys.exit('Please install setuptools.')
+
+VERSION = '0.0.1'
+AUTHOR  = 'HAllA Development Team'
+MAINTAINER_EMAIL = 'kathleen_sucipto@hms.harvard.edu'
+
+with open('README.md', 'r') as fh:
+    long_description = fh.read()
+
 setuptools.setup(
-    name="HAllA",
-    author="AUTHOR",
-    author_email="AUTHOR_EMAIL",
-    version="0.0.0",
-    license="",
-    description="Tool Description2",
-    long_description="Detailed tool description",
-    url="",
-    keywords=[],
+    name='HAllA',
+    author=AUTHOR,
+    author_email=MAINTAINER_EMAIL,
+    version=VERSION,
+    license='MIT',
+    description='HAllA: Hierarchical All-against All Association Testing',
+    long_description=long_description,
+    url='https://github.com/biobakery/halla_revised',
+    keywords=['halla', 'association testing'],
     platforms=['Linux','MacOS'],
     classifiers=[
-        'Development Status :: Alpha',
-        'License :: MIT License',
-        'Programming Language :: Python ',
-        'Topic :: Python tools :: Public',
+        'Programming Language :: Python',
+		'Operating System :: MacOS',
+		'Operating System :: Unix',
+		'Programming Language :: Python :: 3.7',
+		'Topic :: Scientific/Engineering :: Bio-Informatics'
       ],
     packages=setuptools.find_packages(),
-    test_suite= 'sample_test.TestStringMethods',
-    tests_require=['TestStringMethods'],
-    zip_safe = False,
-    install_requires=[
-          'markdown',
-          'numpy'
-      ]
+    package_data={
+        'halla': ['config.yaml']
+    }
  )

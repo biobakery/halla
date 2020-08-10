@@ -4,7 +4,7 @@ from scipy.spatial.distance import pdist, squareform
 import numpy as np
 
 def remove_missing_values(x, y):
-    '''Given x and y, remove pairs that contain missing values
+    '''Given x and y all in numpy arrays, remove pairs that contain missing values
     '''
     # nan != nan = TRUE
     nas = np.logical_or(x != x, y != y)

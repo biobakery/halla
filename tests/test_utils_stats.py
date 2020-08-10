@@ -3,9 +3,8 @@ import sys
 from os.path import dirname, abspath
 import numpy as np
 from scipy.stats import spearmanr, pearsonr
-sys.path.append(dirname(dirname(abspath(__file__))))
+from halla.utils import stats
 
-from tools.utils import stats
 from utils import compare_numpy_array
 
 class TestStatsUtils(unittest.TestCase):
