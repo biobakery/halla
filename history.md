@@ -1,13 +1,14 @@
 # HAllA History #
 
-## v0.0.1 2020-08-07 ##
+## v0.0.3 2020-08-10 ##
 
-* Add initial workflows and examples
+* Enhance clustermap - add more parameters (mask, x_label, y_label, etc)
+* Fix diagnostic plot - scatterplot axes
 
 ## v0.0.2 2020-08-10 ##
 
 * Implement logging - can be turned off using `verbose` parameter
 
-## v0.0.3 2020-08-10 ##
+## v0.0.1 2020-08-07 ##
 
-* Enhance clustermap - add more parameters (mask, x_label, y_label, etc)
+* Add initial workflows and examples

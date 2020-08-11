@@ -131,6 +131,7 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
         vmax = max(abs(vmin), vmax)
         vmin = -vmax
     if mask:
+        sns.set_style('white')
         mask = np.full(sim_table.shape, True, dtype=bool)
         for block in significant_blocks:
             for i, j in itertools.product(block[0], block[1]):
@@ -232,7 +233,7 @@ def report_significant_clusters(dir_name, significant_blocks, scores, x_features
     df.to_csv(filepath, sep='\t', index=False)
 
 def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_features, x_types, y_types,
-                            title, output_file, axis_stretch=0.5, figsize=(12, 12)):
+                            title, output_file, axis_stretch=0.2, figsize=(12, 12)):
     '''Generate and store lattice plot for each associationn, given:
     - {x,y}_data    : the data for features in {x,y} involved in the association in numpy (the discretized data if discretized)
     - {x,y}_ori_data: the original data for features in {x,y} involved in the association in numpy
@@ -266,7 +267,7 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                     x_min, x_max = all_ori_data[i].min() - axis_stretch, all_ori_data[i].max() + axis_stretch
                     sorted_data = np.sort(np.concatenate(([x_min], np.unique(all_ori_data[i]), [x_max])))
                     cdf_line = [(all_ori_data[i] <= val).sum()/len(all_ori_data[i]) for val in sorted_data]
-                    sns.lineplot(x=sorted_data, y=cdf_line, ax=axs[i,j])
+                    sns.lineplot(x=sorted_data, y=cdf_line, ax=axs[i,j], zorder=1)
                     if not np.all(all_ori_data[i] == all_data[i]): # if discretized
                         ori_data, disc_data = np.array(all_ori_data[i]), np.array(all_data[i])
                         border_x = [ori_data[disc_data ==  x].max() for x in range(disc_data.min(), disc_data.max())]
@@ -275,8 +276,8 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                         border_x_norm = [(x - x_min) / (x_max - x_min) for x in border_x]
                         border_y_norm = [(y - y_min) / (y_max - y_min) for y in border_y]
                         for k in range(len(border_x)):
-                            axs[i,j].axvline(x=border_x[k], ymax=border_y_norm[k], color='k', ls='--')
-                            axs[i,j].axhline(y=border_y[k], xmin=border_x_norm[k], color='k', ls='--')
+                            axs[i,j].axvline(x=border_x[k], ymax=border_y_norm[k], color='k', ls='--', zorder=2)
+                            axs[i,j].axhline(y=border_y[k], xmin=border_x_norm[k], color='k', ls='--', zorder=2)
                     axs[i,j].set_xlim(x_min, x_max)
                     axs[i,j].set_ylim(y_min, y_max)
                 else:
@@ -292,8 +293,8 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                 else:
                     # 3) plot scatterplot if both are continuous
                     sns.scatterplot(x=all_ori_data[j], y=all_ori_data[i], ax=axs[i,j])
-                    axs[i,j].set_xlim(all_ori_data[i].min() - axis_stretch, all_ori_data[i].max() + axis_stretch)
-                    axs[i,j].set_ylim(all_ori_data[j].min() - axis_stretch, all_ori_data[j].max() + axis_stretch)
+                    axs[i,j].set_xlim(all_ori_data[j].min() - axis_stretch, all_ori_data[j].max() + axis_stretch)
+                    axs[i,j].set_ylim(all_ori_data[i].min() - axis_stretch, all_ori_data[i].max() + axis_stretch)
             else:
                 # 4) plot boxplot if the data are mixed
                 if all_types[j] == float:
