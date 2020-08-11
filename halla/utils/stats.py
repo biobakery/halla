@@ -141,7 +141,7 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
 		pvalue_table = np.array(pvalue_table).reshape((n, m))
 	return(pvalue_table)
 
-def pvalues2qvalues(pvalues, alpha=0.05):
+def pvalues2qvalues(pvalues, method='fdr_bh', alpha=0.05):
 	'''Perform p-value correction for multiple tests (Benjamini/Hochberg)
 	# TODO? add more methods
 	Args:
@@ -149,7 +149,7 @@ def pvalues2qvalues(pvalues, alpha=0.05):
 	- alpha  : family-wise error rate
 	Return a tuple (adjusted p-value array, boolean array [True = reject]
 	'''
-	return(multipletests(pvalues, alpha=alpha, method='fdr_bh')[:2])
+	return(multipletests(pvalues, alpha=alpha, method=method)[:2])
 
 def compute_result_power(significant_blocks, true_assoc):
     '''Compute power (recall: TP / condition positive) given args:

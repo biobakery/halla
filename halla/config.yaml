@@ -13,7 +13,7 @@ permute:
   speedup: True # whether to stop permutation early if not significant
 stats:
   fdr_alpha: 0.05
-  fdr_method: 'bh'
+  fdr_method: 'fdr_bh'
   fnr_thresh: 0.2
   rank_cluster: 'best' # 'best' or 'average' p-values
 output:

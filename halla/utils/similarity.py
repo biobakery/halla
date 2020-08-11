@@ -106,4 +106,4 @@ def similarity2distance(scores, metric):
     if metric == 'nmi' or metric == 'dcor': return(1 - scores)
     if metric == 'pearson' or metric == 'spearman':
         # source: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4498680/
-        return(1 - scores)
+        return(1 - np.abs(scores))

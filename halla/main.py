@@ -76,7 +76,7 @@ class AllA(object):
         
         # obtain q-values
         self.logger.log_message('Generating the q-value table...')
-        self.fdr_reject_table, self.qvalue_table = pvalues2qvalues(self.pvalue_table.flatten(), config.stats['fdr_alpha'])
+        self.fdr_reject_table, self.qvalue_table = pvalues2qvalues(self.pvalue_table.flatten(), config.stats['fdr_method'], config.stats['fdr_alpha'])
         self.qvalue_table = self.qvalue_table.reshape(self.pvalue_table.shape)
         self.fdr_reject_table = self.fdr_reject_table.reshape(self.pvalue_table.shape)
 
@@ -330,7 +330,7 @@ class HAllA(AllA):
                            cmap=cmap, **kwargs)
 
     def generate_clustermap(self, x_label='', y_label='', cmap=None, figsize=(12, 12), text_scale=10,
-                            output_file='clustermap.png', mask=None, **kwargs):
+                            output_file='clustermap.png', mask=True, **kwargs):
         '''Generate a clustermap (hallagram + dendrogram)
         '''
         if cmap is None:
@@ -352,7 +352,7 @@ class HAllA(AllA):
                             mask=mask,
                             **kwargs)
     
-    def generate_diagnostic_plot(self, plot_dir='diagnostic'):
+    def generate_diagnostic_plot(self, plot_dir='diagnostic', axis_stretch=0.2):
         '''Generate a lattice plot for each significant association;
         save all plots in the plot_dir folder under config.output['dir']
         '''
@@ -370,4 +370,5 @@ class HAllA(AllA):
             x_types = np.array(self.X_types)[block[0]]
             y_types = np.array(self.Y_types)[block[1]]
             generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data,
-                                    x_features, y_features, x_types, y_types, title, out_file)
+                                    x_features, y_features, x_types, y_types, title,
+                                    out_file, axis_stretch=axis_stretch)
