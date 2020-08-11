@@ -10,7 +10,7 @@ try:
 except ImportError:
 	sys.exit('Please install setuptools.')
 
-VERSION = '0.0.3'
+VERSION = '0.0.4'
 AUTHOR  = 'HAllA Development Team'
 MAINTAINER_EMAIL = 'kathleen_sucipto@hms.harvard.edu'
 

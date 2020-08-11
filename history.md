@@ -1,5 +1,10 @@
 # HAllA History #
 
+## v0.0.4 2020-08-11 ##
+
+* Enhance clustermap and hallagram - make parameters more consistent
+* Enable tuning FDR method
+
 ## v0.0.3 2020-08-10 ##
 
 * Enhance clustermap - add more parameters (mask, x_label, y_label, etc)
