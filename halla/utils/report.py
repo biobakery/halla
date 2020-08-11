@@ -27,7 +27,7 @@ def get_included_features(significant_blocks, num_x_features, num_y_features, tr
 
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table,
                         x_label='', y_label='', label_args={}, mask=False, trim=True, figsize=(12, 12), cmap='RdBu_r',
-                        text_scale=10, block_border_width=4, output_file='out.png', **kwargs):
+                        text_scale=10, block_border_width=1, output_file='out.png', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
@@ -111,8 +111,8 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     plt.savefig(output_file, bbox_inches='tight')
 
 def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table,
-                        x_label='', y_label='', figsize=(12, 12), cmap='RdBu_r', text_scale=10,
-                        output_file='out.png', mask=None, **kwargs):
+                        x_label='', y_label='', label_args={}, figsize=(12, 12), cmap='RdBu_r', text_scale=10,
+                        block_border_width=1, output_file='out.png', mask=True, **kwargs):
     '''Plot a clustermap given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
@@ -120,28 +120,32 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
     - {x,y}_linkage     : precomputed linkage matrix for {x,y}
     - sim_table         : similarity table with size [len(x_features), len(y_features)]
     - {x,y}_label       : label for {x,y} axis
+    - label_args        : arguments for axis label
     - figsize           : figure size
     - cmap              : color map
     - text_scale        : how much the rank text size should be scaled
+    - block_border_width: the border width for all blocks
     - mask              : if True, mask all cells not included in significant blocks
+    - output_file       : file path to store the hallagram
     - kwargs            : other keyword arguments to be passed to seaborn's clustermap()
     '''
     vmax, vmin = np.max(sim_table), np.min(sim_table)
     if vmin < 0 and vmax > 0:
         vmax = max(abs(vmin), vmax)
         vmin = -vmax
+    mask_ar = None
     if mask:
         sns.set_style('white')
-        mask = np.full(sim_table.shape, True, dtype=bool)
+        mask_ar = np.full(sim_table.shape, True, dtype=bool)
         for block in significant_blocks:
             for i, j in itertools.product(block[0], block[1]):
-                mask[i][j] = False
-    clustermap = sns.clustermap(sim_table, row_linkage=x_linkage, col_linkage=y_linkage, cmap=cmap, mask=mask, zorder=2,
+                mask_ar[i][j] = False
+    clustermap = sns.clustermap(sim_table, row_linkage=x_linkage, col_linkage=y_linkage, cmap=cmap, mask=mask_ar, zorder=2,
                         xticklabels=y_features, yticklabels=x_features, vmin=vmin, vmax=vmax, figsize=figsize, **kwargs)
     ax = clustermap.ax_heatmap
-    ax.set_xlabel(x_label)
-    ax.set_ylabel(y_label)
-    if mask is not None:
+    ax.set_xlabel(x_label, **label_args)
+    ax.set_ylabel(y_label, **label_args)
+    if mask:
         # minor ticks
         ax.set_xticks(np.arange(0, sim_table.shape[1], 1), minor=True)
         ax.set_yticks(np.arange(0, sim_table.shape[0], 1), minor=True)
@@ -153,8 +157,8 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
         x_block, y_block = block[0], block[1]
         clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
         clust_y_block = [y_ori2clust_idx[idx] for idx in y_block]
-        ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, zorder=3)
-        ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, zorder=3)
+        ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, linewidths=block_border_width, zorder=3)
+        ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, linewidths=block_border_width, zorder=3)
         # add rank text
         text_content = str(rank + 1)
         text_size = (min(max(clust_y_block) - min(clust_y_block),
@@ -233,7 +237,7 @@ def report_significant_clusters(dir_name, significant_blocks, scores, x_features
     df.to_csv(filepath, sep='\t', index=False)
 
 def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_features, x_types, y_types,
-                            title, output_file, axis_stretch=0.2, figsize=(12, 12)):
+                            title, output_file, axis_stretch=0.2, plot_size=4):
     '''Generate and store lattice plot for each associationn, given:
     - {x,y}_data    : the data for features in {x,y} involved in the association in numpy (the discretized data if discretized)
     - {x,y}_ori_data: the original data for features in {x,y} involved in the association in numpy
@@ -242,12 +246,14 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
     - title         : the plot title
     - output_file   : the output file name
     - axis_stretch  : stretch both axes of continuous data by the value, e.g., x --> [x_min - axis_stretch, x_max + axis_stretch]
+    - plot_size     : the size of each plot - the figsize would be (# features*plot_size, # features*plot_size)
     '''
     if (len(x_data) != len(x_features) and len(x_data) != len(x_types)) or \
         (len(y_data) != len(y_features) and len(y_data) != len(y_types)):
         raise ValueError('{x,y}_data should have the same length as {x,y}_features and {x,y}_types!')
     row_num = len(x_data) + len(y_data)
-    fig, axs = plt.subplots(row_num, row_num, figsize=figsize)
+    sns.set_style('white')
+    fig, axs = plt.subplots(row_num, row_num, figsize=(row_num*plot_size, row_num*plot_size))
     # combine all data
     all_data = np.concatenate((x_data, y_data), axis=0)
     all_ori_data = np.concatenate((x_ori_data, y_ori_data), axis=0)

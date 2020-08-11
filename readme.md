@@ -1,6 +1,6 @@
 # HAllA revised version 0.0.3
 
-Example codes can be found under `examples` directory.
+Example codes can be found under `examples` directory. More details can be found on the [wiki](https://github.com/biobakery/halla_revised/wiki) page.
 
 ## Installation
 
