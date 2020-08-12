@@ -14,7 +14,7 @@ VERSION = '0.0.4'
 AUTHOR  = 'HAllA Development Team'
 MAINTAINER_EMAIL = 'kathleen_sucipto@hms.harvard.edu'
 
-with open('README.md', 'r') as fh:
+with open('readme.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
