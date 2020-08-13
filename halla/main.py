@@ -201,7 +201,8 @@ class AllA(object):
         # generate reports
         self._generate_reports()
     
-    def generate_hallagram(self, cmap='RdBu_r', figsize=(12, 12), text_scale=10, output_file='hallagram.png', **kwargs):
+    def generate_hallagram(self, x_label='', y_label='', cmap=None, figsize=None, text_scale=10,
+                            output_file='hallagram.png', mask=True, **kwargs):
         '''Generate a hallagram
         '''
         if cmap is None:
@@ -213,9 +214,12 @@ class AllA(object):
                            [idx for idx in range(self.X.shape[0])],
                            [idx for idx in range(self.Y.shape[0])],
                            self.similarity_table,
+                           x_label=x_label,
+                           y_label=y_label,
                            figsize=figsize,
                            text_scale=text_scale,
-                           output_file = file_name,
+                           output_file=file_name,
+                           mask=mask,
                            cmap=cmap, **kwargs)
 
 ########
@@ -315,7 +319,8 @@ class HAllA(AllA):
         # generate reports
         self._generate_reports()
     
-    def generate_hallagram(self, cmap='RdBu_r', figsize=(12, 12), text_scale=10, output_file='hallagram.png', **kwargs):
+    def generate_hallagram(self, x_label='', y_label='', cmap=None, figsize=None, text_scale=10,
+                            output_file='hallagram.png', mask=True, **kwargs):
         '''Generate a hallagram
         '''
         if cmap is None:
@@ -327,15 +332,22 @@ class HAllA(AllA):
                            self.X_hierarchy.tree.pre_order(),
                            self.Y_hierarchy.tree.pre_order(),
                            self.similarity_table,
+                           x_label=x_label,
+                           y_label=y_label,
                            figsize=figsize,
                            text_scale=text_scale,
-                           output_file = file_name,
+                           output_file=file_name,
+                           mask=mask,
                            cmap=cmap, **kwargs)
 
-    def generate_clustermap(self, x_label='', y_label='', cmap=None, figsize=(12, 12), text_scale=10,
+    def generate_clustermap(self, x_label='', y_label='', cmap=None, figsize=None, text_scale=10,
                             output_file='clustermap.png', mask=True, **kwargs):
         '''Generate a clustermap (hallagram + dendrogram)
         '''
+        # if the dimension is too large, generate a hallagram instead
+        if max(self.similarity_table.shape) > 750:
+            print('The dimension is too large - please generate a hallagram instead.')
+            return
         if cmap is None:
             cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor'] else 'RdBu_r'
 

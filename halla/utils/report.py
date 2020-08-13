@@ -6,6 +6,7 @@ import scipy.cluster.hierarchy as sch
 import pandas as pd
 from os.path import join
 import itertools
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def get_indices_map_dict(new_indices):
     return({ idx: i for i, idx in enumerate(new_indices) })
@@ -26,8 +27,8 @@ def get_included_features(significant_blocks, num_x_features, num_y_features, tr
     return(included_x_features, included_y_features)
 
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table,
-                        x_label='', y_label='', label_args={}, mask=False, trim=True, figsize=(12, 12), cmap='RdBu_r',
-                        cbar_ax=None, text_scale=10, block_border_width=1, output_file='out.png', **kwargs):
+                        x_label='', y_label='', mask=True, trim=True, figsize=None, cmap='RdBu_r',
+                        cbar_label='', text_scale=10, block_border_width=1, output_file='out.eps', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
@@ -35,7 +36,6 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     - clust_{x,y}_idx   : the indices of {x,y} in clustered form 
     - sim_table         : similarity table with size [len(x_features), len(y_features)]
     - {x,y}_label       : axis label
-    - label_args        : arguments for axis label
     - mask              : if True, mask all cells not included in significant blocks
     - trim              : if True, trim all features that are not significant
     - figsize           : figure size
@@ -45,12 +45,14 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     - output_file       : file path to store the hallagram
     - kwargs            : other keyword arguments to be passed to seaborn's heatmap()
     '''
+    #---data preparation---#
     included_x_feat, included_y_feat = get_included_features(significant_blocks,
                                                              len(x_features),
                                                              len(y_features), trim)
     # filter the indices with the included features
     clust_x_idx = np.asarray([i for i in clust_x_idx if i in included_x_feat])
     clust_y_idx = np.asarray([i for i in clust_y_idx if i in included_y_feat])
+    
     # if mask, replace all insignificant cells to NAs
     clust_sim_table = np.copy(sim_table)
     if mask:
@@ -59,9 +61,9 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
             for x, y in itertools.product(block[0], block[1]):
                 dummy_table[x,y] = clust_sim_table[x,y]
         clust_sim_table = dummy_table
-    # shuffle similarity table
+    
+    # shuffle similarity table and features accordingly
     clust_sim_table = clust_sim_table[clust_x_idx,:][:,clust_y_idx]
-    # shuffle features
     clust_x_features = np.asarray(x_features)[clust_x_idx]
     clust_y_features = np.asarray(y_features)[clust_y_idx]
     
@@ -69,19 +71,26 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     x_ori2clust_idx = get_indices_map_dict(clust_x_idx)
     y_ori2clust_idx = get_indices_map_dict(clust_y_idx)
 
+    #---begin plotting---#
+    # set up colormap anchor
     vmax, vmin = np.max(sim_table), np.min(sim_table)
     if vmin < 0 and vmax > 0:
         vmax = max(abs(vmin), vmax)
         vmin = -vmax
 
-    # begin plotting
     sns.set_style('whitegrid')
-    fig, ax = plt.subplots(figsize=figsize)
-    if cbar_ax:
-        cbar_ax = fig.add_axes(cbar_ax)
+    if figsize is None:
+        # set each cell as ~0.3, then add margins
+        figsize = (max(5, 0.3*clust_sim_table.shape[1]+4), max(5, 0.3*clust_sim_table.shape[0]+4))
+    
+    _, ax = plt.subplots(figsize=figsize)
+    # add colorbar axes
+    divider = make_axes_locatable(ax)
+    cbar_ax = divider.append_axes('left', size=str(100/(figsize[0]*2.5))+'%', pad=1/(figsize[0]*6))
+    cbar_kws = { 'label': cbar_label, 'ticklocation': 'left' }
     sns.heatmap(clust_sim_table, xticklabels = clust_y_features,
                         cmap=cmap, vmin=vmin, vmax=vmax, square=True,
-                        zorder=3, cbar_ax=cbar_ax, ax=ax, **kwargs)
+                        zorder=3, cbar_ax=cbar_ax, ax=ax, cbar_kws=cbar_kws, **kwargs)
     ax.yaxis.tick_right()
     ax.yaxis.set_label_position('right')
     ax.set_yticklabels(clust_x_features, rotation=0, ha='left')
@@ -90,8 +99,8 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
         ax.set_xticks(np.arange(0, clust_sim_table.shape[1], 1), minor=True)
         ax.set_yticks(np.arange(0, clust_sim_table.shape[0], 1), minor=True)
         ax.grid(which='minor', color='xkcd:light grey', zorder=0)
-    ax.set_xlabel(x_label, **label_args)
-    ax.set_ylabel(y_label, **label_args)
+    ax.set_xlabel(x_label, fontweight='bold')
+    ax.set_ylabel(y_label, fontweight='bold')
     
     for rank, block in enumerate(significant_blocks):
         x_block, y_block = block[0], block[1]
@@ -100,7 +109,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
         ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, linewidths=block_border_width, zorder=4)
         ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, linewidths=block_border_width, zorder=4)
         # add rank text
-        text_content = str(rank + 1)
+        text_content = str(rank + 1) 
         text_size = (min(max(clust_y_block) - min(clust_y_block),
                          max(clust_x_block) - min(clust_x_block)) + 1)*text_scale
         text = ax.text(
@@ -110,11 +119,13 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
             path_effects.Stroke(linewidth=3, foreground='black'),
             path_effects.Normal(),
         ])
-    plt.savefig(output_file, bbox_inches='tight')
+    plt.subplots_adjust(wspace=1/(figsize[0]*6), hspace=0)
+    plt.savefig(output_file, format=output_file.split('.')[-1].lower(), bbox_inches='tight')
 
 def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table,
-                        x_label='', y_label='', label_args={}, figsize=(12, 12), cmap='RdBu_r', text_scale=10,
-                        block_border_width=1, output_file='out.png', mask=True, **kwargs):
+                        x_label='', y_label='', figsize=None, cmap='RdBu_r', text_scale=10,
+                        dendrogram_ratio=None, cbar_label='',
+                        block_border_width=1.5, mask=True, output_file='out.png', **kwargs):
     '''Plot a clustermap given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
@@ -122,7 +133,6 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
     - {x,y}_linkage     : precomputed linkage matrix for {x,y}
     - sim_table         : similarity table with size [len(x_features), len(y_features)]
     - {x,y}_label       : label for {x,y} axis
-    - label_args        : arguments for axis label
     - figsize           : figure size
     - cmap              : color map
     - text_scale        : how much the rank text size should be scaled
@@ -142,11 +152,17 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
         for block in significant_blocks:
             for i, j in itertools.product(block[0], block[1]):
                 mask_ar[i][j] = False
+    if figsize is None:
+        figsize = (max(5, 0.3*sim_table.shape[1]+2.5), max(5, 0.3*sim_table.shape[0]+4))
+    if dendrogram_ratio is None:
+        dendrogram_ratio = (0.8/figsize[0], 0.8/figsize[1])
+    cbar_pos = (0, 0.8, 0.1/figsize[0], 0.18)
+    cbar_kws = { 'label': cbar_label, 'ticklocation': 'left' }
     clustermap = sns.clustermap(sim_table, row_linkage=x_linkage, col_linkage=y_linkage, cmap=cmap, mask=mask_ar, zorder=2,
-                        xticklabels=y_features, yticklabels=x_features, vmin=vmin, vmax=vmax, figsize=figsize, **kwargs)
+                        xticklabels=y_features, yticklabels=x_features, vmin=vmin, vmax=vmax, cbar_pos=cbar_pos, cbar_kws=cbar_kws, figsize=figsize, dendrogram_ratio=dendrogram_ratio, **kwargs)
     ax = clustermap.ax_heatmap
-    ax.set_xlabel(x_label, **label_args)
-    ax.set_ylabel(y_label, **label_args)
+    ax.set_xlabel(x_label, fontweight='bold')
+    ax.set_ylabel(y_label, fontweight='bold')
     if mask:
         # minor ticks
         ax.set_xticks(np.arange(0, sim_table.shape[1], 1), minor=True)
@@ -172,7 +188,7 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
             path_effects.Stroke(linewidth=3, foreground='black'),
             path_effects.Normal(),
         ])
-    plt.savefig(output_file, bbox_inches='tight')
+    plt.savefig(output_file, format=output_file.split('.')[-1].lower(), bbox_inches='tight')
 
 def report_all_associations(dir_name, x_features, y_features, sim_table, pval_table, qval_table, output_file='all_associations.txt'):
     '''Store the association between each feature in X and Y along with p-values and q-values, given:
