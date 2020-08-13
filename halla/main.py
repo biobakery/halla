@@ -352,7 +352,7 @@ class HAllA(AllA):
                             mask=mask,
                             **kwargs)
     
-    def generate_diagnostic_plot(self, plot_dir='diagnostic', axis_stretch=0.2):
+    def generate_diagnostic_plot(self, plot_dir='diagnostic', axis_stretch=0.2, plot_size=4):
         '''Generate a lattice plot for each significant association;
         save all plots in the plot_dir folder under config.output['dir']
         '''
@@ -371,4 +371,4 @@ class HAllA(AllA):
             y_types = np.array(self.Y_types)[block[1]]
             generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data,
                                     x_features, y_features, x_types, y_types, title,
-                                    out_file, axis_stretch=axis_stretch)
+                                    out_file, axis_stretch=axis_stretch, plot_size=plot_size)
