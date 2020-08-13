@@ -81,7 +81,6 @@ class AllA(object):
         self.fdr_reject_table = self.fdr_reject_table.reshape(self.pvalue_table.shape)
 
         end_time = time.time()
-        self.logger.log_message('Results:')
         self.logger.log_result('Number of significant associations', self.fdr_reject_table.sum())
         self.logger.log_step_end('Computing pairwise similarities, p-values, q-values', end_time - start_time, sub=True)
     
@@ -101,7 +100,6 @@ class AllA(object):
         self.significant_blocks_qvalues = [self.qvalue_table[x[0][0]][x[1][0]] for x in self.significant_blocks]
 
         end_time = time.time()
-        self.logger.log_message('Results:')
         self.logger.log_result('Number of significant clusters', len(self.significant_blocks))
         self.logger.log_step_end('Finding densely associated blocks', end_time - start_time, sub=True)
     
@@ -174,8 +172,8 @@ class AllA(object):
         end_time = time.time()
 
         self.logger.log_message('Preprocessing step completed:')
-        self.logger.log_result('The final shape of X', self.X.shape)
-        self.logger.log_result('The final shape of Y', self.Y.shape)
+        self.logger.log_result('X shape (sample size, feature dimensionality)', self.X.shape)
+        self.logger.log_result('Y shape (sample size, feature dimensionality)', self.Y.shape)
         self.logger.log_step_end('Loading and preprocessing data', end_time - start_time)
 
     def run(self):
@@ -279,7 +277,6 @@ class HAllA(AllA):
         self.significant_blocks.sort(key=sort_func)
         self.significant_blocks_qvalues = [sort_func(x) for x in self.significant_blocks]
         end_time = time.time()
-        self.logger.log_message('Results:')
         self.logger.log_result('Number of significant clusters', len(self.significant_blocks))
         self.logger.log_step_end('Finding densely associated blocks', end_time - start_time, sub=True)
 
