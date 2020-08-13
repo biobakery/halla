@@ -27,7 +27,7 @@ def get_included_features(significant_blocks, num_x_features, num_y_features, tr
 
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table,
                         x_label='', y_label='', label_args={}, mask=False, trim=True, figsize=(12, 12), cmap='RdBu_r',
-                        text_scale=10, block_border_width=1, output_file='out.png', **kwargs):
+                        cbar_ax=None, text_scale=10, block_border_width=1, output_file='out.png', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
@@ -76,10 +76,12 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
 
     # begin plotting
     sns.set_style('whitegrid')
-    _, ax = plt.subplots(figsize=figsize)
-    ax = sns.heatmap(clust_sim_table, xticklabels = clust_y_features,
+    fig, ax = plt.subplots(figsize=figsize)
+    if cbar_ax:
+        cbar_ax = fig.add_axes(cbar_ax)
+    sns.heatmap(clust_sim_table, xticklabels = clust_y_features,
                         cmap=cmap, vmin=vmin, vmax=vmax, square=True,
-                        zorder=3, **kwargs)
+                        zorder=3, cbar_ax=cbar_ax, ax=ax, **kwargs)
     ax.yaxis.tick_right()
     ax.yaxis.set_label_position('right')
     ax.set_yticklabels(clust_x_features, rotation=0, ha='left')

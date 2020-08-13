@@ -136,13 +136,19 @@ class AllA(object):
     '''Public functions
     '''
     def load(self, X_file, Y_file=None):
+        def _read_and_drop_duplicated_indices(filepath):
+            # drop duplicates and keep the first row
+            df = pd.read_table(filepath, index_col=0)
+            df = df[~df.index.duplicated(keep='first')]
+            return(df)
+
         self.logger.log_step_start('Loading and preprocessing data')
         confp = config.preprocess
 
         start_time = time.time()
 
-        X, self.X_types = eval_type(pd.read_table(X_file, index_col=0))
-        Y, self.Y_types = eval_type(pd.read_table(Y_file, index_col=0)) if Y_file \
+        X, self.X_types = eval_type(_read_and_drop_duplicated_indices(X_file))
+        Y, self.Y_types = eval_type(_read_and_drop_duplicated_indices(Y_file)) if Y_file \
             else (X.copy(deep=True), np.copy(self.X_types))
 
         # if not all types are continuous but pdist_metric is only for continuous types
