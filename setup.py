@@ -38,5 +38,13 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     package_data={
         'halla': ['config.yaml']
-    }
+    },
+    entry_points={
+        'console_scripts': [
+            'halla = scripts.halla:main',
+            # TODO: for generating synthetic data
+            # TODO: for generating hallagram / diagnostic plot / clustermap separately
+        ]
+    },
+    test_suite= 'tests',
  )
