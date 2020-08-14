@@ -27,23 +27,23 @@ def get_included_features(significant_blocks, num_x_features, num_y_features, tr
     return(included_x_features, included_y_features)
 
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table,
-                        x_label='', y_label='', mask=True, trim=True, figsize=None, cmap='RdBu_r',
+                        x_dataset_label='', y_dataset_label='', mask=True, trim=True, figsize=None, cmap='RdBu_r',
                         cbar_label='', text_scale=10, block_border_width=1, output_file='out.eps', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
-    - {x,y}_features    : feature names of {x,y}
-    - clust_{x,y}_idx   : the indices of {x,y} in clustered form 
-    - sim_table         : similarity table with size [len(x_features), len(y_features)]
-    - {x,y}_label       : axis label
-    - mask              : if True, mask all cells not included in significant blocks
-    - trim              : if True, trim all features that are not significant
-    - figsize           : figure size
-    - cmap              : color map
-    - text_scale        : how much the rank text size should be scaled
-    - block_border_width: the border width for all blocks
-    - output_file       : file path to store the hallagram
-    - kwargs            : other keyword arguments to be passed to seaborn's heatmap()
+    - {x,y}_features     : feature names of {x,y}
+    - clust_{x,y}_idx    : the indices of {x,y} in clustered form 
+    - sim_table          : similarity table with size [len(x_features), len(y_features)]
+    - {x,y}_dataset_label: axis label
+    - mask               : if True, mask all cells not included in significant blocks
+    - trim               : if True, trim all features that are not significant
+    - figsize            : figure size
+    - cmap               : color map
+    - text_scale         : how much the rank text size should be scaled
+    - block_border_width : the border width for all blocks
+    - output_file        : file path to store the hallagram
+    - kwargs             : other keyword arguments to be passed to seaborn's heatmap()
     '''
     #---data preparation---#
     included_x_feat, included_y_feat = get_included_features(significant_blocks,
@@ -99,8 +99,8 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
         ax.set_xticks(np.arange(0, clust_sim_table.shape[1], 1), minor=True)
         ax.set_yticks(np.arange(0, clust_sim_table.shape[0], 1), minor=True)
         ax.grid(which='minor', color='xkcd:light grey', zorder=0)
-    ax.set_xlabel(x_label, fontweight='bold')
-    ax.set_ylabel(y_label, fontweight='bold')
+    ax.set_xlabel(y_dataset_label, fontweight='bold')
+    ax.set_ylabel(x_dataset_label, fontweight='bold')
     
     for rank, block in enumerate(significant_blocks):
         x_block, y_block = block[0], block[1]
@@ -123,23 +123,23 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     plt.savefig(output_file, format=output_file.split('.')[-1].lower(), bbox_inches='tight')
 
 def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table,
-                        x_label='', y_label='', figsize=None, cmap='RdBu_r', text_scale=10,
+                        x_dataset_label='', y_dataset_label='', figsize=None, cmap='RdBu_r', text_scale=10,
                         dendrogram_ratio=None, cbar_label='',
                         block_border_width=1.5, mask=True, output_file='out.png', **kwargs):
     '''Plot a clustermap given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
-    - {x,y}_features    : feature names of {x,y}
-    - {x,y}_linkage     : precomputed linkage matrix for {x,y}
-    - sim_table         : similarity table with size [len(x_features), len(y_features)]
-    - {x,y}_label       : label for {x,y} axis
-    - figsize           : figure size
-    - cmap              : color map
-    - text_scale        : how much the rank text size should be scaled
-    - block_border_width: the border width for all blocks
-    - mask              : if True, mask all cells not included in significant blocks
-    - output_file       : file path to store the hallagram
-    - kwargs            : other keyword arguments to be passed to seaborn's clustermap()
+    - {x,y}_features     : feature names of {x,y}
+    - {x,y}_linkage      : precomputed linkage matrix for {x,y}
+    - sim_table          : similarity table with size [len(x_features), len(y_features)]
+    - {x,y}_dataset_label: axis label
+    - figsize            : figure size
+    - cmap               : color map
+    - text_scale         : how much the rank text size should be scaled
+    - block_border_width : the border width for all blocks
+    - mask               : if True, mask all cells not included in significant blocks
+    - output_file        : file path to store the hallagram
+    - kwargs             : other keyword arguments to be passed to seaborn's clustermap()
     '''
     vmax, vmin = np.max(sim_table), np.min(sim_table)
     if vmin < 0 and vmax > 0:
@@ -159,10 +159,11 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
     cbar_pos = (0, 0.8, 0.1/figsize[0], 0.18)
     cbar_kws = { 'label': cbar_label, 'ticklocation': 'left' }
     clustermap = sns.clustermap(sim_table, row_linkage=x_linkage, col_linkage=y_linkage, cmap=cmap, mask=mask_ar, zorder=2,
-                        xticklabels=y_features, yticklabels=x_features, vmin=vmin, vmax=vmax, cbar_pos=cbar_pos, cbar_kws=cbar_kws, figsize=figsize, dendrogram_ratio=dendrogram_ratio, **kwargs)
+                        xticklabels=y_features, yticklabels=x_features, vmin=vmin, vmax=vmax, cbar_pos=cbar_pos, cbar_kws=cbar_kws,
+                        figsize=figsize, dendrogram_ratio=dendrogram_ratio, **kwargs)
     ax = clustermap.ax_heatmap
-    ax.set_xlabel(x_label, fontweight='bold')
-    ax.set_ylabel(y_label, fontweight='bold')
+    ax.set_xlabel(y_dataset_label, fontweight='bold')
+    ax.set_ylabel(x_dataset_label, fontweight='bold')
     if mask:
         # minor ticks
         ax.set_xticks(np.arange(0, sim_table.shape[1], 1), minor=True)
