@@ -201,7 +201,8 @@ class AllA(object):
         # generate reports
         self._generate_reports()
     
-    def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='', cmap=None, figsize=None, text_scale=10,
+    def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='',
+                            cmap=None, cbar_label='', figsize=None, text_scale=10,
                             output_file='hallagram.png', mask=True, **kwargs):
         '''Generate a hallagram
         '''
@@ -223,8 +224,8 @@ class AllA(object):
                            figsize=figsize,
                            text_scale=text_scale,
                            output_file=file_name,
-                           mask=mask,
-                           cmap=cmap, **kwargs)
+                           cmap=cmap, cbar_label=cbar_label,
+                           mask=mask, **kwargs)
 
 ########
 # HAllA
@@ -323,7 +324,8 @@ class HAllA(AllA):
         # generate reports
         self._generate_reports()
     
-    def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='', cmap=None, figsize=None, text_scale=10,
+    def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='',
+                            cmap=None, cbar_label='', figsize=None, text_scale=10,
                             output_file='hallagram.png', mask=True, **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
@@ -345,10 +347,11 @@ class HAllA(AllA):
                            figsize=figsize,
                            text_scale=text_scale,
                            output_file=file_name,
-                           mask=mask,
-                           cmap=cmap, **kwargs)
+                           cmap=cmap, cbar_label=cbar_label,
+                           mask=mask, **kwargs)
 
-    def generate_clustermap(self, x_dataset_label='', y_dataset_label='', cmap=None, figsize=None, text_scale=10,
+    def generate_clustermap(self, x_dataset_label='', y_dataset_label='',
+                            cmap=None, cbar_label='', figsize=None, text_scale=10,
                             output_file='clustermap.png', mask=True, **kwargs):
         '''Generate a clustermap (hallagram + dendrogram)
         '''
@@ -370,7 +373,7 @@ class HAllA(AllA):
                             y_dataset_label=y_dataset_label,
                             figsize=figsize,
                             text_scale=text_scale,
-                            cmap=cmap,
+                            cmap=cmap, cbar_label=cbar_label,
                             output_file=file_name,
                             mask=mask,
                             **kwargs)

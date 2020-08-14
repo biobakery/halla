@@ -1,7 +1,5 @@
 '''Generate synthetic dataset X and Y
 
-Params:
-
 Generates: a directory that contains 3 files:
 - X, Y: a paired dataset
 - A   : contains the associated features between the paired dataset
