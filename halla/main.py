@@ -319,14 +319,18 @@ class HAllA(AllA):
         # generate reports
         self._generate_reports()
     
-    def generate_hallagram(self, x_label='', y_label='', cmap=None, figsize=None, text_scale=10,
+    def generate_hallagram(self, show_blocks_num=30, x_label='', y_label='', cmap=None, figsize=None, text_scale=10,
                             output_file='hallagram.png', mask=True, **kwargs):
-        '''Generate a hallagram
+        '''Generate a hallagram showing the top [show_blocks_num] significant blocks
         '''
         if cmap is None:
             cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor'] else 'RdBu_r'
         file_name = join(config.output['dir'], output_file)
-        generate_hallagram(self.significant_blocks,
+        if show_blocks_num is None:
+            show_blocks_num = len(self.significant_blocks)
+        else:
+            show_blocks_num = min(show_blocks_num, len(self.significant_blocks))
+        generate_hallagram(self.significant_blocks[:show_blocks_num],
                            self.X.index.to_numpy(),
                            self.Y.index.to_numpy(),
                            self.X_hierarchy.tree.pre_order(),
