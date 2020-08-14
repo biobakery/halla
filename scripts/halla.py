@@ -80,7 +80,7 @@ def parse_argument(args):
         help='Procedure to rank cluster using the p-values within the cluster {best, average}',
         default='best', choices=['best', 'average'], required=False)
     parser.add_argument(
-        '-out', '--out_dir',
+        '-o', '--out_dir',
         help='Directory path to store results', required=True)
     parser.add_argument(
         '--disable_verbose',
