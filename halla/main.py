@@ -81,7 +81,6 @@ class AllA(object):
         self.fdr_reject_table = self.fdr_reject_table.reshape(self.pvalue_table.shape)
 
         end_time = time.time()
-        self.logger.log_message('Results:')
         self.logger.log_result('Number of significant associations', self.fdr_reject_table.sum())
         self.logger.log_step_end('Computing pairwise similarities, p-values, q-values', end_time - start_time, sub=True)
     
@@ -101,7 +100,6 @@ class AllA(object):
         self.significant_blocks_qvalues = [self.qvalue_table[x[0][0]][x[1][0]] for x in self.significant_blocks]
 
         end_time = time.time()
-        self.logger.log_message('Results:')
         self.logger.log_result('Number of significant clusters', len(self.significant_blocks))
         self.logger.log_step_end('Finding densely associated blocks', end_time - start_time, sub=True)
     
@@ -138,13 +136,19 @@ class AllA(object):
     '''Public functions
     '''
     def load(self, X_file, Y_file=None):
+        def _read_and_drop_duplicated_indices(filepath):
+            # drop duplicates and keep the first row
+            df = pd.read_table(filepath, index_col=0)
+            df = df[~df.index.duplicated(keep='first')]
+            return(df)
+
         self.logger.log_step_start('Loading and preprocessing data')
         confp = config.preprocess
 
         start_time = time.time()
 
-        X, self.X_types = eval_type(pd.read_table(X_file, index_col=0))
-        Y, self.Y_types = eval_type(pd.read_table(Y_file, index_col=0)) if Y_file \
+        X, self.X_types = eval_type(_read_and_drop_duplicated_indices(X_file))
+        Y, self.Y_types = eval_type(_read_and_drop_duplicated_indices(Y_file)) if Y_file \
             else (X.copy(deep=True), np.copy(self.X_types))
 
         # if not all types are continuous but pdist_metric is only for continuous types
@@ -174,8 +178,8 @@ class AllA(object):
         end_time = time.time()
 
         self.logger.log_message('Preprocessing step completed:')
-        self.logger.log_result('The final shape of X', self.X.shape)
-        self.logger.log_result('The final shape of Y', self.Y.shape)
+        self.logger.log_result('X shape (sample size, feature dimensionality)', self.X.shape)
+        self.logger.log_result('Y shape (sample size, feature dimensionality)', self.Y.shape)
         self.logger.log_step_end('Loading and preprocessing data', end_time - start_time)
 
     def run(self):
@@ -197,21 +201,29 @@ class AllA(object):
         # generate reports
         self._generate_reports()
     
-    def generate_hallagram(self, cmap='RdBu_r', figsize=(12, 12), text_scale=10, output_file='hallagram.png', **kwargs):
+    def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='', cmap=None, figsize=None, text_scale=10,
+                            output_file='hallagram.png', mask=True, **kwargs):
         '''Generate a hallagram
         '''
         if cmap is None:
             cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor'] else 'RdBu_r'
         file_name = join(config.output['dir'], output_file)
-        generate_hallagram(self.significant_blocks,
+        if block_num is None:
+            block_num = len(self.significant_blocks)
+        else:
+            block_num = min(block_num, len(self.significant_blocks))
+        generate_hallagram(self.significant_blocks[:block_num],
                            self.X.index.to_numpy(),
                            self.Y.index.to_numpy(),
                            [idx for idx in range(self.X.shape[0])],
                            [idx for idx in range(self.Y.shape[0])],
                            self.similarity_table,
+                           x_dataset_label=x_dataset_label,
+                           y_dataset_label=y_dataset_label,
                            figsize=figsize,
                            text_scale=text_scale,
-                           output_file = file_name,
+                           output_file=file_name,
+                           mask=mask,
                            cmap=cmap, **kwargs)
 
 ########
@@ -279,7 +291,6 @@ class HAllA(AllA):
         self.significant_blocks.sort(key=sort_func)
         self.significant_blocks_qvalues = [sort_func(x) for x in self.significant_blocks]
         end_time = time.time()
-        self.logger.log_message('Results:')
         self.logger.log_result('Number of significant clusters', len(self.significant_blocks))
         self.logger.log_step_end('Finding densely associated blocks', end_time - start_time, sub=True)
 
@@ -312,27 +323,39 @@ class HAllA(AllA):
         # generate reports
         self._generate_reports()
     
-    def generate_hallagram(self, cmap='RdBu_r', figsize=(12, 12), text_scale=10, output_file='hallagram.png', **kwargs):
-        '''Generate a hallagram
+    def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='', cmap=None, figsize=None, text_scale=10,
+                            output_file='hallagram.png', mask=True, **kwargs):
+        '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
             cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor'] else 'RdBu_r'
         file_name = join(config.output['dir'], output_file)
-        generate_hallagram(self.significant_blocks,
+        if block_num is None:
+            block_num = len(self.significant_blocks)
+        else:
+            block_num = min(block_num, len(self.significant_blocks))
+        generate_hallagram(self.significant_blocks[:block_num],
                            self.X.index.to_numpy(),
                            self.Y.index.to_numpy(),
                            self.X_hierarchy.tree.pre_order(),
                            self.Y_hierarchy.tree.pre_order(),
                            self.similarity_table,
+                           x_dataset_label=x_dataset_label,
+                           y_dataset_label=y_dataset_label,
                            figsize=figsize,
                            text_scale=text_scale,
-                           output_file = file_name,
+                           output_file=file_name,
+                           mask=mask,
                            cmap=cmap, **kwargs)
 
-    def generate_clustermap(self, x_label='', y_label='', cmap=None, figsize=(12, 12), text_scale=10,
+    def generate_clustermap(self, x_dataset_label='', y_dataset_label='', cmap=None, figsize=None, text_scale=10,
                             output_file='clustermap.png', mask=True, **kwargs):
         '''Generate a clustermap (hallagram + dendrogram)
         '''
+        # if the dimension is too large, generate a hallagram instead
+        if max(self.similarity_table.shape) > 500:
+            print('The dimension is too large - please generate a hallagram instead.')
+            return
         if cmap is None:
             cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor'] else 'RdBu_r'
 
@@ -343,8 +366,8 @@ class HAllA(AllA):
                             self.X_hierarchy.linkage,
                             self.Y_hierarchy.linkage,
                             self.similarity_table,
-                            x_label=x_label,
-                            y_label=y_label,
+                            x_dataset_label=x_dataset_label,
+                            y_dataset_label=y_dataset_label,
                             figsize=figsize,
                             text_scale=text_scale,
                             cmap=cmap,
@@ -352,13 +375,17 @@ class HAllA(AllA):
                             mask=mask,
                             **kwargs)
     
-    def generate_diagnostic_plot(self, plot_dir='diagnostic', axis_stretch=0.2, plot_size=4):
+    def generate_diagnostic_plot(self, block_num=30, plot_dir='diagnostic', axis_stretch=0.2, plot_size=4):
         '''Generate a lattice plot for each significant association;
         save all plots in the plot_dir folder under config.output['dir']
         '''
         # create the diagnostic directory under config.output['dir']
         reset_dir(join(config.output['dir'], plot_dir))
-        for i, block in enumerate(self.significant_blocks):
+        if block_num is None:
+            block_num = len(self.significant_blocks)
+        else:
+            block_num = min(block_num, len(self.significant_blocks))
+        for i, block in enumerate(self.significant_blocks[:block_num]):
             title = 'Association %d' % (i+1)
             out_file = join(config.output['dir'], plot_dir, 'association_%d' % i)
             x_data = self.X.to_numpy()[block[0],:]

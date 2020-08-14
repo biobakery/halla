@@ -23,8 +23,3 @@ class HierarchicalTree(object):
         # perform hierarchical clustering
         self.linkage = sch.linkage(self.distance_matrix, method=linkage_method)
         self.tree = sch.to_tree(self.linkage)
-    
-    '''Public functions
-    '''
-    def get_clust_indices(self):
-        return(self.tree.pre_order())

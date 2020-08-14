@@ -58,7 +58,7 @@ class HAllALogger(object):
         The (label, content) is added to self.results array to be printed in performance.txt
         '''
         self.results.append((label, content))
-        if self.verbose: print('  ', label, content)
+        if self.verbose: print('* ', label, content)
     
     def write_performance_log(self, dir_name, config, file_name='performance.txt'):
         '''Write performance.txt which contains:
