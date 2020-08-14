@@ -1,20 +1,17 @@
 '''Run halla on console environment
-Params:
-Generates: a directory that contains 3 files:
-- X, Y: a paired dataset
-- A   : contains the associated features between the paired dataset
 '''
 
 import argparse
 import sys
 import numpy as np
 from os.path import join
+import pkg_resources
 
 from halla import HAllA
 
 def parse_argument(args):
     parser = argparse.ArgumentParser(
-        description='HAllA: Hierarchical All-against-All significance association testing'
+        description='HAllA: Hierarchical All-against-All significance association testing version ' + pkg_resources.require('HAllA')[0].version,
     )
     # --load parameters--
     parser.add_argument(

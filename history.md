@@ -1,5 +1,10 @@
 # HAllA History #
 
+## v0.0.5 2020-08-11 ##
+
+* Beautify clustermap and hallagram to avoid having to customize
+* Enable running on console
+
 ## v0.0.4 2020-08-11 ##
 
 * Enhance clustermap and hallagram - make parameters more consistent
