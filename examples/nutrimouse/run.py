@@ -16,4 +16,4 @@ halla.run()
 sns.set(font_scale = 0.7)
 halla.generate_clustermap(x_dataset_label='Lipid', y_dataset_label='Gene', cbar_label='Spearman correlation')
 halla.generate_hallagram(block_border_width=2, cbar_label='Spearman correlation',
-                          x_dataset_label='Lipid', y_dataset_label='Gene',)
+                          x_dataset_label='Lipid', y_dataset_label='Gene')
