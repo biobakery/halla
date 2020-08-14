@@ -175,8 +175,8 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
         x_block, y_block = block[0], block[1]
         clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
         clust_y_block = [y_ori2clust_idx[idx] for idx in y_block]
-        ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, linewidths=block_border_width, zorder=3)
-        ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, linewidths=block_border_width, zorder=3)
+        ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='black', linewidths=block_border_width, zorder=3)
+        ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='black', linewidths=block_border_width, zorder=3)
         # add rank text
         text_content = str(rank + 1)
         text_size = (min(max(clust_y_block) - min(clust_y_block),

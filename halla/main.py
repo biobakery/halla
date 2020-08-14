@@ -345,7 +345,7 @@ class HAllA(AllA):
         '''Generate a clustermap (hallagram + dendrogram)
         '''
         # if the dimension is too large, generate a hallagram instead
-        if max(self.similarity_table.shape) > 750:
+        if max(self.similarity_table.shape) > 500:
             print('The dimension is too large - please generate a hallagram instead.')
             return
         if cmap is None:
