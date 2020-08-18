@@ -1,7 +1,10 @@
 import numpy as np
 import math
 from scipy.stats import rankdata, entropy, zscore
+from sklearn.preprocessing import KBinsDiscretizer
 import pandas as pd
+import jenkspy
+import warnings
 
 def eval_type(df):
     '''Evaluate and set the type for each feature given dataframe df
@@ -52,8 +55,8 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
 
     def _discretize_continuous(ar, func=None, num_bins=None):
         '''Assign continuous vector to bins;
-        currently only implement equal-frequency binning.
-        # TODO: add more functions
+        available functions:
+        - quantile, uniform, kmeans (https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.KBinsDiscretizer.html)
         '''
         if func is None: # no discretization is needed
             return(ar)
@@ -64,18 +67,37 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
             raise ValueError('# bins should be > 0')
         else:
             num_bins = min(num_bins, len(set(ar)))
-        if func == 'equal-freq':
-            order = rankdata(ar, method='min') - 1 # order starts with 0
-            bin_size = np.ceil(len(ar) / float(num_bins))
-            # rankdata to have increment of 1
-            discretized_result = rankdata((order / bin_size).astype(int), method='dense') - 1
+        if func in ['quantile', 'uniform', 'kmeans']:
+            # remove NaNs temporarily since KBinsDiscretizer currently doesn't handle NaNs
+            temp_ar = ar[~np.isnan(ar)]
+            discretizer = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy=func)
+            temp_discretized_result = discretizer.fit_transform(temp_ar.reshape(len(temp_ar), 1)).reshape(len(temp_ar))
+            # assign NaNs to a separate bin
+            discretized_result = np.zeros(len(ar))
+            discretized_result[~np.isnan(ar)] = temp_discretized_result
+            discretized_result[np.isnan(ar)] = np.nan
+        elif func == 'jenks':
+            warnings.simplefilter('ignore') # ignore nan warning
+            # remove the first lower bound
+            breaks = jenkspy.jenks_breaks(ar, nb_class=num_bins)
+            breaks[-1] += 1
+            discretized_result = []
+            for val in ar:
+                if np.isnan(val):
+                    discretized_result.append(np.nan)
+                    continue
+                for bound_i in range(1, len(breaks)):
+                    if val >= breaks[bound_i-1] and val < breaks[bound_i]:
+                        discretized_result.append(bound_i-1)
+                        break
+            discretized_result = np.array(discretized_result, dtype=float)
+            warnings.resetwarnings()
+        else:
+            raise ValueError('Discretization function not available...')
         # assign missing values to a separate bin
         discretized_result[np.isnan(discretized_result)] = np.nanmax(discretized_result) + 1
         return(discretized_result)
         
-    # TODO: store available discretization functions somewhere
-    if func not in [None, 'equal-freq']:
-        raise ValueError('Discretization function not available...')
     if ar_type == object:
         return(_discretize_categorical(ar))
     return(_discretize_continuous(ar, func, num_bins))
@@ -94,7 +116,6 @@ def transform(df, types, funcs=None):
     '''Transform the continuous rows in the dataframe given function
     Available functions: any function available in numpy attributes, e.g., log, arcsin, sqrt
     '''
-    import warnings
     warnings.filterwarnings('error') # to catch RuntimeError
     
     if funcs is None: return(df)
@@ -124,6 +145,7 @@ def transform(df, types, funcs=None):
             except RuntimeWarning:
                 raise ValueError('Runtime error in transforming data: invalid value encountered')
         updated_df.iloc[row_i] = row
+    warnings.resetwarnings()
     return(updated_df)
 
 def preprocess(df, types, transform_funcs=None, max_freq_thresh=0.8, discretize_func=None, discretize_num_bins=None):

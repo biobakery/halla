@@ -158,14 +158,14 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
             ydisc_feat_indices = np.random.choice(y_feat_num, ydisc_feat_num, replace=False)
         for i in range(x_feat_num):
             if i in xdisc_feat_indices:
-                discretized = discretize_vector(X[i], func='equal-freq',
+                discretized = discretize_vector(X[i], func='quantile',
                                 num_bins=min(np.random.choice(range(3,7)), sample_num//2))
                 X_new[i] = [chr(int(val) + 65) for val in discretized]
             else:
                 X_new[i] = X[i]
         for j in range(y_feat_num):
             if j in ydisc_feat_indices:
-                discretized = discretize_vector(Y[j], func='equal-freq',
+                discretized = discretize_vector(Y[j], func='quantile',
                                 num_bins=min(np.random.choice(range(3,7)), sample_num//2))
                 Y_new[j] = [chr(int(val) + 65) for val in discretized]
             else:

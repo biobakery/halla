@@ -50,16 +50,16 @@ class TestDataUtils(unittest.TestCase):
         expected_res = np.array([0, 1, 2, 2, 1, 3, 0, 4, 0, 4, 5, 3])
         self.assertTrue(compare_numpy_array(res, expected_res))
 
-    def test_dicretize_vector_continuous_equal_freq(self):
-        ar = np.array([1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6])
-        res = data.discretize_vector(ar, func='equal-freq', num_bins=5)
-        expected_res = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3])
+    def test_dicretize_vector_continuous_quantile(self):
+        ar = np.array([1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, np.nan, 4, 4, 4, 4, 5, 5, 5, 6, 6, np.nan])
+        res = data.discretize_vector(ar, func='quantile', num_bins=3)
+        expected_res = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3])
         self.assertTrue(compare_numpy_array(res, expected_res))
 
-    def test_dicretize_vector_continuous_missing_data(self):
-        ar = np.array([1, 1, 2, 2, np.nan, 3, 3, np.nan])
-        res = data.discretize_vector(ar, func='equal-freq', num_bins=3)
-        expected_res = np.array([0, 0, 0, 0, 2, 1, 1, 2])
+    def test_dicretize_vector_continuous_jenks(self):
+        ar = np.array([1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, np.nan, 4, 4, 4, 4, 5, 5, 5, 6, 6, np.nan])
+        res = data.discretize_vector(ar, func='jenks', num_bins=3)
+        expected_res = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3])
         self.assertTrue(compare_numpy_array(res, expected_res))
     
     '''Tests on keep_feature function
