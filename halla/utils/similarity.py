@@ -97,13 +97,16 @@ def get_similarity_function(metric):
 def does_return_pval(metric):
     return(PVAL_PROVIDED[metric])
 
-def similarity2distance(scores, metric):
-    '''Convert similarity scores (numpy array) to distance given metric
+def similarity2distance(scores, set_abs=True, convert_func=None):
+    '''Convert similarity scores to distance; by default, the conversion formula would be:
+       dist = 1 - transform(similarity scores) where transform is abs(scores) if set_abs is True else scores
+       reference of converting correlation by 1 - scores: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4498680/
+    - scores      : the similarity values to be converted in a numpy array
+    - set_abs     : 
+    - convert_func:
     '''
     if type(scores) is not np.ndarray:
         raise ValueError('scores argument should be a numpy array!')
-    metric = metric.lower()
-    if metric == 'nmi' or metric == 'dcor': return(1 - scores)
-    if metric == 'pearson' or metric == 'spearman':
-        # source: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4498680/
-        return(1 - np.abs(scores))
+    if convert_func is not None:
+        return(convert_func(scores))
+    return(1 - (np.abs(scores) if set_abs else scores))

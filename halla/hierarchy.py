@@ -4,15 +4,16 @@ import scipy.cluster.hierarchy as sch
 import scipy.spatial.distance as spd
 import numpy as np
 
-# TODO: if turns out we only need tree - no need to have this class
 class HierarchicalTree(object):
-    def __init__(self, matrix, pdist_metric, linkage_method):
+    def __init__(self, matrix, pdist_metric, linkage_method, sim2dist_set_abs=True, sim2dist_func=None):
         '''Args:
         - matrix        : a pandas DataFrame object or a mxn array
         - pdist_metric  : the pairwise distance metric
         - linkage_method: the hierarchical linkage method
         '''
-        self.distance_matrix = similarity2distance(spd.pdist(matrix, metric=get_similarity_function(pdist_metric)), pdist_metric)
+        self.distance_matrix = similarity2distance(spd.pdist(matrix, metric=get_similarity_function(pdist_metric)),
+                                                   sim2dist_set_abs,
+                                                   sim2dist_func)
         self.distance_matrix = np.clip(self.distance_matrix, a_min=0, a_max=None)
         self.distance_matrix_sqr = spd.squareform(self.distance_matrix)
         self._generate_hierarchical_clusters(linkage_method)

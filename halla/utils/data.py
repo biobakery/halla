@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from scipy.stats import rankdata, entropy
+from scipy.stats import rankdata, entropy, zscore
 import pandas as pd
 
 def eval_type(df):
@@ -21,7 +21,7 @@ def eval_type(df):
             return(object)
 
     if not isinstance(df, pd.DataFrame):
-        raise ValueError('The argument should be a pandas DataFrame!')
+        raise ValueError('The argument for eval_type() should be a pandas DataFrame!')
     # update all NaNs to None
     updated_df = df.copy(deep=True)
     types = []
@@ -90,14 +90,52 @@ def keep_feature(x, max_freq_thresh=0.8):
     if max_freq_thresh is None: return(True)
     return(count.max() / count.sum() < max_freq_thresh)
 
-def preprocess(df, types, max_freq_thresh=0.8, discretize_func=None, discretize_num_bins=None):
+def transform(df, types, funcs=None):
+    '''Transform the continuous rows in the dataframe given function
+    Available functions: any function available in numpy attributes, e.g., log, arcsin, sqrt
+    '''
+    import warnings
+    warnings.filterwarnings('error') # to catch RuntimeError
+    
+    if funcs is None: return(df)
+    
+    funcs = [func.lower() for func in list(funcs)]
+    # ensure all functions are valid
+    for func in funcs:
+        if func not in ['standardize', 'normalize'] and not hasattr(np, func):
+            raise ValueError('The transform function should be an attribute of numpy.')
+    
+    updated_df = df.copy(deep=True)
+    for row_i, type_i in enumerate(types):
+        if type_i == object: continue
+        row = updated_df.iloc[row_i].to_numpy(dtype=float)
+        for func in funcs:
+            try:
+                if func == 'standardize':
+                    row = zscore(row, nan_policy='omit')
+                elif func == 'normalize':
+                    row = (row - np.min(row)) / (np.max(row) - np.min(row))
+                elif func == 'sqrt':
+                    row = np.sqrt(np.abs(row)) * np.sign(row)
+                elif func == 'log':
+                    row = np.abs(np.log(np.abs(row) + 1e-10)) * np.sign(row)
+                else:
+                    row = getattr(np, func)(row)
+            except RuntimeWarning:
+                raise ValueError('Runtime error in transforming data: invalid value encountered')
+        updated_df.iloc[row_i] = row
+    return(updated_df)
+
+def preprocess(df, types, transform_funcs=None, max_freq_thresh=0.8, discretize_func=None, discretize_num_bins=None):
     '''Preprocess input data
     1) remove features with low entropy
-    2) discretize values if needed
+    2) transform if the function is specified
+    3) discretize values if needed
 
     Args:
     - df                 : a panda dataframe
     - types              : a numpy list indicating the type of each feature
+    - transform_funcs    : list of ordered functions to transform continuous data
     - max_freq_thresh    : the threshold for maximum frequency in fraction [0..1], disabled if None
     - discretize_func    : function for discretizing
     - discretize_num_bins: # bins for discretizing #TODO: different bins for different features?
@@ -106,7 +144,10 @@ def preprocess(df, types, max_freq_thresh=0.8, discretize_func=None, discretize_
     kept_rows = df.apply(keep_feature, 1, max_freq_thresh=max_freq_thresh)
     types, df = types[kept_rows], df[kept_rows]
 
-    # 2) discretize values if needed
+    # 2) transform if the function is specified
+    df = transform(df, types, funcs=transform_funcs)
+
+    # 3) discretize values if needed
     updated_df = df.copy(deep=True)
     for row_i, type_i in enumerate(types):
         updated_df.iloc[row_i] = discretize_vector(updated_df.iloc[row_i].to_numpy(), type_i,

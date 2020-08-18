@@ -21,6 +21,7 @@ import time
 ########
 class AllA(object):
     def __init__(self, max_freq_thresh=config.preprocess['max_freq_thresh'],
+                 transform_data_funcs=config.preprocess['transform_funcs'],
                  discretize_bypass_if_possible=config.preprocess['discretize_bypass_if_possible'],
                  discretize_func=config.preprocess['discretize_func'], discretize_num_bins=config.preprocess['discretize_num_bins'],
                  pdist_metric=config.association['pdist_metric'],
@@ -30,6 +31,7 @@ class AllA(object):
         # update AllA config setting
         update_config('output', dir=out_dir, verbose=verbose)
         update_config('preprocess', max_freq_thresh=max_freq_thresh,
+                                    transform_funcs=transform_data_funcs,
                                     discretize_bypass_if_possible=discretize_bypass_if_possible,
                                     discretize_func=discretize_func, discretize_num_bins=discretize_num_bins)
         update_config('association', pdist_metric=pdist_metric)
@@ -167,7 +169,8 @@ class AllA(object):
 
         # clean and preprocess data
         func_args = {
-            'max_freq_thresh'     : confp['max_freq_thresh'],
+            'transform_funcs'     : confp['transform_funcs'],
+            'max_freq_thresh'    : confp['max_freq_thresh'],
             'discretize_func'    : confp['discretize_func'],
             'discretize_num_bins': confp['discretize_num_bins']
         }
@@ -232,9 +235,11 @@ class AllA(object):
 ########
 class HAllA(AllA):
     def __init__(self, max_freq_thresh=config.preprocess['max_freq_thresh'],
+                 transform_data_funcs=config.preprocess['transform_funcs'],
                  discretize_bypass_if_possible=config.preprocess['discretize_bypass_if_possible'],
                  discretize_func=config.preprocess['discretize_func'], discretize_num_bins=config.preprocess['discretize_num_bins'],
                  pdist_metric=config.association['pdist_metric'], linkage_method=config.hierarchy['linkage_method'],
+                 sim2dist_set_abs=config.hierarchy['sim2dist_set_abs'], sim2dist_func=config.hierarchy['sim2dist_func'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'], rank_cluster=config.stats['rank_cluster'],
@@ -244,13 +249,16 @@ class HAllA(AllA):
         self.name = 'HAllA'
         # retrieve AllA variables
         alla_vars = vars()
-        for key in ['linkage_method', 'fnr_thresh', 'rank_cluster']: del alla_vars[key]
+        for key in ['linkage_method', 'fnr_thresh', 'rank_cluster', 'sim2dist_set_abs', 'sim2dist_func']:
+            del alla_vars[key]
         # call AllA init function
         AllA.__init__(**alla_vars)
 
         # update HAllA config settings
         update_config('stats', fnr_thresh=fnr_thresh, rank_cluster=rank_cluster)
-        update_config('hierarchy', linkage_method=linkage_method)
+        update_config('hierarchy', linkage_method=linkage_method,
+                                   sim2dist_set_abs=sim2dist_set_abs,
+                                   sim2dist_func=sim2dist_func)
         self.logger = HAllALogger(self.name, config=config)
 
     '''Private functions
@@ -270,8 +278,14 @@ class HAllA(AllA):
     def _run_clustering(self):
         self.logger.log_step_start('Step 2: Performing hierarchical clustering', sub=True)
         start_time = time.time()
-        self.X_hierarchy = HierarchicalTree(self.X, config.association['pdist_metric'], config.hierarchy['linkage_method'])
-        self.Y_hierarchy = HierarchicalTree(self.Y, config.association['pdist_metric'], config.hierarchy['linkage_method'])
+        func_args = {
+            'pdist_metric'    : config.association['pdist_metric'],
+            'linkage_method'  : config.hierarchy['linkage_method'],
+            'sim2dist_set_abs': config.hierarchy['sim2dist_set_abs'],
+            'sim2dist_func'   : config.hierarchy['sim2dist_func']
+        }
+        self.X_hierarchy = HierarchicalTree(self.X, **func_args)
+        self.Y_hierarchy = HierarchicalTree(self.Y, **func_args)
         end_time = time.time()
         self.logger.log_step_end('Performing hierarchical clustering', end_time - start_time, sub=True)
 

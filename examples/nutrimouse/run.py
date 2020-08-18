@@ -9,7 +9,7 @@ lipid_file = join(dirname(abspath(__file__)), 'lipid.txt')
 
 pdist_metric = 'spearman'
 
-halla = HAllA(pdist_metric=pdist_metric, out_dir='out', seed=123, verbose=False)
+halla = HAllA(pdist_metric=pdist_metric, out_dir='out', seed=123, verbose=True)
 halla.load(lipid_file, gene_file)
 halla.run()
 
