@@ -47,6 +47,7 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
         new_ar = []
         flag, counter = {}, 0
         for item in ar:
+            if item != item: item = 'nan'
             if item not in flag:
                 flag[item] = counter
                 counter += 1
@@ -68,16 +69,19 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
         else:
             num_bins = min(num_bins, len(set(ar)))
         if func in ['quantile', 'uniform', 'kmeans']:
+            warnings.simplefilter('ignore') # ignore nan warning    
             # remove NaNs temporarily since KBinsDiscretizer currently doesn't handle NaNs
-            temp_ar = ar[~np.isnan(ar)]
+            temp_ar = np.array([x for x in ar if x == x])
+            nans = np.array([not x == x for x in ar])
             discretizer = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy=func)
             temp_discretized_result = discretizer.fit_transform(temp_ar.reshape(len(temp_ar), 1)).reshape(len(temp_ar))
             # assign NaNs to a separate bin
             discretized_result = np.zeros(len(ar))
-            discretized_result[~np.isnan(ar)] = temp_discretized_result
-            discretized_result[np.isnan(ar)] = np.nan
+            discretized_result[~nans] = temp_discretized_result
+            discretized_result[nans] = np.nan
+            warnings.resetwarnings()
         elif func == 'jenks':
-            warnings.simplefilter('ignore') # ignore nan warning
+            warnings.simplefilter('ignore') # ignore nan warning    
             # remove the first lower bound
             breaks = jenkspy.jenks_breaks(ar, nb_class=num_bins)
             breaks[-1] += 1
@@ -94,6 +98,12 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
             warnings.resetwarnings()
         else:
             raise ValueError('Discretization function not available...')
+        # tidy up data in case some bins are empty
+        counter = 0
+        for i in range(int(np.nanmax(discretized_result) + 1)):
+            if i not in discretized_result: continue
+            discretized_result[discretized_result == i] = counter
+            counter += 1
         # assign missing values to a separate bin
         discretized_result[np.isnan(discretized_result)] = np.nanmax(discretized_result) + 1
         return(discretized_result)
@@ -114,17 +124,20 @@ def keep_feature(x, max_freq_thresh=0.8):
 
 def transform(df, types, funcs=None):
     '''Transform the continuous rows in the dataframe given function
-    Available functions: any function available in numpy attributes, e.g., log, arcsin, sqrt
+    Available functions:
+    - zscore, rank, quantile
+    - any function available in numpy attributes, e.g., log, arcsin, sqrt
     '''
     warnings.filterwarnings('error') # to catch RuntimeError
     
     if funcs is None: return(df)
     
-    funcs = [func.lower() for func in list(funcs)]
+    if not isinstance(funcs, list): funcs = [funcs]
+    funcs = [func.lower() for func in funcs]
     # ensure all functions are valid
     for func in funcs:
-        if func not in ['standardize', 'normalize'] and not hasattr(np, func):
-            raise ValueError('The transform function should be an attribute of numpy.')
+        if func not in ['zscore', 'rank', 'quantile'] and not hasattr(np, func):
+            raise ValueError('The transform function should be an attribute of numpy or one of {zscore, rank, quantile}.')
     
     updated_df = df.copy(deep=True)
     for row_i, type_i in enumerate(types):
@@ -137,7 +150,7 @@ def transform(df, types, funcs=None):
                 elif func == 'rank':
                     row = rankdata(row)
                 elif func == 'quantile':
-                    row = quantile_transform(row.reshape((len(row), 1)), n_quantiles=len(row), output_distribution='normal', random_state=0)
+                    row = quantile_transform(row.reshape((len(row), 1)), n_quantiles=len(row), output_distribution='normal', random_state=0).reshape(len(row))
                 elif func == 'sqrt':
                     row = np.sqrt(np.abs(row)) * np.sign(row)
                 else:

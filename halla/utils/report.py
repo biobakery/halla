@@ -292,14 +292,14 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                     # continuous data: show CDF of the original data
                     # - if discretized, show borders between categories
                     y_min, y_max = 0.0, 1.1
-                    x_min, x_max = all_ori_data[i].min() - axis_stretch, all_ori_data[i].max() + axis_stretch
+                    x_min, x_max = np.nanmin(all_ori_data[i]) - axis_stretch, np.nanmax(all_ori_data[i]) + axis_stretch
                     sorted_data = np.sort(np.concatenate(([x_min], np.unique(all_ori_data[i]), [x_max])))
                     cdf_line = [(all_ori_data[i] <= val).sum()/len(all_ori_data[i]) for val in sorted_data]
                     sns.lineplot(x=sorted_data, y=cdf_line, ax=axs[i,j], zorder=1)
                     if not np.all(all_ori_data[i] == all_data[i]): # if discretized
                         ori_data, disc_data = np.array(all_ori_data[i]), np.array(all_data[i])
-                        border_x = [ori_data[disc_data ==  x].max() for x in range(disc_data.min(), disc_data.max())]
-                        border_y = [len(ori_data[disc_data <=  x])*1.0/len(ori_data) for x in range(disc_data.min(), disc_data.max())]
+                        border_x = [np.nanmax(ori_data[disc_data ==  x]) for x in range(int(disc_data.min()), int(disc_data.max()))]
+                        border_y = [len(ori_data[disc_data <=  x])*1.0/len(ori_data) for x in range(int(disc_data.min()), int(disc_data.max()))]
                         # normalize border_x
                         border_x_norm = [(x - x_min) / (x_max - x_min) for x in border_x]
                         border_y_norm = [(y - y_min) / (y_max - y_min) for y in border_y]
@@ -321,18 +321,18 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                 else:
                     # 3) plot scatterplot if both are continuous
                     sns.scatterplot(x=all_ori_data[j], y=all_ori_data[i], ax=axs[i,j])
-                    axs[i,j].set_xlim(all_ori_data[j].min() - axis_stretch, all_ori_data[j].max() + axis_stretch)
-                    axs[i,j].set_ylim(all_ori_data[i].min() - axis_stretch, all_ori_data[i].max() + axis_stretch)
+                    axs[i,j].set_xlim(np.nanmin(all_ori_data[j]) - axis_stretch, np.nanmax(all_ori_data[j]) + axis_stretch)
+                    axs[i,j].set_ylim(np.nanmin(all_ori_data[i]) - axis_stretch, np.nanmax(all_ori_data[i]) + axis_stretch)
             else:
                 # 4) plot boxplot if the data are mixed
                 if all_types[j] == float:
                     sns.boxplot(x=all_ori_data[j], y=all_data[i], orient='h', color='w', ax=axs[i,j])
                     sns.stripplot(x=all_ori_data[j], y=all_data[i], jitter=0.25, orient='h', ax=axs[i,j])
-                    axs[i,j].set_xlim(all_ori_data[j].min() - axis_stretch, all_ori_data[j].max() + axis_stretch)
+                    axs[i,j].set_xlim(np.nanmin(all_ori_data[j]) - axis_stretch, np.nanmax(all_ori_data[j]) + axis_stretch)
                 else:
                     sns.boxplot(x=all_data[j], y=all_ori_data[i], color='w', ax=axs[i,j])
                     sns.stripplot(x=all_data[j], y=all_ori_data[i], jitter=0.25, ax=axs[i,j])
-                    axs[i,j].set_ylim(all_ori_data[i].min() - axis_stretch, all_ori_data[i].max() + axis_stretch)
+                    axs[i,j].set_ylim(np.nanmin(all_ori_data[i]) - axis_stretch, np.nanmax(all_ori_data[i]) + axis_stretch)
             # add y-ticks on the right side on histogram plots
             if i == j:
                 axs[i,j].yaxis.tick_right()

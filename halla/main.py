@@ -172,7 +172,7 @@ class AllA(object):
 
         # clean and preprocess data
         func_args = {
-            'transform_funcs'     : confp['transform_funcs'],
+            'transform_funcs'    : confp['transform_funcs'],
             'max_freq_thresh'    : confp['max_freq_thresh'],
             'discretize_func'    : confp['discretize_func'],
             'discretize_num_bins': confp['discretize_num_bins']
@@ -184,8 +184,8 @@ class AllA(object):
         end_time = time.time()
 
         self.logger.log_message('Preprocessing step completed:')
-        self.logger.log_result('X shape (sample size, feature dimensionality)', self.X.shape)
-        self.logger.log_result('Y shape (sample size, feature dimensionality)', self.Y.shape)
+        self.logger.log_result('X shape (# features, # size)', self.X.shape)
+        self.logger.log_result('Y shape (# features, # size)', self.Y.shape)
         self.logger.log_step_end('Loading and preprocessing data', end_time - start_time)
 
     def run(self):
@@ -209,7 +209,7 @@ class AllA(object):
     
     def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='hallagram.png', mask=True, **kwargs):
+                            output_file='hallagram.png', mask=False, **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
@@ -342,7 +342,7 @@ class HAllA(AllA):
     
     def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='hallagram.png', mask=True, **kwargs):
+                            output_file='hallagram.png', mask=False, **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
@@ -368,7 +368,7 @@ class HAllA(AllA):
 
     def generate_clustermap(self, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='clustermap.png', mask=True, **kwargs):
+                            output_file='clustermap.png', mask=False, **kwargs):
         '''Generate a clustermap (hallagram + dendrogram)
         '''
         # if the dimension is too large, generate a hallagram instead

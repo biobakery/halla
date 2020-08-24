@@ -84,7 +84,7 @@ class TestDataUtils(unittest.TestCase):
         df_row = pd.DataFrame(ar).T.iloc[0]
         self.assertTrue(data.keep_feature(df_row, None))
     
-    def test_keep_feature_4(self):
+    def test_keep_feature_5(self):
         ar = [1, 1, 1, 1, 1, 1, 1, 1]
         df_row = pd.DataFrame(ar).T.iloc[0]
         self.assertFalse(data.keep_feature(df_row, 1))
@@ -117,16 +117,16 @@ class TestDataUtils(unittest.TestCase):
                                  'sample_2': [-13.6, 'b'],
                                  'sample_3': [np.nan, 'a'] })
         types = np.array([float, object])
-        self.assertRaises(ValueError, data.transform, df, types, ['arcsin'])
+        self.assertRaises(ValueError, data.transform, df, types, ['log'])
     
-    def test_transform_multiple_functions(self):
+    def test_transform_sqrt(self):
         df = pd.DataFrame(data={ 'sample_1': [24, 'a'],
                                  'sample_2': [-13.6, 'b'],
                                  'sample_3': [np.nan, 'a'] })
         types = np.array([float, object])
-        updated_df = data.transform(df, types, ['log'])
-        expected_res = np.log([24, 13.6, np.nan]) * np.array([1, -1, 1])
-        self.assertTrue(compare_numpy_array(updated_df.iloc[0].to_numpy(), expected_res))
+        row = np.array([24, -13.6, np.nan])
+        updated_df = data.transform(df, types, ['sqrt'])
+        self.assertTrue(compare_numpy_array(updated_df.iloc[0].to_numpy(), np.sqrt(np.abs(row)) * np.sign(row)))
     
     def test_transform_multiple_functions(self):
         df = pd.DataFrame(data={ 'sample_1': [24, 'a'],
@@ -134,7 +134,9 @@ class TestDataUtils(unittest.TestCase):
                                  'sample_3': [np.nan, 'a'],
                                  'sample_4': [10, 'a'] })
         types = np.array([float, object])
-        updated_df = data.transform(df, types, ['standardize', 'log'])
+        updated_df = data.transform(df, types, ['zscore', 'sqrt'])
         expected_res = zscore(np.array([24, -13.6, np.nan, 10]), nan_policy='omit')
-        expected_res = np.abs(np.log(np.abs(expected_res))) * np.sign(expected_res)
+        expected_res = np.sqrt(np.abs(expected_res)) * np.sign(expected_res)
         self.assertTrue(compare_numpy_array(updated_df.iloc[0].to_numpy(), expected_res))
+    
+    

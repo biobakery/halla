@@ -102,8 +102,8 @@ def similarity2distance(scores, set_abs=True, convert_func=None):
        dist = 1 - transform(similarity scores) where transform is abs(scores) if set_abs is True else scores
        reference of converting correlation by 1 - scores: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4498680/
     - scores      : the similarity values to be converted in a numpy array
-    - set_abs     : 
-    - convert_func:
+    - set_abs     : if True, set scores to absolute
+    - convert_func: if specified, use the provided function to convert instead
     '''
     if type(scores) is not np.ndarray:
         raise ValueError('scores argument should be a numpy array!')
