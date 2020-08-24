@@ -27,7 +27,7 @@ def get_included_features(significant_blocks, num_x_features, num_y_features, tr
     return(included_x_features, included_y_features)
 
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table,
-                        x_dataset_label='', y_dataset_label='', mask=True, trim=True, figsize=None, cmap='RdBu_r',
+                        x_dataset_label='', y_dataset_label='', mask=False, trim=True, figsize=None, cmap='RdBu_r',
                         cbar_label='', text_scale=10, block_border_width=1, output_file='out.eps', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
@@ -46,6 +46,9 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     - kwargs             : other keyword arguments to be passed to seaborn's heatmap()
     '''
     #---data preparation---#
+    if len(significant_blocks) == 0:
+        print('The length of significant blocks is 0, no hallagram can be generated...')
+        return
     included_x_feat, included_y_feat = get_included_features(significant_blocks,
                                                              len(x_features),
                                                              len(y_features), trim)
@@ -125,7 +128,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
 def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table,
                         x_dataset_label='', y_dataset_label='', figsize=None, cmap='RdBu_r', text_scale=10,
                         dendrogram_ratio=None, cbar_label='',
-                        block_border_width=1.5, mask=True, output_file='out.png', **kwargs):
+                        block_border_width=1.5, mask=False, output_file='out.png', **kwargs):
     '''Plot a clustermap given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks

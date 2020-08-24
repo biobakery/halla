@@ -5,7 +5,7 @@ preprocess:
   discretize_func: ~ # None, 'quantile', 'uniform', 'kmeans', 'jenks'
   discretize_num_bins: ~
 association:
-  pdist_metric: 'pearson' # pairwise distance metric
+  pdist_metric: 'spearman' # pairwise distance metric
 hierarchy:
   sim2dist_set_abs: True
   sim2dist_func: ~

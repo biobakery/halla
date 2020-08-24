@@ -154,13 +154,16 @@ class AllA(object):
             else (X.copy(deep=True), np.copy(self.X_types))
 
         # if not all types are continuous but pdist_metric is only for continuous types
-        # TODO: add more appropriate distance metrics
-        if not (is_all_cont(self.X_types) and is_all_cont(self.X_types)) and config.association['pdist_metric'] != 'nmi':
+        if not (is_all_cont(self.X_types) and is_all_cont(self.X_types)) and config.association['pdist_metric'].lower() != 'nmi':
             raise ValueError('pdist_metric should be nmi if not all features are continuous...')
+        # if pdist_metric is nmi but no discretization method is specified, assign to equal frequency (quantile)
+        if config.association['pdist_metric'].lower() == 'nmi' and confp['discretize_func'] is None:
+            self.logger.log_message('Discretization function is None; assigning to equal frequency (quantile) given metric = NMI...')
+            update_config('preprocess', discretize_func='quantile')
         # if all features are continuous and distance metric != nmi, discretization can be bypassed
-        if is_all_cont(self.X_types) and is_all_cont(self.X_types) and \
+        if is_all_cont(self.X_types) and is_all_cont(self.X_types) and confp['discretize_func'] is not None and \
             config.association['pdist_metric'].lower() != 'nmi' and confp['discretize_bypass_if_possible']:
-            self.logger.log_message('All features are continuous; bypassing discretization and updating config...')
+            self.logger.log_message('All features are continuous and bypassing discretization is enabled; bypassing discretization...')
             update_config('preprocess', discretize_func=None)
 
         # filter tables by intersect columns
@@ -392,7 +395,7 @@ class HAllA(AllA):
                             mask=mask,
                             **kwargs)
     
-    def generate_diagnostic_plot(self, block_num=30, plot_dir='diagnostic', axis_stretch=0.2, plot_size=4):
+    def generate_diagnostic_plot(self, block_num=30, plot_dir='diagnostic', axis_stretch=1e-5, plot_size=4):
         '''Generate a lattice plot for each significant association;
         save all plots in the plot_dir folder under config.output['dir']
         '''
@@ -404,7 +407,7 @@ class HAllA(AllA):
             block_num = min(block_num, len(self.significant_blocks))
         for i, block in enumerate(self.significant_blocks[:block_num]):
             title = 'Association %d' % (i+1)
-            out_file = join(config.output['dir'], plot_dir, 'association_%d' % i)
+            out_file = join(config.output['dir'], plot_dir, 'association_%d' % (i+1))
             x_data = self.X.to_numpy()[block[0],:]
             y_data = self.Y.to_numpy()[block[1],:]
             x_ori_data = self.X_ori.to_numpy()[block[0],:]
