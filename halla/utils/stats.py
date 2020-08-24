@@ -9,6 +9,7 @@ import itertools
 from multiprocessing import Pool
 
 # retrieve package named 'eva' from R for GPD-related calculations
+import rpy2
 from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import FloatVector
 eva = importr('eva')
@@ -45,7 +46,14 @@ def compute_pvalue_gpd(permuted_scores, gt_score, n):
 			try:
 				ad = eva.gpdAd(FloatVector(exceedances))
 				ad_pval = ad.rx2('p.value')[0]
-			except:
+			except rpy2.rinterface_lib.embedded.RRuntimeError as e:
+				if 'use the bootstrap version' in str(e):
+					try:
+						ad = eva.gpdAd(FloatVector(exceedances), bootstrap=True, bootnum=1000)
+						ad_pval = ad.rx2('p.value')[0]
+					except:
+						n_exceed -= 10
+						continue
 				n_exceed -= 10
 				continue
 			# H0 = exceedances come from a GPD
