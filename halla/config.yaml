@@ -1,6 +1,6 @@
 preprocess:
   max_freq_thresh: 1 # for filtering out features where the % of the most occurrence > threshold, disabled if None
-  transform_funcs: ~ # a list of functions: 'standardize', 'normalize', 'log', 'sqrt', other numpy attributes
+  transform_funcs: ~ # a list of functions: 'zscore', 'rank', 'quantile', 'sqrt', other numpy attributes
   discretize_bypass_if_possible: True # bypass discretization if all features are continuous and pdist_metric not nmi
   discretize_func: ~ # None, 'quantile', 'uniform', 'kmeans', 'jenks'
   discretize_num_bins: ~

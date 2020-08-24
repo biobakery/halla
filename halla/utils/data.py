@@ -1,7 +1,7 @@
 import numpy as np
 import math
-from scipy.stats import rankdata, entropy, zscore
-from sklearn.preprocessing import KBinsDiscretizer
+from scipy.stats import rankdata, entropy, zscore, rankdata
+from sklearn.preprocessing import KBinsDiscretizer, quantile_transform
 import pandas as pd
 import jenkspy
 import warnings
@@ -132,14 +132,14 @@ def transform(df, types, funcs=None):
         row = updated_df.iloc[row_i].to_numpy(dtype=float)
         for func in funcs:
             try:
-                if func == 'standardize':
+                if func == 'zscore':
                     row = zscore(row, nan_policy='omit')
-                elif func == 'normalize':
-                    row = (row - np.min(row)) / (np.max(row) - np.min(row))
+                elif func == 'rank':
+                    row = rankdata(row)
+                elif func == 'quantile':
+                    row = quantile_transform(row.reshape((len(row), 1)), n_quantiles=len(row), output_distribution='normal', random_state=0)
                 elif func == 'sqrt':
                     row = np.sqrt(np.abs(row)) * np.sign(row)
-                elif func == 'log':
-                    row = np.abs(np.log(np.abs(row) + 1e-10)) * np.sign(row)
                 else:
                     row = getattr(np, func)(row)
             except RuntimeWarning:

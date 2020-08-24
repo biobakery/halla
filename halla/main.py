@@ -27,7 +27,7 @@ class AllA(object):
                  pdist_metric=config.association['pdist_metric'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
-                 out_dir=config.output['dir'], verbose=config.output['verbose'], seed=None):
+                 out_dir=config.output['dir'], verbose=config.output['verbose'], seed=0):
         # update AllA config setting
         update_config('output', dir=out_dir, verbose=verbose)
         update_config('preprocess', max_freq_thresh=max_freq_thresh,
@@ -246,8 +246,7 @@ class HAllA(AllA):
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'], rank_cluster=config.stats['rank_cluster'],
-                 out_dir=config.output['dir'], verbose=config.output['verbose'],
-                 seed=None):
+                 out_dir=config.output['dir'], verbose=config.output['verbose'], seed=0):
         # TODO: add restrictions on the input - ensure the methods specified are available
         self.name = 'HAllA'
         # retrieve AllA variables
