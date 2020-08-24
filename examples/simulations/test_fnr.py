@@ -106,7 +106,7 @@ if __name__ == '__main__':
         iter_start_time = time.time()
 
         # 1.2) run HAllA
-        test_halla = HAllA(discretize_func='equal-freq', discretize_num_bins=4,
+        test_halla = HAllA(discretize_func='quantile', discretize_num_bins=4,
                       pdist_metric=pdist_metric, fnr_thresh=0.1, fdr_alpha=fdr_alpha,
                       out_dir=result_dir)
         test_halla.load(X_file, Y_file)

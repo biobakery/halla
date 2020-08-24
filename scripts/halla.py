@@ -29,13 +29,18 @@ def parse_argument(args):
         help='The maximum frequency threshold - features with max frequences >= the threshold will be removed',
         default=1, type=float, required=False)
     parser.add_argument(
+        '--transform_data_funcs',
+        help='Continuous data transformation function - a list',
+        nargs='+',
+        default=None, required=False)
+    parser.add_argument(
         '--disable_bypass_discretization_if_possible',
         help='Disable bypassing discretization when all features are continuous',
         action='store_true', required=False)
     parser.add_argument(
         '--discretize_func',
-        help='Discretization - function {None, equal-freq}',
-        default=None, choices=['None', 'equal-freq'], required=False)
+        help='Discretization - function {None, quantile, kmeans, uniform, jenks}',
+        default=None, choices=['None', 'quantile', 'kmeans', 'uniform', 'jenks'], required=False)
     parser.add_argument(
         '--discretize_num_bins',
         help='Discretization - number of bins',
@@ -44,6 +49,10 @@ def parse_argument(args):
         '-m', '--pdist_metric',
         help='Distance/similarity metric {spearman, pearson, dcor, nmi}',
         default='pearson', choices=['spearman', 'pearson', 'dcor', 'nmi'], required=False)
+    parser.add_argument(
+        '--sim2dist_set_abs',
+        help='Hierarchical clustering - set similarity scores as absolute when computing distance',
+        action='store_true', required=False)
     parser.add_argument(
         '--linkage_method',
         help='Hierarchical clustering linkage method - check scipy.cluster.hierarchy.linkage()',
@@ -127,9 +136,11 @@ def parse_argument(args):
 def main():
     params = parse_argument(sys.argv)
     halla_instance = HAllA(max_freq_thresh=params.max_freq_thresh,
+                 transform_data_funcs=params.transform_data_funcs,
                  discretize_bypass_if_possible=not params.disable_bypass_discretization_if_possible,
                  discretize_func=params.discretize_func, discretize_num_bins=params.discretize_num_bins,
                  pdist_metric=params.pdist_metric, linkage_method=params.linkage_method,
+                 sim2dist_set_abs=params.sim2dist_set_abs,
                  permute_func=params.permute_func, permute_iters=params.permute_iters,
                  permute_speedup=not params.disable_permute_speedup,
                  fdr_alpha=params.fdr_alpha, fdr_method=params.fdr_method,

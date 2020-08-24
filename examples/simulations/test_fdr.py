@@ -117,7 +117,7 @@ if __name__ == '__main__':
         iter_start_time = time.time()
 
         # 1.2) run HAllA
-        test_halla = HAllA(discretize_func='equal-freq', discretize_num_bins=4,
+        test_halla = HAllA(discretize_func='quantile', discretize_num_bins=4,
                       pdist_metric=pdist_metric, fnr_thresh=fnr_thresh, fdr_alpha=fdr_alpha,
                       out_dir=result_dir)
         test_halla.load(X_file, Y_file)
@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
         if skip_alla: continue
         # 1.3) run AllA; avoid repeating the same computation
-        test_alla = AllA(discretize_func='equal-freq', discretize_num_bins=4,
+        test_alla = AllA(discretize_func='quantile', discretize_num_bins=4,
                       pdist_metric=pdist_metric, fdr_alpha=fdr_alpha,
                       out_dir=result_dir + '_alla')
         test_alla.similarity_table = test_halla.similarity_table

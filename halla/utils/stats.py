@@ -128,22 +128,21 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
 	# initiate table
 	n, m = X.shape[0], Y.shape[0]
 	pvalue_table = np.zeros((n, m))
-	if does_return_pval(pdist_metric):
-		for i in range(n):
-			for j in range(m):
-				pvalue_table[i,j] = get_similarity_function(pdist_metric)(X[i,:], Y[j,:], return_pval=True)[1]
-	else:
-		with Pool() as pool:
+	with Pool() as pool:
+		if does_return_pval(pdist_metric):
+			pvalue_table = pool.starmap(get_similarity_function(pdist_metric), [(X[i,:], Y[j,:], True)\
+				                                                        	for i in range(n) for j in range(m)])
+			pvalue_table = np.array([item[1] for item in pvalue_table]).reshape((n, m))
+		else:
 			pvalue_table = pool.starmap(compute_permutation_test_pvalue, [(X[i,:], Y[j,:], pdist_metric,
 																			permute_func, permute_iters,
 																			permute_speedup, alpha, seed)\
 				                                                        	for i in range(n) for j in range(m)])
-		pvalue_table = np.array(pvalue_table).reshape((n, m))
+			pvalue_table = np.array(pvalue_table).reshape((n, m))
 	return(pvalue_table)
 
 def pvalues2qvalues(pvalues, method='fdr_bh', alpha=0.05):
 	'''Perform p-value correction for multiple tests (Benjamini/Hochberg)
-	# TODO? add more methods
 	Args:
 	- pvalues: a 1D-array of pvalues
 	- alpha  : family-wise error rate

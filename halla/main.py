@@ -21,15 +21,17 @@ import time
 ########
 class AllA(object):
     def __init__(self, max_freq_thresh=config.preprocess['max_freq_thresh'],
+                 transform_data_funcs=config.preprocess['transform_funcs'],
                  discretize_bypass_if_possible=config.preprocess['discretize_bypass_if_possible'],
                  discretize_func=config.preprocess['discretize_func'], discretize_num_bins=config.preprocess['discretize_num_bins'],
                  pdist_metric=config.association['pdist_metric'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
-                 out_dir=config.output['dir'], verbose=config.output['verbose'], seed=None):
+                 out_dir=config.output['dir'], verbose=config.output['verbose'], seed=0):
         # update AllA config setting
         update_config('output', dir=out_dir, verbose=verbose)
         update_config('preprocess', max_freq_thresh=max_freq_thresh,
+                                    transform_funcs=transform_data_funcs,
                                     discretize_bypass_if_possible=discretize_bypass_if_possible,
                                     discretize_func=discretize_func, discretize_num_bins=discretize_num_bins)
         update_config('association', pdist_metric=pdist_metric)
@@ -152,13 +154,16 @@ class AllA(object):
             else (X.copy(deep=True), np.copy(self.X_types))
 
         # if not all types are continuous but pdist_metric is only for continuous types
-        # TODO: add more appropriate distance metrics
-        if not (is_all_cont(self.X_types) and is_all_cont(self.X_types)) and config.association['pdist_metric'] != 'nmi':
+        if not (is_all_cont(self.X_types) and is_all_cont(self.X_types)) and config.association['pdist_metric'].lower() != 'nmi':
             raise ValueError('pdist_metric should be nmi if not all features are continuous...')
+        # if pdist_metric is nmi but no discretization method is specified, assign to equal frequency (quantile)
+        if config.association['pdist_metric'].lower() == 'nmi' and confp['discretize_func'] is None:
+            self.logger.log_message('Discretization function is None; assigning to equal frequency (quantile) given metric = NMI...')
+            update_config('preprocess', discretize_func='quantile')
         # if all features are continuous and distance metric != nmi, discretization can be bypassed
-        if is_all_cont(self.X_types) and is_all_cont(self.X_types) and \
+        if is_all_cont(self.X_types) and is_all_cont(self.X_types) and confp['discretize_func'] is not None and \
             config.association['pdist_metric'].lower() != 'nmi' and confp['discretize_bypass_if_possible']:
-            self.logger.log_message('All features are continuous; bypassing discretization and updating config...')
+            self.logger.log_message('All features are continuous and bypassing discretization is enabled; bypassing discretization...')
             update_config('preprocess', discretize_func=None)
 
         # filter tables by intersect columns
@@ -167,7 +172,8 @@ class AllA(object):
 
         # clean and preprocess data
         func_args = {
-            'max_freq_thresh'     : confp['max_freq_thresh'],
+            'transform_funcs'    : confp['transform_funcs'],
+            'max_freq_thresh'    : confp['max_freq_thresh'],
             'discretize_func'    : confp['discretize_func'],
             'discretize_num_bins': confp['discretize_num_bins']
         }
@@ -178,8 +184,8 @@ class AllA(object):
         end_time = time.time()
 
         self.logger.log_message('Preprocessing step completed:')
-        self.logger.log_result('X shape (sample size, feature dimensionality)', self.X.shape)
-        self.logger.log_result('Y shape (sample size, feature dimensionality)', self.Y.shape)
+        self.logger.log_result('X shape (# features, # size)', self.X.shape)
+        self.logger.log_result('Y shape (# features, # size)', self.Y.shape)
         self.logger.log_step_end('Loading and preprocessing data', end_time - start_time)
 
     def run(self):
@@ -203,7 +209,7 @@ class AllA(object):
     
     def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='hallagram.png', mask=True, **kwargs):
+                            output_file='hallagram.png', mask=False, **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
@@ -232,25 +238,29 @@ class AllA(object):
 ########
 class HAllA(AllA):
     def __init__(self, max_freq_thresh=config.preprocess['max_freq_thresh'],
+                 transform_data_funcs=config.preprocess['transform_funcs'],
                  discretize_bypass_if_possible=config.preprocess['discretize_bypass_if_possible'],
                  discretize_func=config.preprocess['discretize_func'], discretize_num_bins=config.preprocess['discretize_num_bins'],
                  pdist_metric=config.association['pdist_metric'], linkage_method=config.hierarchy['linkage_method'],
+                 sim2dist_set_abs=config.hierarchy['sim2dist_set_abs'], sim2dist_func=config.hierarchy['sim2dist_func'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'], rank_cluster=config.stats['rank_cluster'],
-                 out_dir=config.output['dir'], verbose=config.output['verbose'],
-                 seed=None):
+                 out_dir=config.output['dir'], verbose=config.output['verbose'], seed=0):
         # TODO: add restrictions on the input - ensure the methods specified are available
         self.name = 'HAllA'
         # retrieve AllA variables
         alla_vars = vars()
-        for key in ['linkage_method', 'fnr_thresh', 'rank_cluster']: del alla_vars[key]
+        for key in ['linkage_method', 'fnr_thresh', 'rank_cluster', 'sim2dist_set_abs', 'sim2dist_func']:
+            del alla_vars[key]
         # call AllA init function
         AllA.__init__(**alla_vars)
 
         # update HAllA config settings
         update_config('stats', fnr_thresh=fnr_thresh, rank_cluster=rank_cluster)
-        update_config('hierarchy', linkage_method=linkage_method)
+        update_config('hierarchy', linkage_method=linkage_method,
+                                   sim2dist_set_abs=sim2dist_set_abs,
+                                   sim2dist_func=sim2dist_func)
         self.logger = HAllALogger(self.name, config=config)
 
     '''Private functions
@@ -270,8 +280,14 @@ class HAllA(AllA):
     def _run_clustering(self):
         self.logger.log_step_start('Step 2: Performing hierarchical clustering', sub=True)
         start_time = time.time()
-        self.X_hierarchy = HierarchicalTree(self.X, config.association['pdist_metric'], config.hierarchy['linkage_method'])
-        self.Y_hierarchy = HierarchicalTree(self.Y, config.association['pdist_metric'], config.hierarchy['linkage_method'])
+        func_args = {
+            'pdist_metric'    : config.association['pdist_metric'],
+            'linkage_method'  : config.hierarchy['linkage_method'],
+            'sim2dist_set_abs': config.hierarchy['sim2dist_set_abs'],
+            'sim2dist_func'   : config.hierarchy['sim2dist_func']
+        }
+        self.X_hierarchy = HierarchicalTree(self.X, **func_args)
+        self.Y_hierarchy = HierarchicalTree(self.Y, **func_args)
         end_time = time.time()
         self.logger.log_step_end('Performing hierarchical clustering', end_time - start_time, sub=True)
 
@@ -326,7 +342,7 @@ class HAllA(AllA):
     
     def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='hallagram.png', mask=True, **kwargs):
+                            output_file='hallagram.png', mask=False, **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
@@ -352,7 +368,7 @@ class HAllA(AllA):
 
     def generate_clustermap(self, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='clustermap.png', mask=True, **kwargs):
+                            output_file='clustermap.png', mask=False, **kwargs):
         '''Generate a clustermap (hallagram + dendrogram)
         '''
         # if the dimension is too large, generate a hallagram instead
@@ -378,7 +394,7 @@ class HAllA(AllA):
                             mask=mask,
                             **kwargs)
     
-    def generate_diagnostic_plot(self, block_num=30, plot_dir='diagnostic', axis_stretch=0.2, plot_size=4):
+    def generate_diagnostic_plot(self, block_num=30, plot_dir='diagnostic', axis_stretch=1e-5, plot_size=4):
         '''Generate a lattice plot for each significant association;
         save all plots in the plot_dir folder under config.output['dir']
         '''
@@ -390,7 +406,7 @@ class HAllA(AllA):
             block_num = min(block_num, len(self.significant_blocks))
         for i, block in enumerate(self.significant_blocks[:block_num]):
             title = 'Association %d' % (i+1)
-            out_file = join(config.output['dir'], plot_dir, 'association_%d' % i)
+            out_file = join(config.output['dir'], plot_dir, 'association_%d' % (i+1))
             x_data = self.X.to_numpy()[block[0],:]
             y_data = self.Y.to_numpy()[block[1],:]
             x_ori_data = self.X_ori.to_numpy()[block[0],:]

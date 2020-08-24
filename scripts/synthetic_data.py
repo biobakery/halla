@@ -14,8 +14,8 @@ from os.path import join
 from scipy.stats import ortho_group
 import math
 
-from utils.data import discretize_vector
-from utils.filesystem import reset_dir
+from halla.utils.data import discretize_vector
+from halla.utils.filesystem import reset_dir
 
 def parse_argument(args):
     parser = argparse.ArgumentParser(
@@ -158,14 +158,14 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
             ydisc_feat_indices = np.random.choice(y_feat_num, ydisc_feat_num, replace=False)
         for i in range(x_feat_num):
             if i in xdisc_feat_indices:
-                discretized = discretize_vector(X[i], func='equal-freq',
+                discretized = discretize_vector(X[i], func='quantile',
                                 num_bins=min(np.random.choice(range(3,7)), sample_num//2))
                 X_new[i] = [chr(int(val) + 65) for val in discretized]
             else:
                 X_new[i] = X[i]
         for j in range(y_feat_num):
             if j in ydisc_feat_indices:
-                discretized = discretize_vector(Y[j], func='equal-freq',
+                discretized = discretize_vector(Y[j], func='quantile',
                                 num_bins=min(np.random.choice(range(3,7)), sample_num//2))
                 Y_new[j] = [chr(int(val) + 65) for val in discretized]
             else:
@@ -201,7 +201,7 @@ def store_tables(X, Y, A, association, out_dir):
     create_df(Y, 'S', 'Y').to_csv(join(out_dir, dataset_format % ('Y', y_feat_num)), sep='\t', index=True)
     create_df(A, 'Y', 'X').to_csv(join(out_dir, filename_format % ('A', x_feat_num, y_feat_num)), sep='\t', index=True)
 
-if __name__ == "__main__":
+def main():
     # parse arguments
     params = parse_argument(sys.argv)
     # generate datasets
@@ -209,3 +209,6 @@ if __name__ == "__main__":
                                     params.association, params.noise_within, params.noise_between)
     # store datasets
     store_tables(X, Y, A, params.association, out_dir=params.output)
+
+if __name__ == "__main__":
+    main()

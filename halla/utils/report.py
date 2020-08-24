@@ -27,7 +27,7 @@ def get_included_features(significant_blocks, num_x_features, num_y_features, tr
     return(included_x_features, included_y_features)
 
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table,
-                        x_dataset_label='', y_dataset_label='', mask=True, trim=True, figsize=None, cmap='RdBu_r',
+                        x_dataset_label='', y_dataset_label='', mask=False, trim=True, figsize=None, cmap='RdBu_r',
                         cbar_label='', text_scale=10, block_border_width=1, output_file='out.eps', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
@@ -46,6 +46,9 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     - kwargs             : other keyword arguments to be passed to seaborn's heatmap()
     '''
     #---data preparation---#
+    if len(significant_blocks) == 0:
+        print('The length of significant blocks is 0, no hallagram can be generated...')
+        return
     included_x_feat, included_y_feat = get_included_features(significant_blocks,
                                                              len(x_features),
                                                              len(y_features), trim)
@@ -125,7 +128,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
 def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table,
                         x_dataset_label='', y_dataset_label='', figsize=None, cmap='RdBu_r', text_scale=10,
                         dendrogram_ratio=None, cbar_label='',
-                        block_border_width=1.5, mask=True, output_file='out.png', **kwargs):
+                        block_border_width=1.5, mask=False, output_file='out.png', **kwargs):
     '''Plot a clustermap given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
@@ -289,14 +292,14 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                     # continuous data: show CDF of the original data
                     # - if discretized, show borders between categories
                     y_min, y_max = 0.0, 1.1
-                    x_min, x_max = all_ori_data[i].min() - axis_stretch, all_ori_data[i].max() + axis_stretch
+                    x_min, x_max = np.nanmin(all_ori_data[i]) - axis_stretch, np.nanmax(all_ori_data[i]) + axis_stretch
                     sorted_data = np.sort(np.concatenate(([x_min], np.unique(all_ori_data[i]), [x_max])))
                     cdf_line = [(all_ori_data[i] <= val).sum()/len(all_ori_data[i]) for val in sorted_data]
                     sns.lineplot(x=sorted_data, y=cdf_line, ax=axs[i,j], zorder=1)
                     if not np.all(all_ori_data[i] == all_data[i]): # if discretized
                         ori_data, disc_data = np.array(all_ori_data[i]), np.array(all_data[i])
-                        border_x = [ori_data[disc_data ==  x].max() for x in range(disc_data.min(), disc_data.max())]
-                        border_y = [len(ori_data[disc_data <=  x])*1.0/len(ori_data) for x in range(disc_data.min(), disc_data.max())]
+                        border_x = [np.nanmax(ori_data[disc_data ==  x]) for x in range(int(disc_data.min()), int(disc_data.max()))]
+                        border_y = [len(ori_data[disc_data <=  x])*1.0/len(ori_data) for x in range(int(disc_data.min()), int(disc_data.max()))]
                         # normalize border_x
                         border_x_norm = [(x - x_min) / (x_max - x_min) for x in border_x]
                         border_y_norm = [(y - y_min) / (y_max - y_min) for y in border_y]
@@ -318,18 +321,18 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                 else:
                     # 3) plot scatterplot if both are continuous
                     sns.scatterplot(x=all_ori_data[j], y=all_ori_data[i], ax=axs[i,j])
-                    axs[i,j].set_xlim(all_ori_data[j].min() - axis_stretch, all_ori_data[j].max() + axis_stretch)
-                    axs[i,j].set_ylim(all_ori_data[i].min() - axis_stretch, all_ori_data[i].max() + axis_stretch)
+                    axs[i,j].set_xlim(np.nanmin(all_ori_data[j]) - axis_stretch, np.nanmax(all_ori_data[j]) + axis_stretch)
+                    axs[i,j].set_ylim(np.nanmin(all_ori_data[i]) - axis_stretch, np.nanmax(all_ori_data[i]) + axis_stretch)
             else:
                 # 4) plot boxplot if the data are mixed
                 if all_types[j] == float:
                     sns.boxplot(x=all_ori_data[j], y=all_data[i], orient='h', color='w', ax=axs[i,j])
                     sns.stripplot(x=all_ori_data[j], y=all_data[i], jitter=0.25, orient='h', ax=axs[i,j])
-                    axs[i,j].set_xlim(all_ori_data[j].min() - axis_stretch, all_ori_data[j].max() + axis_stretch)
+                    axs[i,j].set_xlim(np.nanmin(all_ori_data[j]) - axis_stretch, np.nanmax(all_ori_data[j]) + axis_stretch)
                 else:
                     sns.boxplot(x=all_data[j], y=all_ori_data[i], color='w', ax=axs[i,j])
                     sns.stripplot(x=all_data[j], y=all_ori_data[i], jitter=0.25, ax=axs[i,j])
-                    axs[i,j].set_ylim(all_ori_data[i].min() - axis_stretch, all_ori_data[i].max() + axis_stretch)
+                    axs[i,j].set_ylim(np.nanmin(all_ori_data[i]) - axis_stretch, np.nanmax(all_ori_data[i]) + axis_stretch)
             # add y-ticks on the right side on histogram plots
             if i == j:
                 axs[i,j].yaxis.tick_right()
