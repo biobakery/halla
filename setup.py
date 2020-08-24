@@ -10,7 +10,7 @@ try:
 except ImportError:
 	sys.exit('Please install setuptools.')
 
-VERSION = '0.0.5'
+VERSION = '0.0.6'
 AUTHOR  = 'HAllA Development Team'
 MAINTAINER_EMAIL = 'kathleen_sucipto@hms.harvard.edu'
 
@@ -42,7 +42,7 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'halla = scripts.halla:main',
-            # TODO: for generating synthetic data
+            'halladata = scripts.synthetic_data:main',
             # TODO: for generating hallagram / diagnostic plot / clustermap separately
         ]
     },

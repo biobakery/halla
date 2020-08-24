@@ -1,5 +1,13 @@
 # HAllA History #
 
+## v0.0.6 2020-08-24 ##
+
+* Add more discretization methods: quantile, uniform, kmeans, jenks
+* Enable data transformation: zscore, quantile, rank
+* Fix diagnostic plots when NaNs exist
+* Enable tuning similarity-to-distance function
+* Update default configuration values
+
 ## v0.0.5 2020-08-11 ##
 
 * Beautify clustermap and hallagram to avoid having to customize
