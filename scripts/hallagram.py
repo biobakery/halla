@@ -38,7 +38,7 @@ def parse_argument(args):
     parser.add_argument(
         '--cmap',
         help='Colormap',
-        default='RdBU_r', required=False)
+        default='RdBu_r', required=False)
     parser.add_argument(
         '-n', '--block_num',
         help='Number of top clusters to show (for hallagram only); if None, show all clusters',

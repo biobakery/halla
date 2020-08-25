@@ -16,14 +16,13 @@ class HAllAPartialLoader(object):
     def load_datasets(self):
         self.X = pd.read_table(join(self.input_dir, 'X.tsv'), index_col=0)
         self.Y = pd.read_table(join(self.input_dir, 'Y.tsv'), index_col=0)
-        self.X_ori = pd.read_table(join(self.input_dir, 'X_original.tsv'), index_col=0)
-        self.Y_ori = pd.read_table(join(self.input_dir, 'Y_original.tsv'), index_col=0)
+        self.X_ori, self.X_types = eval_type(pd.read_table(join(self.input_dir, 'X_original.tsv'), index_col=0))
+        self.Y_ori, self.Y_types = eval_type(pd.read_table(join(self.input_dir, 'Y_original.tsv'), index_col=0))
         self.X_feat_map = { name: i for i, name in enumerate(self.X.index.to_list()) }
         self.Y_feat_map = { name: i for i, name in enumerate(self.Y.index.to_list()) }
-        self.X_features = self.X.index.to_list()
-        self.Y_features = self.Y.index.to_list()
-        self.X_types, self.Y_types = eval_type(self.X_ori), eval_type(self.Y_ori)
-    
+        self.X_features = self.X.index.to_numpy()
+        self.Y_features = self.Y.index.to_numpy()
+        
     def load_similarity_table(self):
         df = pd.read_table(join(self.input_dir, 'all_associations.txt'))
         self.sim_table = np.zeros((self.X.shape[0], self.Y.shape[0]))
