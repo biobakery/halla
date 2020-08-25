@@ -134,6 +134,12 @@ class AllA(object):
                                     self.significant_blocks_qvalues,
                                     self.X.index.to_numpy(),
                                     self.Y.index.to_numpy())
+        
+        # print datasets (original and discretized)
+        self.X.to_csv(join(dir_name, 'X.tsv'), sep='\t')
+        self.Y.to_csv(join(dir_name, 'Y.tsv'), sep='\t')
+        self.X_ori.to_csv(join(dir_name, 'X_original.tsv'), sep='\t')
+        self.Y_ori.to_csv(join(dir_name, 'Y_original.tsv'), sep='\t')
     
     '''Public functions
     '''
@@ -315,6 +321,11 @@ class HAllA(AllA):
         '''Generate reports and store in config.output['dir'] directory
         '''
         AllA._generate_reports(self)
+
+        # store the linkages in .npy files
+        dir_name = config.output['dir']
+        np.save(join(dir_name, 'X_linkage.npy'), self.X_hierarchy.linkage, allow_pickle=False)
+        np.save(join(dir_name, 'Y_linkage.npy'), self.Y_hierarchy.linkage, allow_pickle=False)
 
     '''Public functions
     '''
