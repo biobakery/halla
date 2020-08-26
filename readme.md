@@ -4,7 +4,7 @@ Example codes can be found under `examples` directory. More details can be found
 
 ## Installation
 
-1. Other than [Python](https://www.python.org/) (version >= 3.7), install all required libraries listed in `requirements.txt`, specifically:
+1. Other than [Python](https://www.python.org/) (version >= 3.7) and [R](https://www.r-project.org/) (version >= 3.6.1), install all required libraries listed in `requirements.txt`, specifically:
 
 - [jenkspy](https://github.com/mthh/jenkspy) (version >= 0.1.5)
 - [Matplotlib](https://matplotlib.org/) (version >= 3.3.0)
