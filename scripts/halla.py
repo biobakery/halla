@@ -50,8 +50,8 @@ def parse_argument(args):
         help='Distance/similarity metric {spearman, pearson, dcor, nmi}',
         default='pearson', choices=['spearman', 'pearson', 'dcor', 'nmi'], required=False)
     parser.add_argument(
-        '--sim2dist_set_abs',
-        help='Hierarchical clustering - set similarity scores as absolute when computing distance',
+        '--sim2dist_disable_abs',
+        help='Hierarchical clustering - disable setting similarity scores as absolute when computing distance',
         action='store_true', required=False)
     parser.add_argument(
         '--linkage_method',
@@ -140,7 +140,7 @@ def main():
                  discretize_bypass_if_possible=not params.disable_bypass_discretization_if_possible,
                  discretize_func=params.discretize_func, discretize_num_bins=params.discretize_num_bins,
                  pdist_metric=params.pdist_metric, linkage_method=params.linkage_method,
-                 sim2dist_set_abs=params.sim2dist_set_abs,
+                 sim2dist_set_abs=not params.sim2dist_disable_abs,
                  permute_func=params.permute_func, permute_iters=params.permute_iters,
                  permute_speedup=not params.disable_permute_speedup,
                  fdr_alpha=params.fdr_alpha, fdr_method=params.fdr_method,

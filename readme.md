@@ -20,6 +20,7 @@ Example codes can be found under `examples` directory. More details can be found
 Users can either install them one-by-one or install all of them at once by running:
 
 ```
+# for MacOS - read the notes on installing rpy2 before running the following command
 pip install -r requirements.txt
 ```
 
@@ -27,19 +28,6 @@ pip install -r requirements.txt
 
 ```
 python setup.py install
-```
-
-3. Install the necessary R packages; run on Python
-
-```
-from rpy2.robjects.packages import importr
-
-utils = importr('utils')
-utils.chooseCRANmirror(ind=1)
-utils.install_packages('EnvStats')
-utils.install_packages('https://cran.r-project.org/src/contrib/Archive/eva/eva_0.2.5.tar.gz')
-# check if eva has been successfully installed
-eva = importr('eva')
 ```
 
 ## Available parameters
