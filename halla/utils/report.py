@@ -259,7 +259,7 @@ def report_significant_clusters(dir_name, significant_blocks, scores, x_features
     df.to_csv(filepath, sep='\t', index=False)
 
 def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_features, x_types, y_types,
-                            title, output_file, axis_stretch=0.2, plot_size=4):
+                            title, output_file, axis_stretch=1e-5, plot_size=4):
     '''Generate and store lattice plot for each associationn, given:
     - {x,y}_data    : the data for features in {x,y} involved in the association in numpy (the discretized data if discretized)
     - {x,y}_ori_data: the original data for features in {x,y} involved in the association in numpy

@@ -59,7 +59,8 @@ setuptools.setup(
         'console_scripts': [
             'halla = scripts.halla:main',
             'halladata = scripts.synthetic_data:main',
-            # TODO: for generating hallagram / diagnostic plot / clustermap separately
+            'hallagram = scripts.hallagram:main',
+            'hallanostic = scripts.diagnostic_plot:main',
         ]
     },
     cmdclass={
