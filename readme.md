@@ -20,7 +20,9 @@ Example codes can be found under `examples` directory. More details can be found
 Users can either install them one-by-one or install all of them at once by running:
 
 ```
-# for MacOS - read the notes on installing rpy2 before running the following command
+# for MacOS - read the notes on installing rpy2:
+#   specifically run 'env CC=/usr/local/Cellar/gcc/X.x.x/bin/gcc-X pip install rpy2'
+#   where X.x.x is the gcc version on the machine **BEFORE** running the following command
 pip install -r requirements.txt
 ```
 
