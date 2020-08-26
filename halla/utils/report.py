@@ -296,7 +296,9 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                     sorted_data = np.sort(np.concatenate(([x_min], np.unique(all_ori_data[i]), [x_max])))
                     cdf_line = [(all_ori_data[i] <= val).sum()/len(all_ori_data[i]) for val in sorted_data]
                     sns.lineplot(x=sorted_data, y=cdf_line, ax=axs[i,j], zorder=1)
-                    if not np.all(all_ori_data[i] == all_data[i]): # if discretized
+                    try:
+                        np.testing.assert_equal(all_ori_data[i], all_data[i])
+                    except: # discretized
                         ori_data, disc_data = np.array(all_ori_data[i]), np.array(all_data[i])
                         border_x = [np.nanmax(ori_data[disc_data ==  x]) for x in range(int(disc_data.min()), int(disc_data.max()))]
                         border_y = [len(ori_data[disc_data <=  x])*1.0/len(ori_data) for x in range(int(disc_data.min()), int(disc_data.max()))]
