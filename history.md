@@ -1,5 +1,10 @@
 # HAllA History #
 
+## v0.0.7 2020-08-26 ##
+
+* Add hallagram and hallanostic scripts
+* Simplify installation to two steps
+
 ## v0.0.6 2020-08-24 ##
 
 * Add more discretization methods: quantile, uniform, kmeans, jenks
