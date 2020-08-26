@@ -14,10 +14,15 @@ class HAllAPartialLoader(object):
         self.load_linkages()
     
     def load_datasets(self):
-        self.X = pd.read_table(join(self.input_dir, 'X.tsv'), index_col=0)
-        self.Y = pd.read_table(join(self.input_dir, 'Y.tsv'), index_col=0)
+        def fix_type(df, types):
+            updated_df = df.copy(deep=True)
+            for row_i in range(updated_df.shape[0]):
+                updated_df.iloc[row_i] = updated_df.iloc[row_i].to_numpy().astype(types[row_i])
+            return(updated_df)
         self.X_ori, self.X_types = eval_type(pd.read_table(join(self.input_dir, 'X_original.tsv'), index_col=0))
         self.Y_ori, self.Y_types = eval_type(pd.read_table(join(self.input_dir, 'Y_original.tsv'), index_col=0))
+        self.X = fix_type(pd.read_table(join(self.input_dir, 'X.tsv'), index_col=0), self.X_types)
+        self.Y = fix_type(pd.read_table(join(self.input_dir, 'Y.tsv'), index_col=0), self.Y_types)
         self.X_feat_map = { name: i for i, name in enumerate(self.X.index.to_list()) }
         self.Y_feat_map = { name: i for i, name in enumerate(self.Y.index.to_list()) }
         self.X_features = self.X.index.to_numpy()

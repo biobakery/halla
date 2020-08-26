@@ -60,7 +60,7 @@ setuptools.setup(
             'halla = scripts.halla:main',
             'halladata = scripts.synthetic_data:main',
             'hallagram = scripts.hallagram:main',
-            'hallanostic = scripts.diagnostic_plot:main',
+            'hallagnostic = scripts.diagnostic_plot:main',
         ]
     },
     cmdclass={
