@@ -99,14 +99,14 @@ def parse_argument(args):
 
     # --hallagram parameters--
     parser.add_argument(
-        '--disable_hallagram',
-        help='Disable generating hallagram',
+        '--hallagram',
+        help='Generates hallagram',
         action='store_true', required=False)
 
     # --clustermap parameters--
     parser.add_argument(
-        '--disable_clustermap',
-        help='Disable generating clustermap',
+        '--clustermap',
+        help='Generates clustermap',
         action='store_true', required=False)
 
     # --hallagram/clustermap parameters--
@@ -125,8 +125,8 @@ def parse_argument(args):
 
     # --diagnostic-plot parameters--
     parser.add_argument(
-        '--disable_diagnostic_plot',
-        help='Disable generating diagnostic plot',
+        '--diagnostic_plot',
+        help='Generates diagnostic plot',
         action='store_true', required=False)
     params = parser.parse_args()
     if params.discretize_func == 'None':
@@ -149,15 +149,15 @@ def main():
                  seed=params.seed)
     halla_instance.load(params.x_file, params.y_file)
     halla_instance.run()
-    if not params.disable_clustermap:
+    if params.clustermap:
         halla_instance.generate_clustermap(x_dataset_label=params.x_dataset_label,
                                            y_dataset_label=params.y_dataset_label,
                                            cbar_label=params.cbar_label)
-    if not params.disable_hallagram:
+    if params.hallagram:
         halla_instance.generate_hallagram(x_dataset_label=params.x_dataset_label,
                                            y_dataset_label=params.y_dataset_label,
                                            cbar_label=params.cbar_label)
-    if not params.disable_diagnostic_plot:
+    if params.diagnostic_plot:
         halla_instance.generate_diagnostic_plot()
 
 if __name__ == "__main__":
