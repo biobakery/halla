@@ -1,5 +1,4 @@
 from os.path import dirname, abspath, join
-import sys
 import seaborn as sns
 
 from halla import HAllA

@@ -185,7 +185,7 @@ def preprocess(df, types, transform_funcs=None, max_freq_thresh=0.8, discretize_
     # 3) discretize values if needed
     updated_df = df.copy(deep=True)
     for row_i, type_i in enumerate(types):
-        updated_df.iloc[row_i] = discretize_vector(updated_df.iloc[row_i].to_numpy(), type_i,
+        updated_df.iloc[row_i] = discretize_vector(updated_df.iloc[row_i].to_numpy().astype(type_i), type_i,
                                                    func=discretize_func,
                                                    num_bins=discretize_num_bins)
 
