@@ -12,11 +12,9 @@ import pandas as pd
 import shutil
 import time
 
-sys.path.append(dirname(dirname(abspath(__file__))))
-                
-from tools import HAllA, AllA
-from tools.utils.stats import compute_result_power, compute_result_fdr
-from tools.utils.filesystem import create_dir
+from halla import HAllA, AllA
+from halla.utils.stats import compute_result_power, compute_result_fdr
+from halla.utils.filesystem import create_dir
 
 def parse_argument(args):
     parser = argparse.ArgumentParser(
@@ -31,9 +29,9 @@ def parse_argument(args):
     parser.add_argument('-a', '--association', help='association type {line, parabola, log, sine, step, mixed, categorical}; default: line',
                         default='line', choices=['line', 'parabola', 'log', 'sine', 'step', 'mixed', 'categorical'], required=False)
     parser.add_argument('-nw', '--noise-within', dest='noise_within', help='noise within blocks [0 (no noise)..1 (complete noise)]',
-                        default=0.5, type=float, required=False)
+                        default=0.35, type=float, required=False)
     parser.add_argument('-nb', '--noise-between', dest='noise_between', help='noise between associated blocks [0 (no noise)..1 (complete noise)]',
-                        default=0.5, type=float, required=False)
+                        default=0.35, type=float, required=False)
     parser.add_argument('-fdr', '--fdr_alpha', help='FDR alpha', default=0.05, type=float, required=False)
     parser.add_argument('-fnr', '--fnr_thresh', help='FNR threshold for HAllA', default=0.2, type=float, required=False)
     parser.add_argument('-m', '--metric', help='Similarity metric', default='pearson', choices=['pearson', 'spearman', 'nmi', 'dcor'], required=False)
@@ -57,20 +55,19 @@ def parse_argument(args):
         raise ValueError('Noise within/between must be [0..1]')
     return(params)
 
-def store_result(halla_power, halla_fdr, halla_dur, num_iters, output_pref, alla_power=None, alla_fdr=None):
+def store_result(halla_power, halla_fdr, halla_dur, output_pref, alla_power=None, alla_fdr=None):
     if skip_alla:
         pd.DataFrame(data={
-           'type' : ['halla']*num_iters,
            'power': halla_power,
            'fdr'  : halla_fdr, 
            'duration': halla_dur,
         }).to_csv('%s.csv' % output_pref)
     else:
         pd.DataFrame(data={
-           'type' : ['halla']*num_iters + ['alla']*num_iters,
+           'type' : ['halla']*len(halla_power) + ['alla']*len(alla_power),
            'power': halla_power + alla_power,
            'fdr'  : halla_fdr + alla_fdr,
-           'duration': halla_dur + [-1]*num_iters,
+           'duration': halla_dur + [-1]*len(alla_power),
         }).to_csv('%s.csv' % output_pref)
 
 if __name__ == '__main__':
@@ -105,7 +102,7 @@ if __name__ == '__main__':
         print('Iteration', i+1)
         dataset_iter_path = '%s_%d' % (dataset_dir, i)
         # 1.1) create a synthetic dataset
-        os.system('python tools/synthetic_data.py -a %s -n %d -xf %d -yf %d -nw %f -nb %f  -o %s' % (
+        os.system('halladata -a %s -n %d -xf %d -yf %d -nw %f -nb %f  -o %s' % (
             association, sample_num, x_feat_num, y_feat_num, noise_within, noise_between,
             dataset_iter_path))
 
@@ -118,8 +115,8 @@ if __name__ == '__main__':
 
         # 1.2) run HAllA
         test_halla = HAllA(discretize_func='quantile', discretize_num_bins=4,
-                      pdist_metric=pdist_metric, fnr_thresh=fnr_thresh, fdr_alpha=fdr_alpha,
-                      out_dir=result_dir)
+                      pdist_metric=pdist_metric, fnr_thresh=fnr_thresh, fdr_alpha=fdr_alpha, verbose=False,
+                      out_dir='%s_%d' % (result_dir, i))
         test_halla.load(X_file, Y_file)
         test_halla.run()
 
@@ -133,29 +130,27 @@ if __name__ == '__main__':
         if skip_alla: continue
         # 1.3) run AllA; avoid repeating the same computation
         test_alla = AllA(discretize_func='quantile', discretize_num_bins=4,
-                      pdist_metric=pdist_metric, fdr_alpha=fdr_alpha,
-                      out_dir=result_dir + '_alla')
+                      pdist_metric=pdist_metric, fdr_alpha=fdr_alpha, verbose=False,
+                      out_dir='%s_%d_alla' % (result_dir, i))
+        test_alla.logger = test_halla.logger
         test_alla.similarity_table = test_halla.similarity_table
         test_alla.pvalue_table     = test_halla.pvalue_table
         test_alla.fdr_reject_table = test_halla.fdr_reject_table
         test_alla.qvalue_table     = test_halla.qvalue_table
         test_alla.X, test_alla.Y   = test_halla.X, test_halla.Y
         test_alla._find_dense_associated_blocks()
-        # test_alla.load(X_file, Y_file)
-        # test_alla.run()
 
         # 1.3) compute power and FDR
         alla_power.append(compute_result_power(test_alla.significant_blocks, A))
         alla_fdr.append(compute_result_fdr(test_alla.significant_blocks, A))
 
-        if skip_alla:
-            store_result(halla_power, halla_fdr, halla_dur, num_iters, output_pref)
-        else:
-            store_result(halla_power, halla_fdr, halla_dur, num_iters, output_pref, alla_power, alla_fdr)
-    
-    # remove all generated directories
-    # shutil.rmtree(iter_path)
-    # shutil.rmtree(result_dir)
+        print(halla_power, halla_fdr)
+        print(alla_power, alla_fdr)
 
+        if skip_alla:
+            store_result(halla_power, halla_fdr, halla_dur, output_pref)
+        else:
+            store_result(halla_power, halla_fdr, halla_dur, output_pref, alla_power, alla_fdr)
+    
     total_time = time.time() - start_time
     print('Total time is', total_time)
