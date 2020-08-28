@@ -7,7 +7,7 @@ import numpy as np
 from os.path import join
 import pkg_resources
 
-from halla import HAllA
+from halla import HAllA, AllA
 
 def parse_argument(args):
     parser = argparse.ArgumentParser(
@@ -24,6 +24,10 @@ def parse_argument(args):
         required=False)
     
     # --halla parameters--
+    parser.add_argument(
+        '--alla',
+        help='Use AllA instead of HAllA',
+        action='store_true', required=False)
     parser.add_argument(
         '--max_freq_thresh',
         help='The maximum frequency threshold - features with max frequences >= the threshold will be removed',
@@ -135,7 +139,19 @@ def parse_argument(args):
 
 def main():
     params = parse_argument(sys.argv)
-    halla_instance = HAllA(max_freq_thresh=params.max_freq_thresh,
+    if params.alla:
+        instance = AllA(max_freq_thresh=params.max_freq_thresh,
+                 transform_data_funcs=params.transform_data_funcs,
+                 discretize_bypass_if_possible=not params.disable_bypass_discretization_if_possible,
+                 discretize_func=params.discretize_func, discretize_num_bins=params.discretize_num_bins,
+                 pdist_metric=params.pdist_metric,
+                 permute_func=params.permute_func, permute_iters=params.permute_iters,
+                 permute_speedup=not params.disable_permute_speedup,
+                 fdr_alpha=params.fdr_alpha, fdr_method=params.fdr_method,
+                 out_dir=params.out_dir, verbose=not params.disable_verbose,
+                 seed=params.seed)
+    else:
+        instance = HAllA(max_freq_thresh=params.max_freq_thresh,
                  transform_data_funcs=params.transform_data_funcs,
                  discretize_bypass_if_possible=not params.disable_bypass_discretization_if_possible,
                  discretize_func=params.discretize_func, discretize_num_bins=params.discretize_num_bins,
@@ -147,18 +163,24 @@ def main():
                  fnr_thresh=params.fnr_thresh, rank_cluster=params.rank_cluster,
                  out_dir=params.out_dir, verbose=not params.disable_verbose,
                  seed=params.seed)
-    halla_instance.load(params.x_file, params.y_file)
-    halla_instance.run()
+    instance.load(params.x_file, params.y_file)
+    instance.run()
     if params.clustermap:
-        halla_instance.generate_clustermap(x_dataset_label=params.x_dataset_label,
+        if params.alla:
+            print('AllA does not produce clustermap.')
+        else:
+            instance.generate_clustermap(x_dataset_label=params.x_dataset_label,
                                            y_dataset_label=params.y_dataset_label,
                                            cbar_label=params.cbar_label)
     if params.hallagram:
-        halla_instance.generate_hallagram(x_dataset_label=params.x_dataset_label,
+        instance.generate_hallagram(x_dataset_label=params.x_dataset_label,
                                            y_dataset_label=params.y_dataset_label,
                                            cbar_label=params.cbar_label)
     if params.diagnostic_plot:
-        halla_instance.generate_diagnostic_plot()
+        if params.alla:
+            print('AllA does not produce diagnostic plot.')
+        else:
+            instance.generate_diagnostic_plot()
 
 if __name__ == "__main__":
     main()
