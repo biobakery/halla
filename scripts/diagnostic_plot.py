@@ -13,7 +13,7 @@ from .loader import HAllAPartialLoader
 
 def parse_argument(args):
     parser = argparse.ArgumentParser(
-        description='Generating a diagnostic plot given a AllA/HAllA output directory')
+        description='HAllA diagnostic plot generator')
 
     # --load parameters--
     parser.add_argument(
@@ -22,7 +22,7 @@ def parse_argument(args):
         required=True)
     parser.add_argument(
         '-n', '--block_num',
-        help='Number of top clusters for generating the lattice plots; if None, show all clusters',
+        help='Number of top clusters for generating the lattice plots; if -1, show all clusters',
         default=30, type=int, required=False)
     parser.add_argument(
         '--axis_stretch',
@@ -46,7 +46,7 @@ def main():
 
     reset_dir(join(input_dir, params.output_dir))
     block_num = params.block_num
-    if block_num is None:
+    if block_num == -1:
         block_num = len(loader.significant_blocks)
     else:
         block_num = min(block_num, len(loader.significant_blocks))

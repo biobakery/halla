@@ -12,7 +12,7 @@ from .loader import HAllAPartialLoader
 
 def parse_argument(args):
     parser = argparse.ArgumentParser(
-        description='Generating a hallagram/clustermap given a AllA/HAllA output directory')
+        description='HAllA clustermap/hallagram generator')
 
     # --load parameters--
     parser.add_argument(
@@ -41,7 +41,7 @@ def parse_argument(args):
         default='RdBu_r', required=False)
     parser.add_argument(
         '-n', '--block_num',
-        help='Number of top clusters to show (for hallagram only); if None, show all clusters',
+        help='Number of top clusters to show (for hallagram only); if -1, show all clusters',
         default=30, type=int, required=False)
     parser.add_argument(
         '--mask',
@@ -61,7 +61,7 @@ def parse_argument(args):
         default='', required=False)
     
     params = parser.parse_args()
-    if params.block_num == 'None': params.block_num = None
+    if params.block_num == -1: params.block_num = None
     if params.output == '':
         params.output = 'clustermap.png' if params.clustermap else 'hallagram.png'
     return(params)
