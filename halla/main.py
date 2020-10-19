@@ -215,7 +215,7 @@ class AllA(object):
     
     def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='hallagram.png', mask=False, **kwargs):
+                            output_file='hallagram.png', mask=False, signif_dots=True, **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
@@ -231,13 +231,14 @@ class AllA(object):
                            [idx for idx in range(self.X.shape[0])],
                            [idx for idx in range(self.Y.shape[0])],
                            self.similarity_table,
+                           self.fdr_reject_table,
                            x_dataset_label=x_dataset_label,
                            y_dataset_label=y_dataset_label,
                            figsize=figsize,
                            text_scale=text_scale,
                            output_file=file_name,
                            cmap=cmap, cbar_label=cbar_label,
-                           mask=mask, **kwargs)
+                           mask=mask, signif_dots = signif_dots, **kwargs)
 
 ########
 # HAllA
@@ -353,7 +354,7 @@ class HAllA(AllA):
     
     def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='hallagram.png', mask=False, **kwargs):
+                            output_file='hallagram.png', mask=False, signif_dots=True, **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
@@ -369,17 +370,18 @@ class HAllA(AllA):
                            self.X_hierarchy.tree.pre_order(),
                            self.Y_hierarchy.tree.pre_order(),
                            self.similarity_table,
+                           fdr_reject_table=self.fdr_reject_table,
                            x_dataset_label=x_dataset_label,
                            y_dataset_label=y_dataset_label,
                            figsize=figsize,
                            text_scale=text_scale,
                            output_file=file_name,
                            cmap=cmap, cbar_label=cbar_label,
-                           mask=mask, **kwargs)
+                           mask=mask, signif_dots=signif_dots, **kwargs)
 
     def generate_clustermap(self, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='clustermap.png', mask=False, **kwargs):
+                            output_file='clustermap.png', mask=False, signif_dots=True, **kwargs):
         '''Generate a clustermap (hallagram + dendrogram)
         '''
         # if the dimension is too large, generate a hallagram instead
@@ -396,6 +398,7 @@ class HAllA(AllA):
                             self.X_hierarchy.linkage,
                             self.Y_hierarchy.linkage,
                             self.similarity_table,
+                            fdr_reject_table=self.fdr_reject_table,
                             x_dataset_label=x_dataset_label,
                             y_dataset_label=y_dataset_label,
                             figsize=figsize,
@@ -403,6 +406,7 @@ class HAllA(AllA):
                             cmap=cmap, cbar_label=cbar_label,
                             output_file=file_name,
                             mask=mask,
+                            signif_dots=signif_dots,
                             **kwargs)
     
     def generate_diagnostic_plot(self, block_num=30, plot_dir='diagnostic', axis_stretch=1e-5, plot_size=4):

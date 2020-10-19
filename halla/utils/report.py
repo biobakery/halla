@@ -26,8 +26,8 @@ def get_included_features(significant_blocks, num_x_features, num_y_features, tr
         included_y_features = [idx for idx in range(num_y_features)]
     return(included_x_features, included_y_features)
 
-def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table,
-                        x_dataset_label='', y_dataset_label='', mask=False, trim=True, figsize=None, cmap='RdBu_r',
+def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table, fdr_reject_table,
+                        x_dataset_label='', y_dataset_label='', mask=False, trim=True, signif_dots=True, figsize=None, cmap='RdBu_r',
                         cbar_label='', text_scale=10, block_border_width=1.5, output_file='out.eps', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
@@ -35,9 +35,11 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     - {x,y}_features     : feature names of {x,y}
     - clust_{x,y}_idx    : the indices of {x,y} in clustered form 
     - sim_table          : similarity table with size [len(x_features), len(y_features)]
+    - fdr_reject_table   : boolean association table with size [len(x_features), len(y_features)]
     - {x,y}_dataset_label: axis label
     - mask               : if True, mask all cells not included in significant blocks
     - trim               : if True, trim all features that are not significant
+    - signif_dots        : if True, show dots on significant pairwise associations
     - figsize            : figure size
     - cmap               : color map
     - text_scale         : how much the rank text size should be scaled
@@ -58,15 +60,20 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     
     # if mask, replace all insignificant cells to NAs
     clust_sim_table = np.copy(sim_table)
+    clust_fdr_reject_table = np.copy(fdr_reject_table)
     if mask:
         dummy_table = np.full(clust_sim_table.shape, np.nan)
+        dummy_fdr = np.full(clust_sim_table.shape, np.nan)
         for block in significant_blocks:
             for x, y in itertools.product(block[0], block[1]):
                 dummy_table[x,y] = clust_sim_table[x,y]
+                dummy_fdr[x,y] = clust_fdr_reject_table[x,y]
         clust_sim_table = dummy_table
+        clust_fdr_reject_table = dummy_fdr
     
     # shuffle similarity table and features accordingly
     clust_sim_table = clust_sim_table[clust_x_idx,:][:,clust_y_idx]
+    clust_fdr_reject_table = clust_fdr_reject_table[clust_x_idx,:][:,clust_y_idx]
     clust_x_features = np.asarray(x_features)[clust_x_idx]
     clust_y_features = np.asarray(y_features)[clust_y_idx]
     
@@ -105,6 +112,13 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     ax.set_xlabel(y_dataset_label, fontweight='bold')
     ax.set_ylabel(x_dataset_label, fontweight='bold')
     
+    if signif_dots:
+        for i in range(len(clust_y_features)):
+            for j in range(len(clust_x_features)):
+                if clust_fdr_reject_table[j,i]:
+                    ax.scatter(x = i+.5, y =j + .5, c = 'black', marker = "o", zorder = 3, s=22)
+                    ax.scatter(x = i+.5, y =j + .5, c = 'white', marker = "o", zorder = 3, s=12)
+    
     for rank, block in enumerate(significant_blocks):
         x_block, y_block = block[0], block[1]
         clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
@@ -125,8 +139,8 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     plt.subplots_adjust(wspace=1/(figsize[0]*6), hspace=0)
     plt.savefig(output_file, format=output_file.split('.')[-1].lower(), bbox_inches='tight')
 
-def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table,
-                        x_dataset_label='', y_dataset_label='', figsize=None, cmap='RdBu_r', text_scale=10,
+def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table, fdr_reject_table,
+                        x_dataset_label='', y_dataset_label='', signif_dots=True, figsize=None, cmap='RdBu_r', text_scale=10,
                         dendrogram_ratio=None, cbar_label='',
                         block_border_width=1.5, mask=False, output_file='out.png', **kwargs):
     '''Plot a clustermap given args:
@@ -135,7 +149,9 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
     - {x,y}_features     : feature names of {x,y}
     - {x,y}_linkage      : precomputed linkage matrix for {x,y}
     - sim_table          : similarity table with size [len(x_features), len(y_features)]
+    - fdr_reject_table   : boolean association table with size [len(x_features), len(y_features)]
     - {x,y}_dataset_label: axis label
+    - signif_dots        : if True, show dots on significant pairwise associations
     - figsize            : figure size
     - cmap               : color map
     - text_scale         : how much the rank text size should be scaled
@@ -174,6 +190,16 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
         ax.grid(which='minor', color='xkcd:light grey', zorder=0)
     x_ori2clust_idx = get_indices_map_dict(np.asarray(sch.to_tree(x_linkage).pre_order()))
     y_ori2clust_idx = get_indices_map_dict(np.asarray(sch.to_tree(y_linkage).pre_order()))
+    
+    dot_order_x = np.asarray(clustermap.dendrogram_row.reordered_ind)
+    dot_order_y = clustermap.dendrogram_col.reordered_ind
+    
+    if signif_dots:
+        for i in range(len(x_features)):
+            for j in range(len(y_features)):
+                if fdr_reject_table[dot_order_x[i],dot_order_y[j]]:
+                    ax.scatter(y = i + .5, x = j + .5, c = 'black', marker = "o", zorder = 3, s = 22)
+                    ax.scatter(y = i + .5, x = j + .5, c = 'white', marker = "o", zorder = 3, s = 12)
 
     for rank, block in enumerate(significant_blocks):
         x_block, y_block = block[0], block[1]
