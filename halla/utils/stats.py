@@ -7,6 +7,7 @@ from statsmodels.stats.multitest import multipletests
 from scipy.stats import genpareto
 import itertools
 from multiprocessing import Pool
+from tqdm import tqdm
 
 # retrieve package named 'eva' from R for GPD-related calculations
 from rpy2.robjects.packages import importr
@@ -129,7 +130,7 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
     n, m = X.shape[0], Y.shape[0]
     pvalue_table = np.zeros((n, m))
     if does_return_pval(pdist_metric):
-        for i in range(n):
+        for i in tqdm(range(n)):
             for j in range(m):
                 pvalue_table[i,j] = get_similarity_function(pdist_metric)(X[i,:], Y[j,:], return_pval=True)[1]
     else:
