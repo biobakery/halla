@@ -116,8 +116,8 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
         for i in range(len(clust_y_features)):
             for j in range(len(clust_x_features)):
                 if clust_fdr_reject_table[j,i]:
-                    ax.scatter(x = i+.5, y =j + .5, c = 'black', marker = "o", zorder = 3, s=22)
-                    ax.scatter(x = i+.5, y =j + .5, c = 'white', marker = "o", zorder = 3, s=12)
+                    ax.scatter(x = i+.5, y =j + .5, c = 'black', marker = "o", zorder = 3, s=25)
+                    ax.scatter(x = i+.5, y =j + .5, c = 'white', marker = "o", zorder = 3, s=10)
     
     for rank, block in enumerate(significant_blocks):
         x_block, y_block = block[0], block[1]
@@ -198,8 +198,8 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
         for i in range(len(x_features)):
             for j in range(len(y_features)):
                 if fdr_reject_table[dot_order_x[i],dot_order_y[j]]:
-                    ax.scatter(y = i + .5, x = j + .5, c = 'black', marker = "o", zorder = 3, s = 22)
-                    ax.scatter(y = i + .5, x = j + .5, c = 'white', marker = "o", zorder = 3, s = 12)
+                    ax.scatter(y = i + .5, x = j + .5, c = 'black', marker = "o", zorder = 3, s = 25)
+                    ax.scatter(y = i + .5, x = j + .5, c = 'white', marker = "o", zorder = 3, s = 10)
 
     for rank, block in enumerate(significant_blocks):
         x_block, y_block = block[0], block[1]
