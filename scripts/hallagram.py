@@ -59,6 +59,10 @@ def parse_argument(args):
         '-o', '--output',
         help='Path to output file under the HAllA/AllA result directory; default: hallagram.png or clustermap.png',
         default='', required=False)
+    parser.add_argument(
+        '--fdr_alpha',
+        help='FDR threshold',
+        default=0.05, type=float, required=False)
     
     params = parser.parse_args()
     if params.block_num == -1: params.block_num = None
@@ -84,6 +88,7 @@ def main():
                             loader.sim_table,
                             x_dataset_label=params.x_dataset_label,
                             y_dataset_label=params.y_dataset_label,
+                            fdr_reject_table = loader.fdr_reject_table,
                             cbar_label=params.cbar_label,
                             text_scale=params.text_scale,
                             block_border_width=params.block_border_width,
@@ -104,6 +109,7 @@ def main():
                            loader.X_tree.pre_order() if loader.name == 'HAllA' else [idx for idx in range(loader.X.shape[0])],
                            loader.Y_tree.pre_order() if loader.name == 'HAllA' else [idx for idx in range(loader.Y.shape[0])],
                            loader.sim_table,
+                           fdr_reject_table = loader.fdr_reject_table,
                            x_dataset_label=params.x_dataset_label,
                            y_dataset_label=params.y_dataset_label,
                            cbar_label=params.cbar_label,

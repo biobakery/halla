@@ -4,7 +4,7 @@
 import argparse
 import sys
 import numpy as np
-from os.path import join
+from os.path import join, basename, splitext
 import pkg_resources
 
 from halla import HAllA, AllA
@@ -105,7 +105,7 @@ def parse_argument(args):
     parser.add_argument(
         '--hallagram',
         help='Generates hallagram',
-        action='store_true', required=False)
+        default=True,action='store_true', required=False)
 
     # --clustermap parameters--
     parser.add_argument(
@@ -166,6 +166,10 @@ def main():
     instance.load(params.x_file, params.y_file)
     instance.run()
     if params.clustermap:
+        if params.x_dataset_label=='':
+            params.x_dataset_label = splitext(basename(params.x_file))[0]
+        if params.y_dataset_label=='':
+            params.y_dataset_label = splitext(basename(params.y_file))[0]
         if params.alla:
             print('AllA does not produce clustermap.')
         else:
@@ -173,6 +177,10 @@ def main():
                                            y_dataset_label=params.y_dataset_label,
                                            cbar_label=params.cbar_label)
     if params.hallagram:
+        if params.x_dataset_label=='':
+            params.x_dataset_label = splitext(basename(params.x_file))[0]
+        if params.y_dataset_label=='':
+            params.y_dataset_label = splitext(basename(params.y_file))[0]
         instance.generate_hallagram(x_dataset_label=params.x_dataset_label,
                                            y_dataset_label=params.y_dataset_label,
                                            cbar_label=params.cbar_label)
