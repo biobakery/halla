@@ -26,8 +26,29 @@ def get_included_features(significant_blocks, num_x_features, num_y_features, tr
         included_y_features = [idx for idx in range(num_y_features)]
     return(included_x_features, included_y_features)
 
+def remove_unshown_features(signif_blocks, shown_x, shown_y):
+    '''
+    Given a set of significant blocks and features that will be shown, go through each block and remove features that won't be shown
+
+    '''
+    shown_x_set = set(shown_x)
+    shown_y_set = set(shown_y)
+    for block in range(len(signif_blocks)):
+        signif_blocks[block][0] = list(set(signif_blocks[block][0]).intersection(shown_x_set))
+        signif_blocks[block][1] = list(set(signif_blocks[block][1]).intersection(shown_y_set))
+        
+    to_delete = []
+    for i in range(len(signif_blocks)):
+        if (not signif_blocks[i][0] or not signif_blocks[i][1]) or (len(signif_blocks[i][0]) == 1 and len(signif_blocks[i][1]) == 1):
+            to_delete.append(i)
+            
+    for i in sorted(to_delete, reverse=True):
+        del signif_blocks[i]
+    
+    return(signif_blocks)
+
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table, fdr_reject_table,
-                        x_dataset_label='', y_dataset_label='', mask=False, trim=True, signif_dots=True, figsize=None, cmap='RdBu_r',
+                        x_dataset_label='', y_dataset_label='', mask=False, trim=True, signif_dots=True, block_num=30, figsize=None, cmap='RdBu_r',
                         cbar_label='', text_scale=10, block_border_width=1.5, output_file='out.eps', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
@@ -48,12 +69,19 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     - kwargs             : other keyword arguments to be passed to seaborn's heatmap()
     '''
     #---data preparation---#
-    if len(significant_blocks) == 0:
+    
+    top_blocks = significant_blocks[:block_num] # these are the first N blocks that MUST be shown & highlighted
+    
+    if len(top_blocks) == 0:
         print('The length of significant blocks is 0, no hallagram can be generated...')
         return
-    included_x_feat, included_y_feat = get_included_features(significant_blocks,
+    included_x_feat, included_y_feat = get_included_features(top_blocks,
                                                              len(x_features),
                                                              len(y_features), trim)
+    lower_blocks = remove_unshown_features(significant_blocks[block_num:],
+                                           included_x_feat,
+                                           included_y_feat)
+    
     # filter the indices with the included features
     clust_x_idx = np.asarray([i for i in clust_x_idx if i in included_x_feat])
     clust_y_idx = np.asarray([i for i in clust_y_idx if i in included_y_feat])
@@ -64,7 +92,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     if mask:
         dummy_table = np.full(clust_sim_table.shape, np.nan)
         dummy_fdr = np.full(clust_sim_table.shape, np.nan)
-        for block in significant_blocks:
+        for block in top_blocks:
             for x, y in itertools.product(block[0], block[1]):
                 dummy_table[x,y] = clust_sim_table[x,y]
                 dummy_fdr[x,y] = clust_fdr_reject_table[x,y]
@@ -119,7 +147,14 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
                     ax.scatter(x = i+.5, y =j + .5, c = 'black', marker = "o", zorder = 3, s=25)
                     ax.scatter(x = i+.5, y =j + .5, c = 'white', marker = "o", zorder = 3, s=10)
     
-    for rank, block in enumerate(significant_blocks):
+    for rank, block in enumerate(lower_blocks):
+        x_block, y_block = block[0], block[1]
+        clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
+        clust_y_block = [y_ori2clust_idx[idx] for idx in y_block]
+        ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.5', linewidths=block_border_width, zorder=4)
+        ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.5', linewidths=block_border_width, zorder=4)
+    
+    for rank, block in enumerate(top_blocks):
         x_block, y_block = block[0], block[1]
         clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
         clust_y_block = [y_ori2clust_idx[idx] for idx in y_block]
@@ -136,6 +171,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
             path_effects.Stroke(linewidth=3, foreground='black'),
             path_effects.Normal(),
         ])
+            
     plt.subplots_adjust(wspace=1/(figsize[0]*6), hspace=0)
     plt.savefig(output_file, format=output_file.split('.')[-1].lower(), bbox_inches='tight')
 

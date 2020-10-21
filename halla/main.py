@@ -364,7 +364,7 @@ class HAllA(AllA):
             block_num = len(self.significant_blocks)
         else:
             block_num = min(block_num, len(self.significant_blocks))
-        generate_hallagram(self.significant_blocks[:block_num],
+        generate_hallagram(self.significant_blocks,
                            self.X.index.to_numpy(),
                            self.Y.index.to_numpy(),
                            self.X_hierarchy.tree.pre_order(),
@@ -377,7 +377,7 @@ class HAllA(AllA):
                            text_scale=text_scale,
                            output_file=file_name,
                            cmap=cmap, cbar_label=cbar_label,
-                           mask=mask, signif_dots=signif_dots, **kwargs)
+                           mask=mask, signif_dots=signif_dots, block_num=block_num, **kwargs)
 
     def generate_clustermap(self, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,

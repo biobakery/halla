@@ -103,13 +103,14 @@ def main():
             block_num = min(block_num, len(loader.significant_blocks))
         if block_num > 500:
             raise ValueError('The number of blocks to show is too large, please input block # < 300')
-        generate_hallagram(loader.significant_blocks[:block_num],
+        generate_hallagram(loader.significant_blocks,
                            loader.X_features,
                            loader.Y_features,
                            loader.X_tree.pre_order() if loader.name == 'HAllA' else [idx for idx in range(loader.X.shape[0])],
                            loader.Y_tree.pre_order() if loader.name == 'HAllA' else [idx for idx in range(loader.Y.shape[0])],
                            loader.sim_table,
                            fdr_reject_table = loader.fdr_reject_table,
+                           block_num = params.block_num,
                            x_dataset_label=params.x_dataset_label,
                            y_dataset_label=params.y_dataset_label,
                            cbar_label=params.cbar_label,
