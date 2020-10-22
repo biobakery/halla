@@ -48,7 +48,7 @@ def remove_unshown_features(signif_blocks, shown_x, shown_y):
     return(signif_blocks)
 
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table, fdr_reject_table,
-                        x_dataset_label='', y_dataset_label='', mask=False, trim=True, signif_dots=True, block_num=30, figsize=None, cmap='RdBu_r',
+                        x_dataset_label='', y_dataset_label='', mask=False, trim=True, signif_dots=True, block_num=30, show_lower=True, figsize=None, cmap='RdBu_r',
                         cbar_label='', text_scale=10, block_border_width=1.5, output_file='out.eps', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
@@ -61,6 +61,8 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     - mask               : if True, mask all cells not included in significant blocks
     - trim               : if True, trim all features that are not significant
     - signif_dots        : if True, show dots on significant pairwise associations
+    - block_num          : number indicating the top N blocks to include
+    - show_lower         : if True, put a grey box around blocks ranked below the block_num threshold that show up on the hallagram anyway
     - figsize            : figure size
     - cmap               : color map
     - text_scale         : how much the rank text size should be scaled

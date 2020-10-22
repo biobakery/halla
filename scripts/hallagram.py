@@ -54,7 +54,7 @@ def parse_argument(args):
     parser.add_argument(
         '--block_border_width',
         help='Significant cluster border width',
-        default=1, type=float, required=False)
+        default=1.5, type=float, required=False)
     parser.add_argument(
         '-o', '--output',
         help='Path to output file under the HAllA/AllA result directory; default: hallagram.png or clustermap.png',
@@ -63,6 +63,10 @@ def parse_argument(args):
         '--fdr_alpha',
         help='FDR threshold',
         default=0.05, type=float, required=False)
+    parser.add_argument(
+        '--show_lower',
+        help='Show blocks ranked below block_num as grey outlined boxes',
+        default=True, type=bool, required=False)
     
     params = parser.parse_args()
     if params.block_num == -1: params.block_num = None
