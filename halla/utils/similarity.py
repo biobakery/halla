@@ -3,6 +3,7 @@ from scipy.stats import pearsonr, spearmanr
 from scipy.spatial.distance import pdist, squareform
 import numpy as np
 
+
 def remove_missing_values(x, y):
     '''Given x and y all in numpy arrays, remove pairs that contain missing values
     '''
@@ -20,11 +21,17 @@ def nmi(x, y, return_pval=False):
     0: no mutual information; 1: perfect correlation
     '''
     x, y = remove_missing_values(x, y)
+    if (np.unique(x).shape[0] == 1 or np.unique(y).shape[0] == 1):
+        if return_pval: return(0,1)
+        return(0)
     if return_pval: return(normalized_mutual_info_score(x, y), None)
     return(normalized_mutual_info_score(x, y))
 
 def pearson(x, y, return_pval=False):
     x, y = remove_missing_values(x, y)
+    if (np.unique(x).shape[0] == 1 or np.unique(y).shape[0] == 1):
+        if return_pval: return(0,1)
+        return(0)
     corr, pval = pearsonr(x, y)
     # TODO: enable tuning whether correlation should always be positive or not
     if return_pval: return(corr, pval)
@@ -32,6 +39,9 @@ def pearson(x, y, return_pval=False):
 
 def spearman(x, y, return_pval=False):
     x, y = remove_missing_values(x, y)
+    if (np.unique(x).shape[0] == 1 or np.unique(y).shape[0] == 1):
+        if return_pval: return(0,1)
+        return(0)
     corr, pval = spearmanr(x, y)
     # TODO: enable tuning whether correlation should always be positive or not
     if return_pval: return(corr, pval)
@@ -47,6 +57,9 @@ def distcorr(x, y, return_pval=False):
     code src: https://gist.github.com/satra/aa3d19a12b74e9ab7941 - much faster than the library dcor
     '''
     x, y = remove_missing_values(x, y)
+    if (np.unique(x).shape[0] == 1 or np.unique(y).shape[0] == 1):
+        if return_pval: return(0,1)
+        return(0)
     x, y = np.atleast_1d(x), np.atleast_1d(y)
     # if 1D - add dummy axis
     if np.prod(x.shape) == len(x): x = x[:, None]
