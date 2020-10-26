@@ -1,4 +1,4 @@
-from .similarity import does_return_pval, get_similarity_function
+from .similarity import does_return_pval, get_similarity_function, remove_missing_values
 
 import numpy as np
 import sys
@@ -90,6 +90,9 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
     permute_func = permute_func.lower()
     permuted_dist_scores = []
     # compute the ground truth scores for comparison later
+    rmx, rmy = remove_missing_values(x,y)
+    if (np.unique(rmx).shape[0] == 1 or np.unique(rmy).shape[0] == 1):
+        return(1)
     gt_score = _compute_score(x, y)
     permuted_y = np.copy(y[0])
     best_pvalue = 1.0
