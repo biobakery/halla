@@ -3,7 +3,7 @@ from .hierarchy import HierarchicalTree
 from .logger import HAllALogger
 from .utils.data import preprocess, eval_type, is_all_cont
 from .utils.similarity import get_similarity_function
-from .utils.stats import get_pvalue_table, pvalues2qvalues
+from .utils.stats import get_pvalue_table, pvalues2qvalues, test_pvalue_run_time
 from .utils.tree import compare_and_find_dense_block, trim_block
 from .utils.report import generate_hallagram, generate_clustermap, \
                           report_all_associations, report_significant_clusters, \
@@ -71,6 +71,12 @@ class AllA(object):
         # obtain p-values
         self.logger.log_message('Generating the p-value table...')
         confp = config.permute
+        extrapolated_time, timing_message = test_pvalue_run_time(X, Y, pdist_metric=dist_metric,
+                                                   permute_func=confp['func'], permute_iters=confp['iters'],
+                                                   permute_speedup=confp['speedup'],
+                                                   alpha=config.stats['fdr_alpha'], seed=self.seed)
+        if extrapolated_time > 10: 
+            self.logger.log_message(timing_message)
         self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=dist_metric,
                                                    permute_func=confp['func'], permute_iters=confp['iters'],
                                                    permute_speedup=confp['speedup'],

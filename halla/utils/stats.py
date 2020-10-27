@@ -8,6 +8,7 @@ from scipy.stats import genpareto
 import itertools
 from multiprocessing import Pool
 from tqdm import tqdm
+from time import time
 
 # retrieve package named 'eva' from R for GPD-related calculations
 from rpy2.robjects.packages import importr
@@ -144,6 +145,23 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
                                                                             for i in range(n) for j in range(m)])
             pvalue_table = np.array(pvalue_table).reshape((n, m))
     return(pvalue_table)
+
+def test_pvalue_run_time(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters=1000,
+                     permute_speedup=True, alpha=0.05, seed=None):
+    '''
+    Run a p-value computation test and return the time it took and a message extrapolating to the full dataset.
+    '''
+    test_start = time()
+    compute_permutation_test_pvalue(X[1,:], Y[1,:],
+                                    pdist_metric=pdist_metric, 
+                                    permute_func=permute_func,
+                                    iters=permute_iters,
+                                    speedup=permute_speedup, alpha=alpha, seed=seed)
+    test_end = time()
+    test_length = test_end - test_start
+    extrapolated_time = test_length * X.shape[0] * Y.shape[0]
+    timing_string = "The first p-value computation took " + str(round(test_length, 2)) + " seconds. Extrapolating from this, computing the entire p-value table should take around " + str(round(extrapolated_time,2)) + " seconds."
+    return(extrapolated_time, timing_string)
 
 def pvalues2qvalues(pvalues, method='fdr_bh', alpha=0.05):
     '''Perform p-value correction for multiple tests (Benjamini/Hochberg)
