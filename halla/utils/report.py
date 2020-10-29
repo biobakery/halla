@@ -7,6 +7,7 @@ import pandas as pd
 from os.path import join
 import itertools
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from copy import deepcopy
 
 def get_indices_map_dict(new_indices):
     return({ idx: i for i, idx in enumerate(new_indices) })
@@ -26,30 +27,38 @@ def get_included_features(significant_blocks, num_x_features, num_y_features, tr
         included_y_features = [idx for idx in range(num_y_features)]
     return(included_x_features, included_y_features)
 
-def remove_unshown_features(signif_blocks, shown_x, shown_y):
+def remove_unshown_features(significant_blocks, shown_x, shown_y):
     '''
     Given a set of significant blocks and features that will be shown, go through each block and remove features that won't be shown
 
     '''
     shown_x_set = set(shown_x)
     shown_y_set = set(shown_y)
+    signif_blocks = deepcopy(significant_blocks)
+    has_deleted = np.zeros([len(signif_blocks),2], 
+                           dtype = bool)
     for block in range(len(signif_blocks)):
+        if (not set(signif_blocks[block][0]).issubset(shown_x_set)):
+            has_deleted[block,0] = True
+        if (not set(signif_blocks[block][1]).issubset(shown_y_set)):
+            has_deleted[block,1] = True
         signif_blocks[block][0] = list(set(signif_blocks[block][0]).intersection(shown_x_set))
         signif_blocks[block][1] = list(set(signif_blocks[block][1]).intersection(shown_y_set))
         
     to_delete = []
     for i in range(len(signif_blocks)):
         if (not signif_blocks[i][0] or not signif_blocks[i][1]) or (len(signif_blocks[i][0]) == 1 and len(signif_blocks[i][1]) == 1):
-            to_delete.append(i)
+            to_delete.append(i)        
             
     for i in sorted(to_delete, reverse=True):
         del signif_blocks[i]
+        np.delete(has_deleted, i, axis = 0)
     
-    return(signif_blocks)
+    return(signif_blocks, has_deleted)
 
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table, fdr_reject_table,
                         x_dataset_label='', y_dataset_label='', mask=False, trim=True, signif_dots=True, block_num=30, show_lower=True, figsize=None, cmap='RdBu_r',
-                        cbar_label='', text_scale=10, block_border_width=1.5, output_file='out.eps', **kwargs):
+                        cbar_label='', text_scale=10, block_border_width=1.65, output_file='out.eps', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
@@ -80,9 +89,9 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     included_x_feat, included_y_feat = get_included_features(top_blocks,
                                                              len(x_features),
                                                              len(y_features), trim)
-    lower_blocks = remove_unshown_features(significant_blocks[block_num:],
-                                           included_x_feat,
-                                           included_y_feat)
+    lower_blocks, has_deleted = remove_unshown_features(significant_blocks[block_num:],
+                                                        included_x_feat,
+                                                        included_y_feat)
     
     # filter the indices with the included features
     clust_x_idx = np.asarray([i for i in clust_x_idx if i in included_x_feat])
@@ -149,12 +158,23 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
                     ax.scatter(x = i+.5, y =j + .5, c = 'black', marker = "o", zorder = 3, s=25)
                     ax.scatter(x = i+.5, y =j + .5, c = 'white', marker = "o", zorder = 3, s=10)
     
+    block_i = 0
     for rank, block in enumerate(lower_blocks):
         x_block, y_block = block[0], block[1]
         clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
         clust_y_block = [y_ori2clust_idx[idx] for idx in y_block]
-        ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.5', linewidths=block_border_width, zorder=4)
-        ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.5', linewidths=block_border_width, zorder=4)
+        if has_deleted[block_i,0]: 
+            ax.vlines([min(clust_y_block)], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+            ax.vlines([max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, linestyles='dotted', alpha = .5)
+        else:
+            ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+        
+        if has_deleted[block_i,1]:
+            ax.hlines([min(clust_x_block)], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+            ax.hlines([max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, linestyles='dotted', alpha = .5)
+        else:
+            ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+        block_i += 1
     
     for rank, block in enumerate(top_blocks):
         x_block, y_block = block[0], block[1]

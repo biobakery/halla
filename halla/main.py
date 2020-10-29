@@ -231,7 +231,7 @@ class AllA(object):
             block_num = len(self.significant_blocks)
         else:
             block_num = min(block_num, len(self.significant_blocks))
-        generate_hallagram(self.significant_blocks[:block_num],
+        generate_hallagram(self.significant_blocks,
                            self.X.index.to_numpy(),
                            self.Y.index.to_numpy(),
                            [idx for idx in range(self.X.shape[0])],
