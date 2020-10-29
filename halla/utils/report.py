@@ -89,9 +89,10 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     included_x_feat, included_y_feat = get_included_features(top_blocks,
                                                              len(x_features),
                                                              len(y_features), trim)
-    lower_blocks, has_deleted = remove_unshown_features(significant_blocks[block_num:],
-                                                        included_x_feat,
-                                                        included_y_feat)
+    if show_lower:
+        lower_blocks, has_deleted = remove_unshown_features(significant_blocks[block_num:],
+                                                            included_x_feat,
+                                                            included_y_feat)
     
     # filter the indices with the included features
     clust_x_idx = np.asarray([i for i in clust_x_idx if i in included_x_feat])
@@ -158,23 +159,24 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
                     ax.scatter(x = i+.5, y =j + .5, c = 'black', marker = "o", zorder = 3, s=25)
                     ax.scatter(x = i+.5, y =j + .5, c = 'white', marker = "o", zorder = 3, s=10)
     
-    block_i = 0
-    for rank, block in enumerate(lower_blocks):
-        x_block, y_block = block[0], block[1]
-        clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
-        clust_y_block = [y_ori2clust_idx[idx] for idx in y_block]
-        if has_deleted[block_i,0]: 
-            ax.vlines([min(clust_y_block)], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
-            ax.vlines([max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, linestyles='dotted', alpha = .5)
-        else:
-            ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
-        
-        if has_deleted[block_i,1]:
-            ax.hlines([min(clust_x_block)], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
-            ax.hlines([max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, linestyles='dotted', alpha = .5)
-        else:
-            ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
-        block_i += 1
+    if show_lower:
+        block_i = 0
+        for rank, block in enumerate(lower_blocks):
+            x_block, y_block = block[0], block[1]
+            clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
+            clust_y_block = [y_ori2clust_idx[idx] for idx in y_block]
+            if has_deleted[block_i,0]: 
+                ax.vlines([min(clust_y_block)], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+                ax.vlines([max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, linestyles='dotted', alpha = .5)
+            else:
+                ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+                
+            if has_deleted[block_i,1]:
+                ax.hlines([min(clust_x_block)], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+                ax.hlines([max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, linestyles='dotted', alpha = .5)
+            else:
+                ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+            block_i += 1
     
     for rank, block in enumerate(top_blocks):
         x_block, y_block = block[0], block[1]
