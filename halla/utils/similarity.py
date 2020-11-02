@@ -3,6 +3,9 @@ from scipy.stats import pearsonr, spearmanr
 from scipy.spatial.distance import pdist, squareform
 import numpy as np
 
+from rpy2.robjects.packages import importr
+from rpy2.robjects.vectors import FloatVector
+XICOR = importr('XICOR')
 
 def remove_missing_values(x, y):
     '''Given x and y all in numpy arrays, remove pairs that contain missing values
@@ -81,6 +84,13 @@ def distcorr(x, y, return_pval=False):
     if return_pval: return(dcor, None)
     return(dcor)
 
+def xicor(x,y,return_pval=False):
+    x, y = remove_missing_values(x, y)
+    if return_pval: xi, sd, pval = XICOR.xicor(FloatVector(x),FloatVector(y), pvalue = True)
+    else: xi = XICOR.xicor(FloatVector(x),FloatVector(y), pvalue = False)
+    if return_pval: return(xi[0],pval[0])
+    return(xi[0])
+
 '''Constants
 '''
 SIM_FUNCS = {
@@ -88,6 +98,7 @@ SIM_FUNCS = {
     'pearson': pearson,
     'spearman': spearman,
     'dcor': distcorr,
+    'xicor': xicor,
 }
 
 PVAL_PROVIDED = {
@@ -95,6 +106,7 @@ PVAL_PROVIDED = {
     'pearson': True,
     'spearman': True,
     'dcor': False,
+    'xicor': True,
 }
 
 def get_similarity_function(metric):
