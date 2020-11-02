@@ -52,7 +52,7 @@ def parse_argument(args):
     parser.add_argument(
         '-m', '--pdist_metric',
         help='Distance/similarity metric {spearman, pearson, dcor, nmi}',
-        default='pearson', choices=['spearman', 'pearson', 'dcor', 'nmi'], required=False)
+        default='spearman', choices=['spearman', 'pearson', 'dcor', 'nmi'], required=False)
     parser.add_argument(
         '--sim2dist_disable_abs',
         help='Hierarchical clustering - disable setting similarity scores as absolute when computing distance',
