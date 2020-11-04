@@ -152,15 +152,20 @@ def test_pvalue_run_time(X, Y, pdist_metric='nmi', permute_func='gpd', permute_i
     Run a p-value computation test and return the time it took and a message extrapolating to the full dataset.
     '''
     test_start = time()
-    compute_permutation_test_pvalue(X[1,:], Y[1,:],
+    
+    if does_return_pval(pdist_metric):
+        get_similarity_function(pdist_metric)(X[1,:], Y[1,:], return_pval=True)[1]
+    else:
+        compute_permutation_test_pvalue(X[1,:], Y[1,:],
                                     pdist_metric=pdist_metric, 
                                     permute_func=permute_func,
                                     iters=permute_iters,
-                                    speedup=permute_speedup, alpha=alpha, seed=seed)
+                                    speedup=permute_speedup, alpha=alpha, seed=seed)    
+    
     test_end = time()
     test_length = test_end - test_start
     extrapolated_time = test_length * X.shape[0] * Y.shape[0]
-    timing_string = "The first p-value computation took " + str(round(test_length, 2)) + " seconds. Extrapolating from this, computing the entire p-value table should take around " + str(round(extrapolated_time,2)) + " seconds."
+    timing_string = "The first p-value computation took about " + str(round(test_length, 2)) + " seconds. Extrapolating from this, computing the entire p-value table should take around " + str(round(extrapolated_time,2)) + " seconds..."
     return(extrapolated_time, timing_string)
 
 def pvalues2qvalues(pvalues, method='fdr_bh', alpha=0.05):
