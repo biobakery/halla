@@ -225,7 +225,7 @@ class AllA(object):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
-            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor'] else 'RdBu_r'
+            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor', 'xicor'] else 'RdBu_r'
         file_name = join(config.output['dir'], output_file)
         if block_num is None:
             block_num = len(self.significant_blocks)
@@ -364,7 +364,7 @@ class HAllA(AllA):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
-            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor'] else 'RdBu_r'
+            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor', 'xicor'] else 'RdBu_r'
         file_name = join(config.output['dir'], output_file)
         if block_num is None:
             block_num = len(self.significant_blocks)
@@ -395,7 +395,7 @@ class HAllA(AllA):
             print('The dimension is too large - please generate a hallagram instead.')
             return
         if cmap is None:
-            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor'] else 'RdBu_r'
+            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor', 'xicor'] else 'RdBu_r'
 
         file_name = join(config.output['dir'], output_file)
         generate_clustermap(self.significant_blocks,
