@@ -48,6 +48,11 @@ def parse_argument(args):
         help='Mask the hallagram/clustermap',
         action='store_true', required=False)
     parser.add_argument(
+        '--trim',
+        help='Trim hallagram to features containing at least one significant block',
+        default=True,
+        type=bool, required=False)
+    parser.add_argument(
         '--text_scale',
         help='Significant cluster text scale',
         default=10, type=float, required=False)
@@ -121,6 +126,7 @@ def main():
                            text_scale=params.text_scale,
                            block_border_width=params.block_border_width,
                            mask=params.mask,
+                           trim=params.trim,
                            cmap=params.cmap,
                            output_file=output_file)
 

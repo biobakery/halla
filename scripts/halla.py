@@ -126,6 +126,15 @@ def parse_argument(args):
         '--cbar_label',
         help='Hallagram/clustermap: label for the colorbar',
         default='', required=False)
+    parser.add_argument(
+        '-n', '--block_num',
+        help='Number of top clusters to show (for hallagram only); if -1, show all clusters',
+        default=30, type=int, required=False)
+    parser.add_argument(
+        '--trim',
+        help='Trim hallagram to features containing at least one significant block',
+        default=True,
+        type=bool, required=False)
 
     # --diagnostic-plot parameters--
     parser.add_argument(
@@ -183,7 +192,7 @@ def main():
             params.y_dataset_label = splitext(basename(params.y_file))[0]
         instance.generate_hallagram(x_dataset_label=params.x_dataset_label,
                                            y_dataset_label=params.y_dataset_label,
-                                           cbar_label=params.cbar_label)
+                                           cbar_label=params.cbar_label, trim = params.trim)
     if params.diagnostic_plot:
         if params.alla:
             print('AllA does not produce diagnostic plot.')
