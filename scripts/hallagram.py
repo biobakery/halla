@@ -70,9 +70,9 @@ def parse_argument(args):
         default=0.05, type=float, required=False)
     parser.add_argument(
         '--show_lower',
-        help='Show blocks ranked below block_num as grey outlined boxes',
+        help='Show multi-member blocks ranked below block_num as grey outlined boxes',
         default=True, type=bool, required=False)
-    
+
     params = parser.parse_args()
     if params.block_num == -1: params.block_num = None
     if params.output == '':
