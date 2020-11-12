@@ -40,3 +40,4 @@ Available pairwise distance metrics:
 - `pearson`
 - `spearman`
 - `dcor`
+- `xicor`
