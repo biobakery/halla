@@ -22,7 +22,7 @@ def parse_argument(args):
         '-y', '--y_file',
         help='Path to Y dataset: a tab-delimited input file, one row per feature, one column per measurement',
         required=False)
-    
+
     # --halla parameters--
     parser.add_argument(
         '--alla',
@@ -106,6 +106,11 @@ def parse_argument(args):
         '--hallagram',
         help='Generates hallagram',
         default=True,action='store_true', required=False)
+    parser.add_argument(
+        '--no_hallagram',
+        help='Turn off the automatically generated hallagram',
+        dest='hallagram',
+        action='store_false')
 
     # --clustermap parameters--
     parser.add_argument(
