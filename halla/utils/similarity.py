@@ -75,12 +75,12 @@ def distcorr(x, y, return_pval=False):
     a, b = squareform(pdist(x)), squareform(pdist(y))
     A = a - a.mean(axis=0)[None, :] - a.mean(axis=1)[:, None] + a.mean()
     B = b - b.mean(axis=0)[None, :] - b.mean(axis=1)[:, None] + b.mean()
-    
+
     dcov2_xy = (A * B).sum()/float(n * n)
     dcov2_xx = (A * A).sum()/float(n * n)
     dcov2_yy = (B * B).sum()/float(n * n)
     dcor = np.sqrt(dcov2_xy)/np.sqrt(np.sqrt(dcov2_xx) * np.sqrt(dcov2_yy))
-    
+
     if return_pval: return(dcor, None)
     return(dcor)
 
@@ -91,6 +91,15 @@ def xicor(x,y,return_pval=False):
     if return_pval: return(xi[0],pval[0])
     return(xi[0])
 
+def symmetric_xicor(x,y):
+    '''
+    This is used for computing trees. It isn't used for testing hypotheses
+    because there's no closed form expression for the p-value.
+    '''
+    xi_xy = xicor(x,y)
+    xi_yx = xicor(y,x)
+    return(max(xi_xy, xi_yx))
+
 '''Constants
 '''
 SIM_FUNCS = {
@@ -99,6 +108,7 @@ SIM_FUNCS = {
     'spearman': spearman,
     'dcor': distcorr,
     'xicor': xicor,
+    'symmetric_xicor': symmetric_xicor
 }
 
 PVAL_PROVIDED = {
