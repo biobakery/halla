@@ -166,11 +166,14 @@ class AllA(object):
             else (X.copy(deep=True), np.copy(self.X_types))
 
         # if not all types are continuous but pdist_metric is only for continuous types
-        if not (is_all_cont(self.X_types) and is_all_cont(self.Y_types)) and config.association['pdist_metric'].lower() != 'nmi':
-            raise ValueError('pdist_metric should be nmi if not all features are continuous...')
+        if not (is_all_cont(self.X_types) and is_all_cont(self.Y_types)) and not (config.association['pdist_metric'].lower() in ['nmi','xicor']):
+            raise ValueError('pdist_metric should be nmi or xicor if not all features are continuous...')
         # if pdist_metric is nmi but no discretization method is specified, assign to equal frequency (quantile)
         if config.association['pdist_metric'].lower() == 'nmi' and confp['discretize_func'] is None:
             self.logger.log_message('Discretization function is None; assigning to equal frequency (quantile) given metric = NMI...')
+            update_config('preprocess', discretize_func='quantile')
+        if config.association['pdist_metric'].lower() == 'xicor' and not (is_all_cont(self.X_types) and is_all_cont(self.Y_types)) and confp['discretize_func'] is None:
+            self.logger.log_message('Discretization function is None but pdist_metric = XICOR and data contains categorical variables; assigning discretization function to equal frequency (quantile)...')
             update_config('preprocess', discretize_func='quantile')
         # if all features are continuous and distance metric != nmi, discretization can be bypassed
         if is_all_cont(self.X_types) and is_all_cont(self.X_types) and confp['discretize_func'] is not None and \
