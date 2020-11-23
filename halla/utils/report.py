@@ -80,8 +80,11 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     - kwargs             : other keyword arguments to be passed to seaborn's heatmap()
     '''
     #---data preparation---#
-    
-    top_blocks = significant_blocks[:block_num] # these are the first N blocks that MUST be shown & highlighted
+
+    if trim:
+        top_blocks = significant_blocks[:block_num] # these are the first N blocks that MUST be shown & highlighted
+    else:
+        top_blocks = significant_blocks
 
     if len(top_blocks) == 0:
         print('The length of significant blocks is 0, no hallagram can be generated...')
