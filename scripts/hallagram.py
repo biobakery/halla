@@ -72,6 +72,18 @@ def parse_argument(args):
         '--show_lower',
         help='Show multi-member blocks ranked below block_num as grey outlined boxes',
         default=True, type=bool, required=False)
+    parser.add_argument(
+        '--force_x_ft',
+        nargs = '+',
+        help='Force specific x features to be included, irrespective of trim setting.',
+        default=None,
+        required=False)
+    parser.add_argument(
+        '--force_y_ft',
+        nargs = '+',
+        help='Force specific y features to be included, irrespective of trim setting.',
+        default=None,
+        required=False)
 
     params = parser.parse_args()
     if params.block_num == -1: params.block_num = None
@@ -127,6 +139,8 @@ def main():
                            block_border_width=params.block_border_width,
                            mask=params.mask,
                            trim=params.trim,
+                           force_x_ft=params.force_x_ft,
+                           force_y_ft=params.force_y_ft,
                            cmap=params.cmap,
                            output_file=output_file)
 

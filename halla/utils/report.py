@@ -12,14 +12,18 @@ from copy import deepcopy
 def get_indices_map_dict(new_indices):
     return({ idx: i for i, idx in enumerate(new_indices) })
 
-def get_included_features(significant_blocks, num_x_features, num_y_features, trim=True):
-    '''if trim is True, returns only the included features in X and Y
+def get_included_features(significant_blocks, num_x_features, num_y_features, trim=True, forced_x_idx=None, forced_y_idx=None):
+    '''if trim is True, returns only the included features in X and Y. Optionally force certain features to be included.
     '''
     if trim:
         included_x_features, included_y_features = [], []
         for block in significant_blocks:
             included_x_features = included_x_features + block[0]
             included_y_features = included_y_features + block[1]
+        for forced_x in forced_x_idx:
+            included_x_features = included_x_features + forced_x_idx
+        for forced_y in forced_y_idx:
+            included_y_features = included_y_features + forced_y_idx
         included_x_features = sorted(list(set(included_x_features)))
         included_y_features = sorted(list(set(included_y_features)))
     else:
@@ -57,8 +61,9 @@ def remove_unshown_features(significant_blocks, shown_x, shown_y):
     return(signif_blocks, has_deleted)
 
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table, fdr_reject_table,
-                        x_dataset_label='', y_dataset_label='', mask=False, trim=True, signif_dots=True, block_num=30, show_lower=True, figsize=None, cmap='RdBu_r',
-                        cbar_label='', text_scale=10, block_border_width=1.65, output_file='out.eps', **kwargs):
+                        x_dataset_label='', y_dataset_label='', mask=False, trim=True,
+                        signif_dots=True, block_num=30, show_lower=True, force_x_ft=None, force_y_ft=None,
+                        figsize=None, cmap='RdBu_r', cbar_label='', text_scale=10, block_border_width=1.65, output_file='out.eps', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
@@ -89,9 +94,27 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     if len(top_blocks) == 0:
         print('The length of significant blocks is 0, no hallagram can be generated...')
         return
+
+    if force_x_ft is None:
+        force_x_ft = []
+    if force_y_ft is None:
+        force_y_ft = []
+
+    if force_x_ft:
+        forced_x_idx = [x_features.tolist().index(i) for i in force_x_ft]
+    else:
+        forced_x_idx = []
+    if force_y_ft:
+        forced_y_idx = [y_features.tolist().index(i) for i in force_y_ft]
+    else:
+        forced_y_idx = []
+
     included_x_feat, included_y_feat = get_included_features(top_blocks,
                                                              len(x_features),
-                                                             len(y_features), trim)
+                                                             len(y_features),
+                                                             trim,
+                                                             forced_x_idx,
+                                                             forced_y_idx)
     if show_lower:
         lower_blocks, has_deleted = remove_unshown_features(significant_blocks[block_num:],
                                                             included_x_feat,
