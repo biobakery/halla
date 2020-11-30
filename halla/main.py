@@ -75,7 +75,7 @@ class AllA(object):
                                                    permute_func=confp['func'], permute_iters=confp['iters'],
                                                    permute_speedup=confp['speedup'],
                                                    alpha=config.stats['fdr_alpha'], seed=self.seed)
-        if extrapolated_time > 5:
+        if extrapolated_time > 10:
             self.logger.log_message(timing_message)
         self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=dist_metric,
                                                    permute_func=confp['func'], permute_iters=confp['iters'],
