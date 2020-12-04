@@ -112,7 +112,7 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
         return(_discretize_categorical(ar))
     return(_discretize_continuous(ar, func, num_bins))
 
-def keep_feature(x, max_freq_thresh=0.8):
+def keep_feature(x, max_freq_thresh=1):
     '''Decide if the feature should be kept based on the maximum frequency threshold, given:
     - x              : the vector from a DataFrame row
     - max_freq_thresh: the threshold for maximum frequency in fraction [0..1], disabled if None

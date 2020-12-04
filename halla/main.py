@@ -3,7 +3,7 @@ from .hierarchy import HierarchicalTree
 from .logger import HAllALogger
 from .utils.data import preprocess, eval_type, is_all_cont
 from .utils.similarity import get_similarity_function
-from .utils.stats import get_pvalue_table, pvalues2qvalues
+from .utils.stats import get_pvalue_table, pvalues2qvalues, test_pvalue_run_time
 from .utils.tree import compare_and_find_dense_block, trim_block
 from .utils.report import generate_hallagram, generate_clustermap, \
                           report_all_associations, report_significant_clusters, \
@@ -42,7 +42,7 @@ class AllA(object):
         if not hasattr(self, 'name'):
             self.name = 'AllA'
             self.logger = HAllALogger(name=self.name, config=config)
-    
+
     '''Private functions
     '''
     def _reset_attributes(self):
@@ -64,18 +64,24 @@ class AllA(object):
 
         X, Y = self.X.to_numpy(), self.Y.to_numpy()
 
-        # obtain similarity matrix 
+        # obtain similarity matrix
         self.logger.log_message('Generating the similarity table...')
         self.similarity_table = spd.cdist(X, Y, metric=get_similarity_function(dist_metric))
 
         # obtain p-values
         self.logger.log_message('Generating the p-value table...')
         confp = config.permute
+        extrapolated_time, timing_message = test_pvalue_run_time(X, Y, pdist_metric=dist_metric,
+                                                   permute_func=confp['func'], permute_iters=confp['iters'],
+                                                   permute_speedup=confp['speedup'],
+                                                   alpha=config.stats['fdr_alpha'], seed=self.seed)
+        if extrapolated_time > 10:
+            self.logger.log_message(timing_message)
         self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=dist_metric,
                                                    permute_func=confp['func'], permute_iters=confp['iters'],
                                                    permute_speedup=confp['speedup'],
                                                    alpha=config.stats['fdr_alpha'], seed=self.seed)
-        
+
         # obtain q-values
         self.logger.log_message('Generating the q-value table...')
         self.fdr_reject_table, self.qvalue_table = pvalues2qvalues(self.pvalue_table.flatten(), config.stats['fdr_method'], config.stats['fdr_alpha'])
@@ -85,7 +91,7 @@ class AllA(object):
         end_time = time.time()
         self.logger.log_result('Number of significant associations', self.fdr_reject_table.sum())
         self.logger.log_step_end('Computing pairwise similarities, p-values, q-values', end_time - start_time, sub=True)
-    
+
     def _find_dense_associated_blocks(self):
         '''Find significant cells based on FDR reject table
         '''
@@ -104,7 +110,7 @@ class AllA(object):
         end_time = time.time()
         self.logger.log_result('Number of significant clusters', len(self.significant_blocks))
         self.logger.log_step_end('Finding densely associated blocks', end_time - start_time, sub=True)
-    
+
     def _generate_reports(self):
         '''Generate reports and store in config.output['dir'] directory:
         1) all_associations.txt: stores the associations between each feature in X and Y along with its
@@ -127,20 +133,20 @@ class AllA(object):
                                 self.similarity_table,
                                 self.pvalue_table,
                                 self.qvalue_table)
-        
+
         # generate sig_clusters.txt
         report_significant_clusters(dir_name,
                                     self.significant_blocks,
                                     self.significant_blocks_qvalues,
                                     self.X.index.to_numpy(),
                                     self.Y.index.to_numpy())
-        
+
         # print datasets (original and discretized)
         self.X.to_csv(join(dir_name, 'X.tsv'), sep='\t')
         self.Y.to_csv(join(dir_name, 'Y.tsv'), sep='\t')
         self.X_ori.to_csv(join(dir_name, 'X_original.tsv'), sep='\t')
         self.Y_ori.to_csv(join(dir_name, 'Y_original.tsv'), sep='\t')
-    
+
     '''Public functions
     '''
     def load(self, X_file, Y_file=None):
@@ -160,11 +166,14 @@ class AllA(object):
             else (X.copy(deep=True), np.copy(self.X_types))
 
         # if not all types are continuous but pdist_metric is only for continuous types
-        if not (is_all_cont(self.X_types) and is_all_cont(self.X_types)) and config.association['pdist_metric'].lower() != 'nmi':
-            raise ValueError('pdist_metric should be nmi if not all features are continuous...')
+        if not (is_all_cont(self.X_types) and is_all_cont(self.Y_types)) and not (config.association['pdist_metric'].lower() in ['nmi','xicor']):
+            raise ValueError('pdist_metric should be nmi or xicor if not all features are continuous...')
         # if pdist_metric is nmi but no discretization method is specified, assign to equal frequency (quantile)
         if config.association['pdist_metric'].lower() == 'nmi' and confp['discretize_func'] is None:
             self.logger.log_message('Discretization function is None; assigning to equal frequency (quantile) given metric = NMI...')
+            update_config('preprocess', discretize_func='quantile')
+        if config.association['pdist_metric'].lower() == 'xicor' and not (is_all_cont(self.X_types) and is_all_cont(self.Y_types)) and confp['discretize_func'] is None:
+            self.logger.log_message('Discretization function is None but pdist_metric = XICOR and data contains categorical variables; assigning discretization function to equal frequency (quantile)...')
             update_config('preprocess', discretize_func='quantile')
         # if all features are continuous and distance metric != nmi, discretization can be bypassed
         if is_all_cont(self.X_types) and is_all_cont(self.X_types) and confp['discretize_func'] is not None and \
@@ -212,32 +221,33 @@ class AllA(object):
 
         # generate reports
         self._generate_reports()
-    
+
     def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='hallagram.png', mask=False, **kwargs):
+                            output_file='hallagram.png', mask=False, signif_dots=True, **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
-            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor'] else 'RdBu_r'
+            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor', 'xicor'] else 'RdBu_r'
         file_name = join(config.output['dir'], output_file)
         if block_num is None:
             block_num = len(self.significant_blocks)
         else:
             block_num = min(block_num, len(self.significant_blocks))
-        generate_hallagram(self.significant_blocks[:block_num],
+        generate_hallagram(self.significant_blocks,
                            self.X.index.to_numpy(),
                            self.Y.index.to_numpy(),
                            [idx for idx in range(self.X.shape[0])],
                            [idx for idx in range(self.Y.shape[0])],
                            self.similarity_table,
+                           self.fdr_reject_table,
                            x_dataset_label=x_dataset_label,
                            y_dataset_label=y_dataset_label,
                            figsize=figsize,
                            text_scale=text_scale,
                            output_file=file_name,
                            cmap=cmap, cbar_label=cbar_label,
-                           mask=mask, **kwargs)
+                           mask=mask, signif_dots = signif_dots, **kwargs)
 
 ########
 # HAllA
@@ -282,7 +292,7 @@ class HAllA(AllA):
         self.significant_blocks_qvalues = None
         self.has_loaded = False
         self.has_run = False
-    
+
     def _run_clustering(self):
         self.logger.log_step_start('Step 2: Performing hierarchical clustering', sub=True)
         start_time = time.time()
@@ -304,7 +314,7 @@ class HAllA(AllA):
         def sort_by_avg_qvalue(x):
             qvalue_table = self.qvalue_table[x[0],:][:,x[1]]
             return(qvalue_table.mean())
-        
+
         self.logger.log_step_start('Step 3: Finding densely associated blocks', sub=True)
         start_time = time.time()
         self.significant_blocks = compare_and_find_dense_block(self.X_hierarchy.tree, self.Y_hierarchy.tree,
@@ -350,36 +360,37 @@ class HAllA(AllA):
 
         # generate reports
         self._generate_reports()
-    
+
     def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='hallagram.png', mask=False, **kwargs):
+                            output_file='hallagram.png', mask=False, signif_dots=True, **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
-            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor'] else 'RdBu_r'
+            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor', 'xicor'] else 'RdBu_r'
         file_name = join(config.output['dir'], output_file)
         if block_num is None:
             block_num = len(self.significant_blocks)
         else:
             block_num = min(block_num, len(self.significant_blocks))
-        generate_hallagram(self.significant_blocks[:block_num],
+        generate_hallagram(self.significant_blocks,
                            self.X.index.to_numpy(),
                            self.Y.index.to_numpy(),
                            self.X_hierarchy.tree.pre_order(),
                            self.Y_hierarchy.tree.pre_order(),
                            self.similarity_table,
+                           fdr_reject_table=self.fdr_reject_table,
                            x_dataset_label=x_dataset_label,
                            y_dataset_label=y_dataset_label,
                            figsize=figsize,
                            text_scale=text_scale,
                            output_file=file_name,
                            cmap=cmap, cbar_label=cbar_label,
-                           mask=mask, **kwargs)
+                           mask=mask, signif_dots=signif_dots, block_num=block_num, **kwargs)
 
     def generate_clustermap(self, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='clustermap.png', mask=False, **kwargs):
+                            output_file='clustermap.png', mask=False, signif_dots=True, **kwargs):
         '''Generate a clustermap (hallagram + dendrogram)
         '''
         # if the dimension is too large, generate a hallagram instead
@@ -387,7 +398,7 @@ class HAllA(AllA):
             print('The dimension is too large - please generate a hallagram instead.')
             return
         if cmap is None:
-            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor'] else 'RdBu_r'
+            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor', 'xicor'] else 'RdBu_r'
 
         file_name = join(config.output['dir'], output_file)
         generate_clustermap(self.significant_blocks,
@@ -396,6 +407,7 @@ class HAllA(AllA):
                             self.X_hierarchy.linkage,
                             self.Y_hierarchy.linkage,
                             self.similarity_table,
+                            fdr_reject_table=self.fdr_reject_table,
                             x_dataset_label=x_dataset_label,
                             y_dataset_label=y_dataset_label,
                             figsize=figsize,
@@ -403,8 +415,9 @@ class HAllA(AllA):
                             cmap=cmap, cbar_label=cbar_label,
                             output_file=file_name,
                             mask=mask,
+                            signif_dots=signif_dots,
                             **kwargs)
-    
+
     def generate_diagnostic_plot(self, block_num=30, plot_dir='diagnostic', axis_stretch=1e-5, plot_size=4):
         '''Generate a lattice plot for each significant association;
         save all plots in the plot_dir folder under config.output['dir']

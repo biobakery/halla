@@ -2,6 +2,7 @@ import pandas as pd
 from os.path import join, isfile
 import numpy as np
 import scipy.cluster.hierarchy as sch
+from re import search
 
 from halla.utils.data import eval_type
 
@@ -30,10 +31,18 @@ class HAllAPartialLoader(object):
         
     def load_similarity_table(self):
         df = pd.read_table(join(self.input_dir, 'all_associations.txt'))
+        with open(join(self.input_dir, 'performance.txt')) as f:
+            perf_lines = f.readlines()
         self.sim_table = np.zeros((self.X.shape[0], self.Y.shape[0]))
+        perf_match = [search("fdr alpha", line) for line in perf_lines]
+        perf_i = [i for i,v in enumerate(perf_match) if v != None]
+
+        fdr_thresh = float(str.split(perf_lines[perf_i[0]], ' ')[-1][:-1]) # TODO make it find the line that says fdr alpha
+        self.fdr_reject_table = np.zeros((self.X.shape[0], self.Y.shape[0]))
         for row in df.to_numpy():
             x, y = self.X_feat_map[row[0]], self.Y_feat_map[row[1]]
             self.sim_table[x][y] = row[2]
+            self.fdr_reject_table[x][y] = row[4] < fdr_thresh
 
     def load_significant_clusters(self):
         df = pd.read_table(join(self.input_dir, 'sig_clusters.txt'))

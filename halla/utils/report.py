@@ -7,18 +7,23 @@ import pandas as pd
 from os.path import join
 import itertools
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from copy import deepcopy
 
 def get_indices_map_dict(new_indices):
     return({ idx: i for i, idx in enumerate(new_indices) })
 
-def get_included_features(significant_blocks, num_x_features, num_y_features, trim=True):
-    '''if trim is True, returns only the included features in X and Y
+def get_included_features(significant_blocks, num_x_features, num_y_features, trim=True, forced_x_idx=None, forced_y_idx=None):
+    '''if trim is True, returns only the included features in X and Y. Optionally force certain features to be included.
     '''
     if trim:
         included_x_features, included_y_features = [], []
         for block in significant_blocks:
             included_x_features = included_x_features + block[0]
             included_y_features = included_y_features + block[1]
+        for forced_x in forced_x_idx:
+            included_x_features = included_x_features + forced_x_idx
+        for forced_y in forced_y_idx:
+            included_y_features = included_y_features + forced_y_idx
         included_x_features = sorted(list(set(included_x_features)))
         included_y_features = sorted(list(set(included_y_features)))
     else:
@@ -26,18 +31,52 @@ def get_included_features(significant_blocks, num_x_features, num_y_features, tr
         included_y_features = [idx for idx in range(num_y_features)]
     return(included_x_features, included_y_features)
 
-def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table,
-                        x_dataset_label='', y_dataset_label='', mask=False, trim=True, figsize=None, cmap='RdBu_r',
-                        cbar_label='', text_scale=10, block_border_width=1.5, output_file='out.eps', **kwargs):
+def remove_unshown_features(significant_blocks, shown_x, shown_y):
+    '''
+    Given a set of significant blocks and features that will be shown, go through each block and remove features that won't be shown
+
+    '''
+    shown_x_set = set(shown_x)
+    shown_y_set = set(shown_y)
+    signif_blocks = deepcopy(significant_blocks)
+    has_deleted = np.zeros([len(signif_blocks),2],
+                           dtype = bool)
+    for block in range(len(signif_blocks)):
+        if (not set(signif_blocks[block][0]).issubset(shown_x_set)):
+            has_deleted[block,0] = True
+        if (not set(signif_blocks[block][1]).issubset(shown_y_set)):
+            has_deleted[block,1] = True
+        signif_blocks[block][0] = list(set(signif_blocks[block][0]).intersection(shown_x_set))
+        signif_blocks[block][1] = list(set(signif_blocks[block][1]).intersection(shown_y_set))
+
+    to_delete = []
+    for i in range(len(signif_blocks)):
+        if (not signif_blocks[i][0] or not signif_blocks[i][1]) or (len(signif_blocks[i][0]) == 1 and len(signif_blocks[i][1]) == 1):
+            to_delete.append(i)
+
+    for i in sorted(to_delete, reverse=True):
+        del signif_blocks[i]
+        np.delete(has_deleted, i, axis = 0)
+
+    return(signif_blocks, has_deleted)
+
+def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table, fdr_reject_table,
+                        x_dataset_label='', y_dataset_label='', mask=False, trim=True,
+                        signif_dots=True, block_num=30, show_lower=True, force_x_ft=None, force_y_ft=None, dpi=100,
+                        figsize=None, cmap='RdBu_r', cbar_label='', text_scale=10, block_border_width=1.65, output_file='out.eps', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
     - {x,y}_features     : feature names of {x,y}
-    - clust_{x,y}_idx    : the indices of {x,y} in clustered form 
+    - clust_{x,y}_idx    : the indices of {x,y} in clustered form
     - sim_table          : similarity table with size [len(x_features), len(y_features)]
+    - fdr_reject_table   : boolean association table with size [len(x_features), len(y_features)]
     - {x,y}_dataset_label: axis label
     - mask               : if True, mask all cells not included in significant blocks
     - trim               : if True, trim all features that are not significant
+    - signif_dots        : if True, show dots on significant pairwise associations
+    - block_num          : number indicating the top N blocks to include
+    - show_lower         : if True, put a grey box around blocks ranked below the block_num threshold that show up on the hallagram anyway
     - figsize            : figure size
     - cmap               : color map
     - text_scale         : how much the rank text size should be scaled
@@ -46,30 +85,64 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     - kwargs             : other keyword arguments to be passed to seaborn's heatmap()
     '''
     #---data preparation---#
-    if len(significant_blocks) == 0:
+
+    if trim:
+        top_blocks = significant_blocks[:block_num] # these are the first N blocks that MUST be shown & highlighted
+    else:
+        top_blocks = significant_blocks
+
+    if len(top_blocks) == 0:
         print('The length of significant blocks is 0, no hallagram can be generated...')
         return
-    included_x_feat, included_y_feat = get_included_features(significant_blocks,
+
+    if force_x_ft is None:
+        force_x_ft = []
+    if force_y_ft is None:
+        force_y_ft = []
+
+    if force_x_ft:
+        forced_x_idx = [x_features.tolist().index(i) for i in force_x_ft]
+    else:
+        forced_x_idx = []
+    if force_y_ft:
+        forced_y_idx = [y_features.tolist().index(i) for i in force_y_ft]
+    else:
+        forced_y_idx = []
+
+    included_x_feat, included_y_feat = get_included_features(top_blocks,
                                                              len(x_features),
-                                                             len(y_features), trim)
+                                                             len(y_features),
+                                                             trim,
+                                                             forced_x_idx,
+                                                             forced_y_idx)
+    if show_lower:
+        lower_blocks, has_deleted = remove_unshown_features(significant_blocks[block_num:],
+                                                            included_x_feat,
+                                                            included_y_feat)
+
     # filter the indices with the included features
     clust_x_idx = np.asarray([i for i in clust_x_idx if i in included_x_feat])
     clust_y_idx = np.asarray([i for i in clust_y_idx if i in included_y_feat])
-    
+
     # if mask, replace all insignificant cells to NAs
     clust_sim_table = np.copy(sim_table)
+    clust_fdr_reject_table = np.copy(fdr_reject_table)
     if mask:
         dummy_table = np.full(clust_sim_table.shape, np.nan)
-        for block in significant_blocks:
+        dummy_fdr = np.full(clust_sim_table.shape, np.nan)
+        for block in top_blocks:
             for x, y in itertools.product(block[0], block[1]):
                 dummy_table[x,y] = clust_sim_table[x,y]
+                dummy_fdr[x,y] = clust_fdr_reject_table[x,y]
         clust_sim_table = dummy_table
-    
+        clust_fdr_reject_table = dummy_fdr
+
     # shuffle similarity table and features accordingly
     clust_sim_table = clust_sim_table[clust_x_idx,:][:,clust_y_idx]
+    clust_fdr_reject_table = clust_fdr_reject_table[clust_x_idx,:][:,clust_y_idx]
     clust_x_features = np.asarray(x_features)[clust_x_idx]
     clust_y_features = np.asarray(y_features)[clust_y_idx]
-    
+
     # create a dict to ease indices conversion
     x_ori2clust_idx = get_indices_map_dict(clust_x_idx)
     y_ori2clust_idx = get_indices_map_dict(clust_y_idx)
@@ -85,7 +158,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     if figsize is None:
         # set each cell as ~0.3, then add margins
         figsize = (max(5, 0.3*clust_sim_table.shape[1]+4), max(5, 0.3*clust_sim_table.shape[0]+4))
-    
+
     _, ax = plt.subplots(figsize=figsize)
     # add colorbar axes
     divider = make_axes_locatable(ax)
@@ -104,15 +177,41 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
         ax.grid(which='minor', color='xkcd:light grey', zorder=0)
     ax.set_xlabel(y_dataset_label, fontweight='bold')
     ax.set_ylabel(x_dataset_label, fontweight='bold')
-    
-    for rank, block in enumerate(significant_blocks):
+
+    if signif_dots:
+        for i in range(len(clust_y_features)):
+            for j in range(len(clust_x_features)):
+                if clust_fdr_reject_table[j,i]:
+                    ax.scatter(x = i+.5, y =j + .5, c = 'black', marker = "o", zorder = 3, s=25)
+                    ax.scatter(x = i+.5, y =j + .5, c = 'white', marker = "o", zorder = 3, s=10)
+
+    if show_lower:
+        block_i = 0
+        for rank, block in enumerate(lower_blocks):
+            x_block, y_block = block[0], block[1]
+            clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
+            clust_y_block = [y_ori2clust_idx[idx] for idx in y_block]
+            if has_deleted[block_i,0]:
+                ax.vlines([min(clust_y_block)], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+                ax.vlines([max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, linestyles='dotted', alpha = .5)
+            else:
+                ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+
+            if has_deleted[block_i,1]:
+                ax.hlines([min(clust_x_block)], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+                ax.hlines([max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, linestyles='dotted', alpha = .5)
+            else:
+                ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+            block_i += 1
+
+    for rank, block in enumerate(top_blocks):
         x_block, y_block = block[0], block[1]
         clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
         clust_y_block = [y_ori2clust_idx[idx] for idx in y_block]
         ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='black', linewidths=block_border_width, zorder=4)
         ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='black', linewidths=block_border_width, zorder=4)
         # add rank text
-        text_content = str(rank + 1) 
+        text_content = str(rank + 1)
         text_size = (min(max(clust_y_block) - min(clust_y_block),
                          max(clust_x_block) - min(clust_x_block)) + 1)*text_scale
         text = ax.text(
@@ -122,11 +221,12 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
             path_effects.Stroke(linewidth=3, foreground='black'),
             path_effects.Normal(),
         ])
-    plt.subplots_adjust(wspace=1/(figsize[0]*6), hspace=0)
-    plt.savefig(output_file, format=output_file.split('.')[-1].lower(), bbox_inches='tight')
 
-def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table,
-                        x_dataset_label='', y_dataset_label='', figsize=None, cmap='RdBu_r', text_scale=10,
+    plt.subplots_adjust(wspace=1/(figsize[0]*6), hspace=0)
+    plt.savefig(output_file, format=output_file.split('.')[-1].lower(), bbox_inches='tight', dpi=dpi)
+
+def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table, fdr_reject_table,
+                        x_dataset_label='', y_dataset_label='', signif_dots=True, figsize=None, cmap='RdBu_r', text_scale=10,
                         dendrogram_ratio=None, cbar_label='',
                         block_border_width=1.5, mask=False, output_file='out.png', **kwargs):
     '''Plot a clustermap given args:
@@ -135,7 +235,9 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
     - {x,y}_features     : feature names of {x,y}
     - {x,y}_linkage      : precomputed linkage matrix for {x,y}
     - sim_table          : similarity table with size [len(x_features), len(y_features)]
+    - fdr_reject_table   : boolean association table with size [len(x_features), len(y_features)]
     - {x,y}_dataset_label: axis label
+    - signif_dots        : if True, show dots on significant pairwise associations
     - figsize            : figure size
     - cmap               : color map
     - text_scale         : how much the rank text size should be scaled
@@ -174,6 +276,16 @@ def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y
         ax.grid(which='minor', color='xkcd:light grey', zorder=0)
     x_ori2clust_idx = get_indices_map_dict(np.asarray(sch.to_tree(x_linkage).pre_order()))
     y_ori2clust_idx = get_indices_map_dict(np.asarray(sch.to_tree(y_linkage).pre_order()))
+
+    dot_order_x = np.asarray(clustermap.dendrogram_row.reordered_ind)
+    dot_order_y = clustermap.dendrogram_col.reordered_ind
+
+    if signif_dots:
+        for i in range(len(x_features)):
+            for j in range(len(y_features)):
+                if fdr_reject_table[dot_order_x[i],dot_order_y[j]]:
+                    ax.scatter(y = i + .5, x = j + .5, c = 'black', marker = "o", zorder = 3, s = 25)
+                    ax.scatter(y = i + .5, x = j + .5, c = 'white', marker = "o", zorder = 3, s = 10)
 
     for rank, block in enumerate(significant_blocks):
         x_block, y_block = block[0], block[1]
@@ -352,7 +464,7 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
     # align labels
     fig.align_xlabels()
     fig.align_ylabels()
-    fig.suptitle(title)    
+    fig.suptitle(title)
     plt.subplots_adjust(wspace=.05, hspace=.05)
     plt.savefig(output_file)
     plt.close()

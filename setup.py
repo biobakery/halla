@@ -33,6 +33,13 @@ class PostInstallCommand(install):
             utils.install_packages('https://cran.r-project.org/src/contrib/Archive/eva/eva_0.2.5.tar.gz')
             # check if eva has been successfully installed
             eva = importr('eva')
+        try:
+            XICOR = importr('XICOR')
+        except:
+            utils = importr('utils')
+            utils.chooseCRANmirror(ind=1)
+            utils.install_packages("XICOR")
+            XICOR = importr('XICOR')
 
 
 setuptools.setup(

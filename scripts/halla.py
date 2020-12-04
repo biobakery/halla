@@ -4,7 +4,7 @@
 import argparse
 import sys
 import numpy as np
-from os.path import join
+from os.path import join, basename, splitext
 import pkg_resources
 
 from halla import HAllA, AllA
@@ -22,7 +22,7 @@ def parse_argument(args):
         '-y', '--y_file',
         help='Path to Y dataset: a tab-delimited input file, one row per feature, one column per measurement',
         required=False)
-    
+
     # --halla parameters--
     parser.add_argument(
         '--alla',
@@ -51,8 +51,8 @@ def parse_argument(args):
         default=None, type=int, required=False)
     parser.add_argument(
         '-m', '--pdist_metric',
-        help='Distance/similarity metric {spearman, pearson, dcor, nmi}',
-        default='pearson', choices=['spearman', 'pearson', 'dcor', 'nmi'], required=False)
+        help='Distance/similarity metric {spearman, pearson, dcor, nmi, xicor}',
+        default='spearman', choices=['spearman', 'pearson', 'dcor', 'nmi', 'xicor'], required=False)
     parser.add_argument(
         '--sim2dist_disable_abs',
         help='Hierarchical clustering - disable setting similarity scores as absolute when computing distance',
@@ -105,7 +105,12 @@ def parse_argument(args):
     parser.add_argument(
         '--hallagram',
         help='Generates hallagram',
-        action='store_true', required=False)
+        default=True,action='store_true', required=False)
+    parser.add_argument(
+        '--no_hallagram',
+        help='Turn off the automatically generated hallagram',
+        dest='hallagram',
+        action='store_false')
 
     # --clustermap parameters--
     parser.add_argument(
@@ -126,6 +131,15 @@ def parse_argument(args):
         '--cbar_label',
         help='Hallagram/clustermap: label for the colorbar',
         default='', required=False)
+    parser.add_argument(
+        '-n', '--block_num',
+        help='Number of top clusters to show (for hallagram only); if -1, show all clusters',
+        default=30, type=int, required=False)
+    parser.add_argument(
+        '--trim',
+        help='Trim hallagram to features containing at least one significant block',
+        default=True,
+        type=bool, required=False)
 
     # --diagnostic-plot parameters--
     parser.add_argument(
@@ -166,6 +180,10 @@ def main():
     instance.load(params.x_file, params.y_file)
     instance.run()
     if params.clustermap:
+        if params.x_dataset_label=='':
+            params.x_dataset_label = splitext(basename(params.x_file))[0]
+        if params.y_dataset_label=='':
+            params.y_dataset_label = splitext(basename(params.y_file))[0]
         if params.alla:
             print('AllA does not produce clustermap.')
         else:
@@ -173,9 +191,13 @@ def main():
                                            y_dataset_label=params.y_dataset_label,
                                            cbar_label=params.cbar_label)
     if params.hallagram:
+        if params.x_dataset_label=='':
+            params.x_dataset_label = splitext(basename(params.x_file))[0]
+        if params.y_dataset_label=='':
+            params.y_dataset_label = splitext(basename(params.y_file))[0]
         instance.generate_hallagram(x_dataset_label=params.x_dataset_label,
                                            y_dataset_label=params.y_dataset_label,
-                                           cbar_label=params.cbar_label)
+                                           cbar_label=params.cbar_label, trim = params.trim)
     if params.diagnostic_plot:
         if params.alla:
             print('AllA does not produce diagnostic plot.')

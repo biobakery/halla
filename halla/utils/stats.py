@@ -1,4 +1,4 @@
-from .similarity import does_return_pval, get_similarity_function
+from .similarity import does_return_pval, get_similarity_function, remove_missing_values
 
 import numpy as np
 import sys
@@ -7,6 +7,8 @@ from statsmodels.stats.multitest import multipletests
 from scipy.stats import genpareto
 import itertools
 from multiprocessing import Pool
+from tqdm import tqdm
+from time import time
 
 # retrieve package named 'eva' from R for GPD-related calculations
 from rpy2.robjects.packages import importr
@@ -89,6 +91,9 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
     permute_func = permute_func.lower()
     permuted_dist_scores = []
     # compute the ground truth scores for comparison later
+    rmx, rmy = remove_missing_values(x,y)
+    if (np.unique(rmx).shape[0] == 1 or np.unique(rmy).shape[0] == 1):
+        return(1)
     gt_score = _compute_score(x, y)
     permuted_y = np.copy(y[0])
     best_pvalue = 1.0
@@ -129,7 +134,7 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
     n, m = X.shape[0], Y.shape[0]
     pvalue_table = np.zeros((n, m))
     if does_return_pval(pdist_metric):
-        for i in range(n):
+        for i in tqdm(range(n)):
             for j in range(m):
                 pvalue_table[i,j] = get_similarity_function(pdist_metric)(X[i,:], Y[j,:], return_pval=True)[1]
     else:
@@ -140,6 +145,28 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
                                                                             for i in range(n) for j in range(m)])
             pvalue_table = np.array(pvalue_table).reshape((n, m))
     return(pvalue_table)
+
+def test_pvalue_run_time(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters=1000,
+                     permute_speedup=True, alpha=0.05, seed=None):
+    '''
+    Run a p-value computation test and return the time it took and a message extrapolating to the full dataset.
+    '''
+    test_start = time()
+    
+    if does_return_pval(pdist_metric):
+        get_similarity_function(pdist_metric)(X[1,:], Y[1,:], return_pval=True)[1]
+    else:
+        compute_permutation_test_pvalue(X[1,:], Y[1,:],
+                                    pdist_metric=pdist_metric, 
+                                    permute_func=permute_func,
+                                    iters=permute_iters,
+                                    speedup=permute_speedup, alpha=alpha, seed=seed)    
+    
+    test_end = time()
+    test_length = test_end - test_start
+    extrapolated_time = test_length * X.shape[0] * Y.shape[0]
+    timing_string = "The first p-value computation took about " + str(round(test_length, 2)) + " seconds. Extrapolating from this, computing the entire p-value table should take around " + str(round(extrapolated_time,2)) + " seconds..."
+    return(extrapolated_time, timing_string)
 
 def pvalues2qvalues(pvalues, method='fdr_bh', alpha=0.05):
     '''Perform p-value correction for multiple tests (Benjamini/Hochberg)
