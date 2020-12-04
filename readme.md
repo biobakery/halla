@@ -29,6 +29,7 @@ Example codes can be found under `examples` directory.
 - [SciPy](https://www.scipy.org/) (version >= 1.5.1)
 - [seaborn](https://seaborn.pydata.org/) (version >= 0.10.1)
 - [statsmodels](https://www.statsmodels.org/stable/index.html) (version >= 0.11.1)
+- [tqdm](https://github.com/tqdm/tqdm) (>=4.50.2)
 
 Users can either install them one-by-one or install all of them at once by running:
 
