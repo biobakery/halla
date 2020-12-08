@@ -1,9 +1,14 @@
+
 # ***ATTENTION***
 
 Before opening a new issue here, please check the appropriate help channel on the bioBakery Support Forum (https://forum.biobakery.org) and consider opening or commenting on a thread there.
 
+# ***Previous Version***
+
+Please direct to https://github.com/biobakery/halla_legacy for the 0.8.17 version of HAllA. 
+
 ----
-# HAllA revised version 0.0.7
+# HAllA version # 0.8.2
 Given two high-dimensional 'omics datasets X and Y (continuous and/or categorical features) from the same `n` biosamples, HAllA (Hierarchical All-against-All Association Testing) discovers **densely-associated blocks** of features in the X vs. Y association matrix where:
 
 - each block is defined as all associations between features in a subtree of X hierarchy and features in a subtree of Y hierarchy,
