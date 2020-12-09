@@ -193,24 +193,24 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
             clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
             clust_y_block = [y_ori2clust_idx[idx] for idx in y_block]
             if has_deleted[block_i,0]:
-                ax.vlines([min(clust_y_block)], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
-                ax.vlines([max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, linestyles='dotted', alpha = .5)
+                ax.vlines([min(clust_y_block)], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5, capstyle="projecting")
+                ax.vlines([max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, linestyles='dotted', alpha = .5, capstyle="projecting")
             else:
-                ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+                ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5, capstyle="projecting")
 
             if has_deleted[block_i,1]:
-                ax.hlines([min(clust_x_block)], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
-                ax.hlines([max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, linestyles='dotted', alpha = .5)
+                ax.hlines([min(clust_x_block)], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5, capstyle="projecting")
+                ax.hlines([max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, linestyles='dotted', alpha = .5, capstyle="projecting")
             else:
-                ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5)
+                ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='0.2', linewidths=block_border_width, zorder=4, alpha = .5, capstyle="projecting")
             block_i += 1
 
     for rank, block in enumerate(top_blocks):
         x_block, y_block = block[0], block[1]
         clust_x_block = [x_ori2clust_idx[idx] for idx in x_block]
         clust_y_block = [y_ori2clust_idx[idx] for idx in y_block]
-        ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='black', linewidths=block_border_width, zorder=4)
-        ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='black', linewidths=block_border_width, zorder=4)
+        ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='black', linewidths=block_border_width, zorder=4, capstyle="projecting")
+        ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='black', linewidths=block_border_width, zorder=4, capstyle="projecting")
         # add rank text
         text_content = str(rank + 1)
         text_size = (min(max(clust_y_block) - min(clust_y_block),
