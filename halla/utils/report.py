@@ -169,6 +169,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
                         zorder=3, cbar_ax=cbar_ax, ax=ax, cbar_kws=cbar_kws, **kwargs)
     ax.yaxis.tick_right()
     ax.yaxis.set_label_position('right')
+    ax.tick_params(axis = 'y', length=0)
     ax.set_yticklabels(clust_x_features, rotation=0, ha='left')
     if mask:
         # minor ticks
