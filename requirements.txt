@@ -3,7 +3,7 @@ matplotlib==3.3.0
 numpy==1.19.0
 pandas==1.0.5
 PyYAML==5.3.1
-rpy2==3.3.5
+rpy2>=3.3.5
 scikit-learn==0.23.1
 scipy==1.5.1
 seaborn==0.10.1
