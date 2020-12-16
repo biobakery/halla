@@ -11,9 +11,9 @@ try:
 except ImportError:
     sys.exit('Please install setuptools.')
 
-VERSION = '0.0.7'
+VERSION = '0.8.18'
 AUTHOR  = 'HAllA Development Team'
-MAINTAINER_EMAIL = 'kathleen_sucipto@hms.harvard.edu'
+MAINTAINER_EMAIL = 'halla-users@googlegroups.com'
 
 with open('readme.md', 'r') as fh:
     long_description = fh.read()

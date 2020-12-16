@@ -1,5 +1,9 @@
 # HAllA History #
 
+## v0.8.18 2020-08-26 ##
+
+* Version synced with PyPi
+
 ## v0.0.7 2020-08-26 ##
 
 * Add hallagram and hallanostic scripts
