@@ -88,6 +88,11 @@ def parse_argument(args):
         '--dpi',
         help='Figure DPI',
         default=100, type=float, required=False)
+    parser.add_argument(
+        '--suppress_numbers',
+        help='If True, don\'t number the blocks',
+        action='store_true', required=False,
+        default=False)
 
     params = parser.parse_args()
     if params.block_num == -1: params.block_num = None
@@ -145,6 +150,7 @@ def main():
                            trim=params.trim,
                            force_x_ft=params.force_x_ft,
                            force_y_ft=params.force_y_ft,
+                           suppress_numbers=params.suppress_numbers,
                            dpi=params.dpi,
                            cmap=params.cmap,
                            output_file=output_file)

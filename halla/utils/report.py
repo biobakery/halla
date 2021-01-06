@@ -62,7 +62,7 @@ def remove_unshown_features(significant_blocks, shown_x, shown_y):
 
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table, fdr_reject_table,
                         x_dataset_label='', y_dataset_label='', mask=False, trim=True,
-                        signif_dots=True, block_num=30, show_lower=True, force_x_ft=None, force_y_ft=None, dpi=100,
+                        signif_dots=True, block_num=30, show_lower=True, force_x_ft=None, force_y_ft=None, dpi=100, suppress_numbers=False,
                         figsize=None, cmap='RdBu_r', cbar_label='', text_scale=10, block_border_width=1.65, output_file='out.eps', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
@@ -75,6 +75,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
     - mask               : if True, mask all cells not included in significant blocks
     - trim               : if True, trim all features that are not significant
     - signif_dots        : if True, show dots on significant pairwise associations
+    - suppress_numbers   : if True, don't number the blocks
     - block_num          : number indicating the top N blocks to include
     - show_lower         : if True, put a grey box around blocks ranked below the block_num threshold that show up on the hallagram anyway
     - figsize            : figure size
@@ -212,16 +213,17 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
         ax.vlines([min(clust_y_block), max(clust_y_block)+1], min(clust_x_block), max(clust_x_block)+1, color='black', linewidths=block_border_width, zorder=4, capstyle="projecting")
         ax.hlines([min(clust_x_block), max(clust_x_block)+1], min(clust_y_block), max(clust_y_block)+1, color='black', linewidths=block_border_width, zorder=4, capstyle="projecting")
         # add rank text
-        text_content = str(rank + 1)
-        text_size = (min(max(clust_y_block) - min(clust_y_block),
-                         max(clust_x_block) - min(clust_x_block)) + 1)*text_scale
-        text = ax.text(
-            np.mean(clust_y_block) + 0.5, np.mean(clust_x_block) + 0.5,
-            text_content, size=text_size, color='white', ha='center', va='center', weight='bold')
-        text.set_path_effects([
-            path_effects.Stroke(linewidth=3, foreground='black'),
-            path_effects.Normal(),
-        ])
+        if not suppress_numbers:
+            text_content = str(rank + 1)
+            text_size = (min(max(clust_y_block) - min(clust_y_block),
+                             max(clust_x_block) - min(clust_x_block)) + 1)*text_scale
+            text = ax.text(
+                np.mean(clust_y_block) + 0.5, np.mean(clust_x_block) + 0.5,
+                text_content, size=text_size, color='white', ha='center', va='center', weight='bold')
+            text.set_path_effects([
+                path_effects.Stroke(linewidth=3, foreground='black'),
+                path_effects.Normal(),
+            ])
 
     plt.subplots_adjust(wspace=1/(figsize[0]*6), hspace=0)
     plt.savefig(output_file, format=output_file.split('.')[-1].lower(), bbox_inches='tight', dpi=dpi)
