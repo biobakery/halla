@@ -119,7 +119,7 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
     # if M >= 10, use ecdf
     if M >= 10:
         return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, permutation_num))
-    
+
     # attempt to use gpd
     pval = compute_pvalue_gpd(permuted_dist_scores, gt_score, permutation_num)
     if pval is None:
@@ -127,14 +127,14 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
     return(pval)
 
 def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters=1000,
-                     permute_speedup=True, alpha=0.05, seed=None):
+                     permute_speedup=True, alpha=0.05, seed=None, no_progress=False):
     '''Obtain pairwise p-value tables given features in X and Y
     '''
     # initiate table
     n, m = X.shape[0], Y.shape[0]
     pvalue_table = np.zeros((n, m))
     if does_return_pval(pdist_metric):
-        for i in tqdm(range(n)):
+        for i in tqdm(range(n), disable=no_progress):
             for j in range(m):
                 pvalue_table[i,j] = get_similarity_function(pdist_metric)(X[i,:], Y[j,:], return_pval=True)[1]
     else:
@@ -152,16 +152,16 @@ def test_pvalue_run_time(X, Y, pdist_metric='nmi', permute_func='gpd', permute_i
     Run a p-value computation test and return the time it took and a message extrapolating to the full dataset.
     '''
     test_start = time()
-    
+
     if does_return_pval(pdist_metric):
         get_similarity_function(pdist_metric)(X[1,:], Y[1,:], return_pval=True)[1]
     else:
         compute_permutation_test_pvalue(X[1,:], Y[1,:],
-                                    pdist_metric=pdist_metric, 
+                                    pdist_metric=pdist_metric,
                                     permute_func=permute_func,
                                     iters=permute_iters,
-                                    speedup=permute_speedup, alpha=alpha, seed=seed)    
-    
+                                    speedup=permute_speedup, alpha=alpha, seed=seed)
+
     test_end = time()
     test_length = test_end - test_start
     extrapolated_time = test_length * X.shape[0] * Y.shape[0]
@@ -205,4 +205,4 @@ def compute_result_fdr(significant_blocks, true_assoc):
             predicted_positive += 1
             if true_assoc[i][j] != 1: false_positive += 1
     if predicted_positive == 0: return(np.nan)
-    return(false_positive * 1.0 / predicted_positive) 
+    return(false_positive * 1.0 / predicted_positive)

@@ -27,7 +27,7 @@ class AllA(object):
                  pdist_metric=config.association['pdist_metric'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
-                 out_dir=config.output['dir'], verbose=config.output['verbose'], seed=0):
+                 out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False, seed=0):
         # update AllA config setting
         update_config('output', dir=out_dir, verbose=verbose)
         update_config('preprocess', max_freq_thresh=max_freq_thresh,
@@ -38,6 +38,7 @@ class AllA(object):
         update_config('permute', func=permute_func, iters=permute_iters, speedup=permute_speedup)
         update_config('stats', fdr_alpha=fdr_alpha, fdr_method=fdr_method)
         self._reset_attributes()
+        self.no_progress = no_progress
         self.seed = seed
         if not hasattr(self, 'name'):
             self.name = 'AllA'
@@ -80,7 +81,7 @@ class AllA(object):
         self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=dist_metric,
                                                    permute_func=confp['func'], permute_iters=confp['iters'],
                                                    permute_speedup=confp['speedup'],
-                                                   alpha=config.stats['fdr_alpha'], seed=self.seed)
+                                                   alpha=config.stats['fdr_alpha'], no_progress=self.no_progress, seed=self.seed)
 
         # obtain q-values
         self.logger.log_message('Generating the q-value table...')
@@ -262,7 +263,7 @@ class HAllA(AllA):
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'], rank_cluster=config.stats['rank_cluster'],
-                 out_dir=config.output['dir'], verbose=config.output['verbose'], seed=0):
+                 out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False, seed=0):
         # TODO: add restrictions on the input - ensure the methods specified are available
         self.name = 'HAllA'
         # retrieve AllA variables

@@ -33,7 +33,7 @@ def parse_argument(args):
     parser.add_argument('-nb', '--noise-between', dest='noise_between', help='noise between associated blocks [0 (no noise)..1 (complete noise)]',
                         default=0.25, type=float, required=False)
     parser.add_argument('-o', '--output', help='the output directory', required=True)
-    
+
     # check requirements
     params = parser.parse_args()
     # samples must be > 0
@@ -93,7 +93,7 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
             assoc[i] = [i for i in range(start_idx, start_idx + blocks_size[i])]
             start_idx = start_idx + blocks_size[i]
         return(assoc)
-    
+
     def abs_if_necessary(a):
         if association == 'log': return(np.abs(a))
         return(a)
@@ -106,7 +106,7 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
     # step 1: generate base
     base = abs_if_necessary(create_base())
     if association == 'sine': base = 2 * base # for spreading out x
-    
+
     # assign features in X and Y to blocks
     x_assoc, y_assoc = div_features_into_blocks(x_feat_num), div_features_into_blocks(y_feat_num)
     for block_i in range(block_num):
@@ -118,7 +118,7 @@ def run_data_generator(sample_num=50, features_num=(500, 500), block_num=5, asso
 
         # determine positive or negative association if appropriate; arbitrary probs
         sign_corr = np.random.choice([-1, 1], p=[0.4, 0.6])
-        
+
         # step 2.2: derive base_Y from base given noise_between
         base_Y = abs_if_necessary(base[block_i] + noise_between * np.random.normal(scale=noise_between_std, size=1))
         # step 3.2: derive Y from base_Y given noise_within
@@ -180,7 +180,7 @@ def store_tables(X, Y, A, association, out_dir):
         '''Create pandas DataFrame from table given:
         - table   : a 2D numpy array
         - col_pref: the column prefix
-        - row_pref: the row prefix 
+        - row_pref: the row prefix
         '''
         return pd.DataFrame(
             data={ '%s%d' % (col_pref, j): table[:,j] for j in range(table.shape[1]) },
@@ -192,7 +192,7 @@ def store_tables(X, Y, A, association, out_dir):
 
     # create directory
     reset_dir(out_dir)
-    
+
     # store df in files
     filename_format = '%s_%s_%s_%s.txt' % ('%s', association, '%s', '%d')
     dataset_format = filename_format % ('%s', '%d', sample_num)
