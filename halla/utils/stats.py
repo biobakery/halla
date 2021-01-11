@@ -165,7 +165,7 @@ def test_pvalue_run_time(X, Y, pdist_metric='nmi', permute_func='gpd', permute_i
     test_end = time()
     test_length = test_end - test_start
     extrapolated_time = test_length * X.shape[0] * Y.shape[0]
-    timing_string = "The first p-value computation took about " + str(round(test_length, 2)) + " seconds. Extrapolating from this, computing the entire p-value table should take around " + str(round(extrapolated_time,2)) + " seconds..."
+    timing_string = "The first p-value computation took about " + str(round(test_length, 3)) + " seconds. Extrapolating from this, computing the entire p-value table should take around " + str(round(extrapolated_time,3)) + " seconds..."
     return(extrapolated_time, timing_string)
 
 def pvalues2qvalues(pvalues, method='fdr_bh', alpha=0.05):
