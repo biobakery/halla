@@ -27,7 +27,7 @@ class AllA(object):
                  pdist_metric=config.association['pdist_metric'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
-                 out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False, seed=0):
+                 out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False, dont_copy=False, seed=0):
         # update AllA config setting
         update_config('output', dir=out_dir, verbose=verbose)
         update_config('preprocess', max_freq_thresh=max_freq_thresh,
@@ -39,6 +39,7 @@ class AllA(object):
         update_config('stats', fdr_alpha=fdr_alpha, fdr_method=fdr_method)
         self._reset_attributes()
         self.no_progress = no_progress
+        self.dont_copy = dont_copy
         self.seed = seed
         if not hasattr(self, 'name'):
             self.name = 'AllA'
@@ -143,10 +144,11 @@ class AllA(object):
                                     self.Y.index.to_numpy())
 
         # print datasets (original and discretized)
-        self.X.to_csv(join(dir_name, 'X.tsv'), sep='\t')
-        self.Y.to_csv(join(dir_name, 'Y.tsv'), sep='\t')
-        self.X_ori.to_csv(join(dir_name, 'X_original.tsv'), sep='\t')
-        self.Y_ori.to_csv(join(dir_name, 'Y_original.tsv'), sep='\t')
+        if not self.dont_copy:
+            self.X.to_csv(join(dir_name, 'X.tsv'), sep='\t')
+            self.Y.to_csv(join(dir_name, 'Y.tsv'), sep='\t')
+            self.X_ori.to_csv(join(dir_name, 'X_original.tsv'), sep='\t')
+            self.Y_ori.to_csv(join(dir_name, 'Y_original.tsv'), sep='\t')
 
     '''Public functions
     '''
@@ -263,7 +265,7 @@ class HAllA(AllA):
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'], rank_cluster=config.stats['rank_cluster'],
-                 out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False, seed=0):
+                 out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False, dont_copy = False, seed=0):
         # TODO: add restrictions on the input - ensure the methods specified are available
         self.name = 'HAllA'
         # retrieve AllA variables

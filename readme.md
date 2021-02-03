@@ -5,7 +5,7 @@ Before opening a new issue here, please check the appropriate help channel on th
 
 # ***Previous Version***
 
-Please direct to https://github.com/biobakery/halla_legacy for the 0.8.17 version of HAllA. 
+Please direct to https://github.com/biobakery/halla_legacy for the 0.8.17 version of HAllA.
 
 ----
 # HAllA version # 0.8.18
@@ -18,12 +18,13 @@ Given two high-dimensional 'omics datasets X and Y (continuous and/or categorica
   <img src="https://user-images.githubusercontent.com/7066351/89912733-e3c89a80-dbc0-11ea-81c4-a696b321f150.png" width="750">
 </p>
 
-Example codes can be found under `examples` directory. 
+Example codes can be found under `examples` directory.
 
 ## Installation
 
 1. Other than [Python](https://www.python.org/) (version >= 3.7) and [R](https://www.r-project.org/) (version >= 3.6.1), install all required libraries listed in `requirements.txt`, specifically:
 
+Python packages:
 - [jenkspy](https://github.com/mthh/jenkspy) (version >= 0.1.5)
 - [Matplotlib](https://matplotlib.org/) (version >= 3.3.0)
 - [NumPy](https://numpy.org/) (version >= 1.19.0)
@@ -35,6 +36,10 @@ Example codes can be found under `examples` directory.
 - [seaborn](https://seaborn.pydata.org/) (version >= 0.10.1)
 - [statsmodels](https://www.statsmodels.org/stable/index.html) (version >= 0.11.1)
 - [tqdm](https://github.com/tqdm/tqdm) (>=4.50.2)
+
+R packages:
+- [eva](https://cran.r-project.org/web/packages/eva/index.html) (>= 0.2.6)
+- [XICOR](https://cran.r-project.org/web/packages/XICOR/index.html) (>= 0.3.3)
 
 Users can either install them one-by-one or install all of them at once by running:
 
