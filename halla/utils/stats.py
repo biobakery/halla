@@ -56,7 +56,7 @@ def compute_pvalue_gpd(permuted_scores, gt_score, n):
                 break
             n_exceed -= 10
         if not is_gpd_fitted:
-            print('GPD good fit is never reached - use ECDF instead...')
+            #print('GPD good fit is never reached - use ECDF instead...')
             return(None)
         # compute the exceedance threshold t
         t = float((sorted_scores[n_exceed] + sorted_scores[n_exceed-1])/2)
