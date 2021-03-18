@@ -169,18 +169,18 @@ class AllA(object):
             else (X.copy(deep=True), np.copy(self.X_types))
 
         # if not all types are continuous but pdist_metric is only for continuous types
-        if not (is_all_cont(self.X_types) and is_all_cont(self.Y_types)) and not (config.association['pdist_metric'].lower() in ['nmi','xicor']):
-            raise ValueError('pdist_metric should be nmi or xicor if not all features are continuous...')
+        if not (is_all_cont(self.X_types) and is_all_cont(self.Y_types)) and not (config.association['pdist_metric'].lower() in ['mi', 'nmi','xicor']):
+            raise ValueError('pdist_metric should be mi, nmi, or xicor if not all features are continuous...')
         # if pdist_metric is nmi but no discretization method is specified, assign to equal frequency (quantile)
-        if config.association['pdist_metric'].lower() == 'nmi' and confp['discretize_func'] is None:
-            self.logger.log_message('Discretization function is None; assigning to equal frequency (quantile) given metric = NMI...')
+        if config.association['pdist_metric'].lower() in ['nmi', 'mi'] and confp['discretize_func'] is None:
+            self.logger.log_message('Discretization function is None; assigning to equal frequency (quantile) given metric in (NMI, MI)...')
             update_config('preprocess', discretize_func='quantile')
         if config.association['pdist_metric'].lower() == 'xicor' and not (is_all_cont(self.X_types) and is_all_cont(self.Y_types)) and confp['discretize_func'] is None:
             self.logger.log_message('Discretization function is None but pdist_metric = XICOR and data contains categorical variables; assigning discretization function to equal frequency (quantile)...')
             update_config('preprocess', discretize_func='quantile')
         # if all features are continuous and distance metric != nmi, discretization can be bypassed
         if is_all_cont(self.X_types) and is_all_cont(self.X_types) and confp['discretize_func'] is not None and \
-            config.association['pdist_metric'].lower() != 'nmi' and confp['discretize_bypass_if_possible']:
+            (not config.association['pdist_metric'].lower() in ['nmi', 'mi']) and confp['discretize_bypass_if_possible']:
             self.logger.log_message('All features are continuous and bypassing discretization is enabled; bypassing discretization...')
             update_config('preprocess', discretize_func=None)
 
@@ -231,7 +231,7 @@ class AllA(object):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
-            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor', 'xicor'] else 'RdBu_r'
+            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['mi','nmi', 'dcor', 'xicor'] else 'RdBu_r'
         file_name = join(config.output['dir'], output_file)
         if block_num is None:
             block_num = len(self.significant_blocks)
@@ -370,7 +370,7 @@ class HAllA(AllA):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
-            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor', 'xicor'] else 'RdBu_r'
+            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['mi', 'nmi', 'dcor', 'xicor'] else 'RdBu_r'
         file_name = join(config.output['dir'], output_file)
         if block_num is None:
             block_num = len(self.significant_blocks)
@@ -401,7 +401,7 @@ class HAllA(AllA):
             print('The dimension is too large - please generate a hallagram instead.')
             return
         if cmap is None:
-            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['nmi', 'dcor', 'xicor'] else 'RdBu_r'
+            cmap = 'YlGnBu' if config.association['pdist_metric'] in ['mi','nmi', 'dcor', 'xicor'] else 'RdBu_r'
 
         file_name = join(config.output['dir'], output_file)
         generate_clustermap(self.significant_blocks,

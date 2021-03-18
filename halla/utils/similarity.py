@@ -1,10 +1,12 @@
-from sklearn.metrics import normalized_mutual_info_score
+from sklearn.metrics import normalized_mutual_info_score, mutual_info_score
 from scipy.stats import pearsonr, spearmanr
 from scipy.spatial.distance import pdist, squareform
 import numpy as np
 
+import rpy2.robjects as robjects
 from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import FloatVector
+
 XICOR = importr('XICOR')
 
 def remove_missing_values(x, y):
@@ -29,6 +31,22 @@ def nmi(x, y, return_pval=False):
         return(0)
     if return_pval: return(normalized_mutual_info_score(x, y), None)
     return(normalized_mutual_info_score(x, y))
+
+robjects.r('''
+f <- function(x,y){
+    chisq.test(table(data.frame(x,y)))$p.value
+}
+''')
+chisq_p_f = robjects.r('f')
+
+def mutual_info(x,y, return_pval=False):
+    x, y = remove_missing_values(x, y)
+    if (np.unique(x).shape[0] == 1 or np.unique(y).shape[0] == 1):
+        if return_pval: return(0,1)
+        return(0)
+
+    if return_pval: return(mutual_info_score(x, y), chisq_p_f(robjects.IntVector(x),robjects.IntVector(y))[0])
+    return(mutual_info_score(x, y))
 
 def pearson(x, y, return_pval=False):
     x, y = remove_missing_values(x, y)
@@ -104,6 +122,7 @@ def symmetric_xicor(x,y):
 '''
 SIM_FUNCS = {
     'nmi': nmi,
+    'mi': mutual_info,
     'pearson': pearson,
     'spearman': spearman,
     'dcor': distcorr,
@@ -113,6 +132,7 @@ SIM_FUNCS = {
 
 PVAL_PROVIDED = {
     'nmi': False,
+    'mi': True,
     'pearson': True,
     'spearman': True,
     'dcor': False,
