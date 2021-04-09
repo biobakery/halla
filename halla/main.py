@@ -169,8 +169,12 @@ class AllA(object):
             else (X.copy(deep=True), np.copy(self.X_types))
 
         # if not all types are continuous but pdist_metric is only for continuous types
+        self.metric_changed = False
         if not (is_all_cont(self.X_types) and is_all_cont(self.Y_types)) and not (config.association['pdist_metric'].lower() in ['mi', 'nmi','xicor']):
-            raise ValueError('pdist_metric should be mi, nmi, or xicor if not all features are continuous...')
+            self.metric_changed = True
+            self.logger.log_result('Discrete variables detected. ASSOCIATION METRIC CHANGED TO MI!', True)
+            update_config('association', pdist_metric = 'mi')
+            # raise ValueError('pdist_metric should be mi, nmi, or xicor if not all features are continuous...')
         # if pdist_metric is nmi but no discretization method is specified, assign to equal frequency (quantile)
         if config.association['pdist_metric'].lower() in ['nmi', 'mi'] and confp['discretize_func'] is None:
             self.logger.log_message('Discretization function is None; assigning to equal frequency (quantile) given metric in (NMI, MI)...')

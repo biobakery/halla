@@ -9,7 +9,7 @@ class HAllALogger(object):
         self.durations = [] # details on durations for certain steps
         self.results = []   # details on results from certain steps
         self.log_config(config)
-    
+
     def log_config(self, config, return_text=False):
         '''Log configuration parameters by iterating through config (Struct) variable
         if return_text is True, return text instead of printing anything
@@ -35,7 +35,7 @@ class HAllALogger(object):
         '''
         decorator = '--' if sub else '=='
         if self.verbose: print('%s %s %s' % (decorator, message, decorator))
-    
+
     def log_step_end(self, label, dur_second, sub=False):
         '''Log the end of a step (or a sub-step):
         - a (main) step: == Completed; total duration: time ==
@@ -52,14 +52,14 @@ class HAllALogger(object):
         '''Log a message
         '''
         if self.verbose: print(message)
-    
+
     def log_result(self, label, content):
         '''Log results with prefix '  '
         The (label, content) is added to self.results array to be printed in performance.txt
         '''
         self.results.append((label, content))
         if self.verbose: print('* ', label, content)
-    
+
     def write_performance_log(self, dir_name, config, file_name='performance.txt'):
         '''Write performance.txt which contains:
         - halla version
@@ -81,4 +81,4 @@ class HAllALogger(object):
         performance_txt += '%-*s: ' % (60, 'Total execution time') + str(datetime.timedelta(seconds=tot_dur))
         file = open(join(dir_name, file_name), 'w')
         file.write(performance_txt)
-        file.close() 
+        file.close()
