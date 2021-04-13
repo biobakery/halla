@@ -190,6 +190,7 @@ class AllA(object):
 
         # filter tables by intersect columns
         intersect_cols = [col for col in X.columns if col in Y.columns]
+        if (len(intersect_cols) < 5): self.logger.log_message("Didn't find many overlapping samples between the two datasets. Are you sure your datasets have features as rows and samples as columns?")
         X, Y = X[intersect_cols], Y[intersect_cols]
 
         # clean and preprocess data
