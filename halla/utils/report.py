@@ -453,14 +453,23 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
             # add y-ticks on the right side on histogram plots
             if i == j:
                 axs[i,j].yaxis.tick_right()
+                axs[i,j].yaxis.set_label_position('right')
+                if i == 0:
+                    axs[i,j].set_ylabel('\n\nCumulative probability')
+                else:
+                    axs[i,j].set_ylabel('Cumulative probability')
                 if i != row_num - 1: axs[i,j].set_xticks([])
-                axs[i,j].set_ylabel('')
             else:
                 # remove ticks from inner plots
                 if j != 0: axs[i,j].set_yticks([])
                 if i != row_num - 1: axs[i,j].set_xticks([])
             # add labels to outer  plots
-            if j == 0: axs[i,j].set_ylabel(all_features[i], fontdict=dict(weight='bold'))
+            if j == 0:
+                if i != 0:
+                    ax2 = axs[i,j].twinx()
+                    ax2.set_yticks([])
+                    ax2.yaxis.set_label_position('left')
+                    ax2.set_ylabel(all_features[i], fontdict=dict(weight='bold'))
             if i == row_num - 1: axs[i,j].set_xlabel(all_features[j], fontdict=dict(weight='bold'))
             for spine in axs[i,j].spines:
                 axs[i,j].spines[spine].set_visible(True)
