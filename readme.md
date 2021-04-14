@@ -29,7 +29,7 @@ Python packages:
 - [Matplotlib](https://matplotlib.org/) (version >= 3.3.0)
 - [NumPy](https://numpy.org/) (version >= 1.19.0)
 - [pandas](https://pandas.pydata.org/) (version >= 1.0.5)
-- [PyYAML](https://pypi.org/project/PyYAML/) (version >= 5.3.1)
+- [PyYAML](https://pypi.org/project/PyYAML/) (version >= 5.4)
 - [rpy2](https://pypi.org/project/rpy2/) (version >= 3.3.5) - [Notes on installing `rpy2` in macOS](https://stackoverflow.com/questions/52361732/installing-rpy2-on-macos)
 - [scikit-learn](https://scikit-learn.org/stable/) (version >= 0.23.1)
 - [SciPy](https://www.scipy.org/) (version >= 1.5.1)
