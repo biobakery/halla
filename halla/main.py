@@ -14,6 +14,7 @@ import pandas as pd
 import numpy as np
 import scipy.spatial.distance as spd
 from os.path import join
+from os import getcwd
 import time
 
 ########
@@ -41,6 +42,10 @@ class AllA(object):
         self.no_progress = no_progress
         self.dont_copy = dont_copy
         self.seed = seed
+
+        if (out_dir == ".") or (out_dir == "./") or (out_dir == getcwd()):
+            raise ValueError("Please specify an output directory other than the current directory.")
+
         if not hasattr(self, 'name'):
             self.name = 'AllA'
             self.logger = HAllALogger(name=self.name, config=config)
