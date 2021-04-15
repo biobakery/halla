@@ -62,14 +62,14 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
         if func is None: # no discretization is needed
             return(ar)
         if num_bins is None:
-            # by default, num_bins = sqrt(n) or # unique(n)
-            num_bins = min(round(math.sqrt(len(ar))), len(set(ar)))
+            # by default, num_bins = cube_root(n) or # unique(n)
+            num_bins = min(math.floor(len(ar)**(1./3.)), len(set(ar)))
         elif num_bins == 0:
             raise ValueError('# bins should be > 0')
         else:
             num_bins = min(num_bins, len(set(ar)))
         if func in ['quantile', 'uniform', 'kmeans']:
-            warnings.simplefilter('ignore') # ignore nan warning    
+            warnings.simplefilter('ignore') # ignore nan warning
             # remove NaNs temporarily since KBinsDiscretizer currently doesn't handle NaNs
             temp_ar = np.array([x for x in ar if x == x])
             nans = np.array([not x == x for x in ar])
@@ -81,7 +81,7 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
             discretized_result[nans] = np.nan
             warnings.resetwarnings()
         elif func == 'jenks':
-            warnings.simplefilter('ignore') # ignore nan warning    
+            warnings.simplefilter('ignore') # ignore nan warning
             # remove the first lower bound
             breaks = jenkspy.jenks_breaks(ar, nb_class=num_bins)
             breaks[-1] += 1
@@ -107,7 +107,7 @@ def discretize_vector(ar, ar_type=float, func=None, num_bins=None):
         # assign missing values to a separate bin
         discretized_result[np.isnan(discretized_result)] = np.nanmax(discretized_result) + 1
         return(discretized_result)
-        
+
     if ar_type == object:
         return(_discretize_categorical(ar))
     return(_discretize_continuous(ar, func, num_bins))
@@ -129,16 +129,16 @@ def transform(df, types, funcs=None):
     - any function available in numpy attributes, e.g., log, arcsin, sqrt
     '''
     warnings.filterwarnings('error') # to catch RuntimeError
-    
+
     if funcs is None: return(df)
-    
+
     if not isinstance(funcs, list): funcs = [funcs]
     funcs = [func.lower() for func in funcs]
     # ensure all functions are valid
     for func in funcs:
         if func not in ['zscore', 'rank', 'quantile'] and not hasattr(np, func):
             raise ValueError('The transform function should be an attribute of numpy or one of {zscore, rank, quantile}.')
-    
+
     updated_df = df.copy(deep=True)
     for row_i, type_i in enumerate(types):
         if type_i == object: continue
