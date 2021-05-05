@@ -28,7 +28,8 @@ class AllA(object):
                  pdist_metric=config.association['pdist_metric'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
-                 out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False, dont_copy=False, force_permutations=False, seed=0):
+                 out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False, dont_copy=False, force_permutations=False,
+                 num_threads=4,seed=0):
         # update AllA config setting
         update_config('output', dir=out_dir, verbose=verbose)
         update_config('preprocess', max_freq_thresh=max_freq_thresh,
@@ -42,6 +43,7 @@ class AllA(object):
         self.no_progress = no_progress
         self.dont_copy = dont_copy
         self.force_permutations = force_permutations
+        self.num_threads = num_threads
         self.verbose = verbose
         self.seed = seed
 
@@ -96,6 +98,7 @@ class AllA(object):
                                                    alpha=config.stats['fdr_alpha'],
                                                    no_progress=self.no_progress,
                                                    force_permutations=self.force_permutations,
+                                                   num_threads=self.num_threads,
                                                    seed=self.seed)
 
         # obtain q-values
@@ -290,7 +293,7 @@ class HAllA(AllA):
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'], rank_cluster=config.stats['rank_cluster'],
                  out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False,
-                 force_permutations=False,
+                 force_permutations=False, num_threads=4,
                  dont_copy = False, seed=0):
         # TODO: add restrictions on the input - ensure the methods specified are available
         self.name = 'HAllA'

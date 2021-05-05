@@ -131,7 +131,7 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
     return(pval)
 
 def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters=1000,
-                     permute_speedup=True, alpha=0.05, seed=None, no_progress=False, force_permutations=False):
+                     permute_speedup=True, alpha=0.05, seed=None, no_progress=False, force_permutations=False, num_threads=4):
     '''Obtain pairwise p-value tables given features in X and Y
     '''
     # initiate table
@@ -142,7 +142,7 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
             for j in range(m):
                 pvalue_table[i,j] = get_similarity_function(pdist_metric)(X[i,:], Y[j,:], return_pval=True)[1]
     else:
-        with Pool() as pool:
+        with Pool(processes=num_threads) as pool:
             pvalue_table = pool.starmap(compute_permutation_test_pvalue, [(X[i,:], Y[j,:], pdist_metric,
                                                                             permute_func, permute_iters,
                                                                             permute_speedup, alpha, seed)\
@@ -151,7 +151,7 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
     return(pvalue_table)
 
 def test_pvalue_run_time(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters=1000,
-                     permute_speedup=True, alpha=0.05, force_perms=False, seed=None):
+                     permute_speedup=True, alpha=0.05, force_perms=False, num_threads=4, seed=None):
     '''
     Run a p-value computation test and return the time it took and a message extrapolating to the full dataset.
     '''
@@ -161,7 +161,7 @@ def test_pvalue_run_time(X, Y, pdist_metric='nmi', permute_func='gpd', permute_i
         get_similarity_function(pdist_metric)(X[0,:], Y[0,:], return_pval=True)[1]
         n_threads = 1
     else:
-        n_threads = cpu_count()
+        n_threads = num_threads
         compute_permutation_test_pvalue(X[0,:], Y[0,:],
                                     pdist_metric=pdist_metric,
                                     permute_func=permute_func,

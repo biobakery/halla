@@ -158,6 +158,10 @@ def parse_argument(args):
         dest='force_permutations',
         default=False,
         action = 'store_true',required=False)
+    parser.add_argument(
+        '--num_threads',
+        help='Number of threads to use when running permutation tests in parallel, default=4',
+        default=4, type=int, required=False)
 
     # --diagnostic-plot parameters--
     parser.add_argument(
@@ -181,7 +185,8 @@ def main():
                  permute_speedup=not params.disable_permute_speedup,
                  fdr_alpha=params.fdr_alpha, fdr_method=params.fdr_method,
                  out_dir=params.out_dir, verbose=not params.disable_verbose,
-                 no_progress=params.no_progress, dont_copy=params.dont_copy, force_permutations=params.force_permutations,
+                 no_progress=params.no_progress, dont_copy=params.dont_copy, force_permutations=params.force_permutations, 
+                 num_threads=params.num_threads,
                  seed=params.seed)
     else:
         instance = HAllA(max_freq_thresh=params.max_freq_thresh,
@@ -196,6 +201,7 @@ def main():
                  fnr_thresh=params.fnr_thresh, rank_cluster=params.rank_cluster,
                  out_dir=params.out_dir, verbose=not params.disable_verbose,
                  no_progress=params.no_progress, dont_copy=params.dont_copy, force_permutations=params.force_permutations,
+                 num_threads=params.num_threads,
                  seed=params.seed)
     instance.load(params.x_file, params.y_file)
     instance.run()
