@@ -1,6 +1,7 @@
 from sklearn.metrics import normalized_mutual_info_score, mutual_info_score
-from scipy.stats import pearsonr, spearmanr
+from scipy.stats import pearsonr, spearmanr, chi2_contingency
 from scipy.spatial.distance import pdist, squareform
+from pandas import crosstab
 import numpy as np
 
 import rpy2.robjects as robjects
@@ -29,15 +30,10 @@ def nmi(x, y, return_pval=False):
     if (np.unique(x).shape[0] == 1 or np.unique(y).shape[0] == 1):
         if return_pval: return(0,1)
         return(0)
-    if return_pval: return(normalized_mutual_info_score(x, y), None)
+    if return_pval:
+        ch2, p, dof, ex = chi2_contingency(crosstab(x,y))
+        return(normalized_mutual_info_score(x, y), p)
     return(normalized_mutual_info_score(x, y))
-
-robjects.r('''
-f <- function(x,y){
-    chisq.test(table(data.frame(x,y)))$p.value
-}
-''')
-chisq_p_f = robjects.r('f')
 
 def mutual_info(x,y, return_pval=False):
     x, y = remove_missing_values(x, y)
@@ -45,7 +41,9 @@ def mutual_info(x,y, return_pval=False):
         if return_pval: return(0,1)
         return(0)
 
-    if return_pval: return(mutual_info_score(x, y), chisq_p_f(robjects.IntVector(x),robjects.IntVector(y))[0])
+    if return_pval:
+        ch2, p, dof, ex = chi2_contingency(crosstab(x,y))
+        return(mutual_info_score(x, y), p)
     return(mutual_info_score(x, y))
 
 def pearson(x, y, return_pval=False):
@@ -131,7 +129,7 @@ SIM_FUNCS = {
 }
 
 PVAL_PROVIDED = {
-    'nmi': False,
+    'nmi': True,
     'mi': True,
     'pearson': True,
     'spearman': True,

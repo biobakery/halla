@@ -188,6 +188,11 @@ def preprocess(df, types, transform_funcs=None, max_freq_thresh=0.8, discretize_
         updated_df.iloc[row_i] = discretize_vector(updated_df.iloc[row_i].to_numpy().astype(type_i), type_i,
                                                    func=discretize_func,
                                                    num_bins=discretize_num_bins)
+    # re-run the feature removal because sometimes discretization can reduce entropy:
+    # https://github.com/scikit-learn/scikit-learn/issues/19433
+    # ^ This sort of thing happens when there are sparse, small values. See case_studies/HMP data , 2nd row
+    kept_rows = updated_df.apply(keep_feature, 1, max_freq_thresh=max_freq_thresh)
+    types, updated_df = types[kept_rows], updated_df[kept_rows]
 
     return(updated_df, df, types)
 

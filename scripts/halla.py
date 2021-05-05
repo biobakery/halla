@@ -152,6 +152,12 @@ def parse_argument(args):
         dest='dont_copy',
         default=False,
         action = 'store_true',required=False)
+    parser.add_argument(
+        '--force_permutations',
+        help="If turned on, force permutation testing",
+        dest='force_permutations',
+        default=False,
+        action = 'store_true',required=False)
 
     # --diagnostic-plot parameters--
     parser.add_argument(
@@ -175,7 +181,7 @@ def main():
                  permute_speedup=not params.disable_permute_speedup,
                  fdr_alpha=params.fdr_alpha, fdr_method=params.fdr_method,
                  out_dir=params.out_dir, verbose=not params.disable_verbose,
-                 no_progress=params.no_progress, dont_copy=params.dont_copy,
+                 no_progress=params.no_progress, dont_copy=params.dont_copy, force_permutations=params.force_permutations,
                  seed=params.seed)
     else:
         instance = HAllA(max_freq_thresh=params.max_freq_thresh,
@@ -189,7 +195,7 @@ def main():
                  fdr_alpha=params.fdr_alpha, fdr_method=params.fdr_method,
                  fnr_thresh=params.fnr_thresh, rank_cluster=params.rank_cluster,
                  out_dir=params.out_dir, verbose=not params.disable_verbose,
-                 no_progress=params.no_progress, dont_copy=params.dont_copy,
+                 no_progress=params.no_progress, dont_copy=params.dont_copy, force_permutations=params.force_permutations,
                  seed=params.seed)
     instance.load(params.x_file, params.y_file)
     instance.run()

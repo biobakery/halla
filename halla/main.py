@@ -28,7 +28,7 @@ class AllA(object):
                  pdist_metric=config.association['pdist_metric'],
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
-                 out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False, dont_copy=False, seed=0):
+                 out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False, dont_copy=False, force_permutations=False, seed=0):
         # update AllA config setting
         update_config('output', dir=out_dir, verbose=verbose)
         update_config('preprocess', max_freq_thresh=max_freq_thresh,
@@ -41,6 +41,8 @@ class AllA(object):
         self._reset_attributes()
         self.no_progress = no_progress
         self.dont_copy = dont_copy
+        self.force_permutations = force_permutations
+        self.verbose = verbose
         self.seed = seed
 
         if (out_dir == ".") or (out_dir == "./") or (out_dir == getcwd()):
@@ -62,6 +64,7 @@ class AllA(object):
         self.significant_blocks_qvalues = None
         self.has_loaded = False
         self.has_run = False
+        self.verbose = False
 
     def _compute_pairwise_similarities(self):
         dist_metric = config.association['pdist_metric']
@@ -81,13 +84,19 @@ class AllA(object):
         extrapolated_time, timing_message = test_pvalue_run_time(X, Y, pdist_metric=dist_metric,
                                                    permute_func=confp['func'], permute_iters=confp['iters'],
                                                    permute_speedup=confp['speedup'],
-                                                   alpha=config.stats['fdr_alpha'], seed=self.seed)
-        if extrapolated_time > 10:
+                                                   alpha=config.stats['fdr_alpha'],
+                                                   force_perms = self.force_permutations,
+                                                   seed=self.seed)
+        if extrapolated_time > 10 and self.verbose:
             self.logger.log_message(timing_message)
+
         self.pvalue_table = get_pvalue_table(X, Y, pdist_metric=dist_metric,
                                                    permute_func=confp['func'], permute_iters=confp['iters'],
                                                    permute_speedup=confp['speedup'],
-                                                   alpha=config.stats['fdr_alpha'], no_progress=self.no_progress, seed=self.seed)
+                                                   alpha=config.stats['fdr_alpha'],
+                                                   no_progress=self.no_progress,
+                                                   force_permutations=self.force_permutations,
+                                                   seed=self.seed)
 
         # obtain q-values
         self.logger.log_message('Generating the q-value table...')
@@ -177,7 +186,7 @@ class AllA(object):
         self.metric_changed = False
         if not (is_all_cont(self.X_types) and is_all_cont(self.Y_types)) and not (config.association['pdist_metric'].lower() in ['mi', 'nmi','xicor']):
             self.metric_changed = True
-            self.logger.log_result('Discrete variables detected. ASSOCIATION METRIC CHANGED TO MI!', True)
+            self.logger.log_result('Discrete variables detected. ASSOCIATION METRIC CHANGED TO MI!', "")
             update_config('association', pdist_metric = 'mi')
             # raise ValueError('pdist_metric should be mi, nmi, or xicor if not all features are continuous...')
         # if pdist_metric is nmi but no discretization method is specified, assign to equal frequency (quantile)
@@ -193,9 +202,14 @@ class AllA(object):
             self.logger.log_message('All features are continuous and bypassing discretization is enabled; bypassing discretization...')
             update_config('preprocess', discretize_func=None)
 
+        if config.association['pdist_metric'].lower() == 'nmi' and not self.force_permutations:
+            self.logger.log_result('Approximating NMI p-values with chi-squared test. Use --force_permutations to disable this behavior.', "")
+        if config.association['pdist_metric'].lower() == 'mi' and not self.force_permutations:
+            self.logger.log_result('Approximating MI p-values with chi-squared test. Use --force_permutations to disable this behavior.', "")
+
         # filter tables by intersect columns
         intersect_cols = [col for col in X.columns if col in Y.columns]
-        if (len(intersect_cols) < 5): self.logger.log_message("Didn't find many overlapping samples between the two datasets. Are you sure your datasets have features as rows and samples as columns?")
+        if (len(intersect_cols) < 5): self.logger.log_message("There don't seem to be many overlapping samples between the two datasets. Are you sure your datasets have features as rows and samples as columns?")
         X, Y = X[intersect_cols], Y[intersect_cols]
 
         # clean and preprocess data
@@ -275,7 +289,9 @@ class HAllA(AllA):
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'], rank_cluster=config.stats['rank_cluster'],
-                 out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False, dont_copy = False, seed=0):
+                 out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False,
+                 force_permutations=False,
+                 dont_copy = False, seed=0):
         # TODO: add restrictions on the input - ensure the methods specified are available
         self.name = 'HAllA'
         # retrieve AllA variables

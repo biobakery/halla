@@ -6,7 +6,7 @@ import scipy.spatial.distance as spd
 from statsmodels.stats.multitest import multipletests
 from scipy.stats import genpareto
 import itertools
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 from tqdm import tqdm
 from time import time
 
@@ -120,20 +120,24 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
     if M >= 10:
         return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, permutation_num))
 
-    # attempt to use gpd
-    pval = compute_pvalue_gpd(permuted_dist_scores, gt_score, permutation_num)
-    if pval is None:
-        return(compute_pvalue_ecdf(permuted_dist_scores, gt_score, permutation_num))
+    if speedup:
+        # attempt to use gpd
+        pval = compute_pvalue_gpd(permuted_dist_scores, gt_score, permutation_num)
+        if (pval is None):
+            pval = compute_pvalue_ecdf(permuted_dist_scores, gt_score, permutation_num)
+    else:
+        pval = compute_pvalue_ecdf(permuted_dist_scores, gt_score, permutation_num)
+
     return(pval)
 
 def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters=1000,
-                     permute_speedup=True, alpha=0.05, seed=None, no_progress=False):
+                     permute_speedup=True, alpha=0.05, seed=None, no_progress=False, force_permutations=False):
     '''Obtain pairwise p-value tables given features in X and Y
     '''
     # initiate table
     n, m = X.shape[0], Y.shape[0]
     pvalue_table = np.zeros((n, m))
-    if does_return_pval(pdist_metric):
+    if does_return_pval(pdist_metric) and (not force_permutations):
         for i in tqdm(range(n), disable=no_progress):
             for j in range(m):
                 pvalue_table[i,j] = get_similarity_function(pdist_metric)(X[i,:], Y[j,:], return_pval=True)[1]
@@ -147,16 +151,18 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
     return(pvalue_table)
 
 def test_pvalue_run_time(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters=1000,
-                     permute_speedup=True, alpha=0.05, seed=None):
+                     permute_speedup=True, alpha=0.05, force_perms=False, seed=None):
     '''
     Run a p-value computation test and return the time it took and a message extrapolating to the full dataset.
     '''
     test_start = time()
 
-    if does_return_pval(pdist_metric):
-        get_similarity_function(pdist_metric)(X[1,:], Y[1,:], return_pval=True)[1]
+    if does_return_pval(pdist_metric) and not force_perms:
+        get_similarity_function(pdist_metric)(X[0,:], Y[0,:], return_pval=True)[1]
+        n_threads = 1
     else:
-        compute_permutation_test_pvalue(X[1,:], Y[1,:],
+        n_threads = cpu_count()
+        compute_permutation_test_pvalue(X[0,:], Y[0,:],
                                     pdist_metric=pdist_metric,
                                     permute_func=permute_func,
                                     iters=permute_iters,
@@ -164,8 +170,8 @@ def test_pvalue_run_time(X, Y, pdist_metric='nmi', permute_func='gpd', permute_i
 
     test_end = time()
     test_length = test_end - test_start
-    extrapolated_time = test_length * X.shape[0] * Y.shape[0]
-    timing_string = "The first p-value computation took about " + str(round(test_length, 3)) + " seconds. Extrapolating from this, computing the entire p-value table should take around " + str(round(extrapolated_time,3)) + " seconds..."
+    extrapolated_time = 4 * test_length * X.shape[0] * Y.shape[0] / n_threads # 4 = safety factor
+    timing_string = "The first p-value computation took about " + str(round(test_length, 3)) + " seconds. Extrapolating from this, computing the entire p-value table should take roughly " + str(round(extrapolated_time,3)) + " seconds..."
     return(extrapolated_time, timing_string)
 
 def pvalues2qvalues(pvalues, method='fdr_bh', alpha=0.05):
