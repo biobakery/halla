@@ -88,6 +88,7 @@ class AllA(object):
                                                    permute_speedup=confp['speedup'],
                                                    alpha=config.stats['fdr_alpha'],
                                                    force_perms = self.force_permutations,
+                                                   num_threads=self.num_threads,
                                                    seed=self.seed)
         if extrapolated_time > 10 and self.verbose:
             self.logger.log_message(timing_message)
