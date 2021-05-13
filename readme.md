@@ -61,9 +61,11 @@ python setup.py install
 ### Available parameters
 
 Available pairwise distance metrics:
-- `nmi`
+- `spearman` (default for continuous data)
 - `pearson`
-- `spearman`
+- `mi` (default for mixed/categorical data)
+- `nmi`
+- `xicor`
 - `dcor`
 
 There are three steps in HAllA:
