@@ -163,17 +163,17 @@ class AllA(object):
 
         # print datasets (original and discretized)
         if not self.dont_copy:
-            self.X.to_csv(join(dir_name, 'X.tsv'), sep='\t')
-            self.Y.to_csv(join(dir_name, 'Y.tsv'), sep='\t')
-            self.X_ori.to_csv(join(dir_name, 'X_original.tsv'), sep='\t')
-            self.Y_ori.to_csv(join(dir_name, 'Y_original.tsv'), sep='\t')
+            self.X.to_csv(join(dir_name, 'X.tsv'), sep='\t', na_rep = "NA")
+            self.Y.to_csv(join(dir_name, 'Y.tsv'), sep='\t', na_rep = "NA")
+            self.X_ori.to_csv(join(dir_name, 'X_original.tsv'), sep='\t', na_rep = "NA")
+            self.Y_ori.to_csv(join(dir_name, 'Y_original.tsv'), sep='\t', na_rep = "NA")
 
     '''Public functions
     '''
     def load(self, X_file, Y_file=None):
         def _read_and_drop_duplicated_indices(filepath):
             # drop duplicates and keep the first row
-            df = pd.read_table(filepath, index_col=0)
+            df = pd.read_table(filepath, index_col=0, na_values="")
             df = df[~df.index.duplicated(keep='first')]
             return(df)
 
