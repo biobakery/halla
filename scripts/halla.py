@@ -140,6 +140,8 @@ def parse_argument(args):
         help='Trim hallagram to features containing at least one significant block',
         default=True,
         type=bool, required=False)
+
+    # --other options--
     parser.add_argument(
         '--no_progress',
         help="Turn off the progress bar for p-value table calculations",
@@ -162,6 +164,11 @@ def parse_argument(args):
         '--num_threads',
         help='Number of threads to use when running permutation tests in parallel, default=4',
         default=4, type=int, required=False)
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=pkg_resources.require('HAllA')[0].version
+    )
 
     # --diagnostic-plot parameters--
     parser.add_argument(
