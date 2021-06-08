@@ -36,6 +36,12 @@ def parse_argument(args):
         '-o', '--output_dir',
         help='Directory name to store all the lattice plots under the HAllA/AllA result directory',
         default='diagnostic', required=False)
+    parser.add_argument(
+        '--dont_skip_large_blocks',
+        required=False,
+        dest='dont_skip',
+        default=False,
+        action='store_true')
     
     return(parser.parse_args())
 
@@ -61,6 +67,9 @@ def main():
         y_features = loader.Y_features[block[1]]
         x_types = np.array(loader.X_types)[block[0]]
         y_types = np.array(loader.Y_types)[block[1]]
+        if (x_data.shape[0] + y_data.shape[0]) > 10 and not params.dont_skip:
+            print("Skipping association %d because there are too many included features. Add --dont_skip_large_blocks to disable this behavior." % (i+1))
+            continue
         generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data,
                                 x_features, y_features, x_types, y_types, title,
                                 out_file, axis_stretch=params.axis_stretch, plot_size=params.plot_size)
