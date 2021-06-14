@@ -130,6 +130,9 @@ def compute_permutation_test_pvalue(x, y, pdist_metric='nmi', permute_func='gpd'
 
     return(pval)
 
+def pval_only(x,y, pval_fun, return_pval=True):
+    return(pval_fun(x,y,return_pval)[1])
+
 def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters=1000,
                      permute_speedup=True, alpha=0.05, seed=None, no_progress=False, force_permutations=False, num_threads=4):
     '''Obtain pairwise p-value tables given features in X and Y
@@ -137,10 +140,15 @@ def get_pvalue_table(X, Y, pdist_metric='nmi', permute_func='gpd', permute_iters
     # initiate table
     n, m = X.shape[0], Y.shape[0]
     pvalue_table = np.zeros((n, m))
-    if does_return_pval(pdist_metric) and (not force_permutations):
+    if does_return_pval(pdist_metric) and (not force_permutations) and num_threads == 1:
         for i in tqdm(range(n), disable=no_progress):
             for j in range(m):
                 pvalue_table[i,j] = get_similarity_function(pdist_metric)(X[i,:], Y[j,:], return_pval=True)[1]
+    elif does_return_pval(pdist_metric) and (not force_permutations):
+        with Pool(processes=num_threads) as pool:
+            pvalue_table = pool.starmap(pval_only, [(X[i,:], Y[j,:], get_similarity_function(pdist_metric), True)\
+                                                                                  for i in range(n) for j in range(m)])
+            pvalue_table = np.array(pvalue_table).reshape((n, m))
     else:
         with Pool(processes=num_threads) as pool:
             pvalue_table = pool.starmap(compute_permutation_test_pvalue, [(X[i,:], Y[j,:], pdist_metric,

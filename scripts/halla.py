@@ -163,7 +163,7 @@ def parse_argument(args):
     parser.add_argument(
         '--num_threads',
         help='Number of threads to use when running permutation tests in parallel, default=4',
-        default=4, type=int, required=False)
+        default=1, type=int, required=False)
     parser.add_argument(
         '--version',
         action='version',

@@ -431,9 +431,9 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
             elif all_types[i] == all_types[j]:
                 if all_types[i] == object:
                     # 2) plot confusion matrix if both are categorical
-                    conf_mat = np.zeros((max(all_data[i])+1, max(all_data[j])+1))
+                    conf_mat = np.zeros((max(all_data[i]).astype(np.int64)+1, max(all_data[j]).astype(np.int64)+1))
                     for k in range(len(all_data[i])):
-                        conf_mat[all_data[i,k], all_data[j,k]] += 1
+                        conf_mat[all_data[i,k].astype(np.int64), all_data[j,k].astype(np.int64)] += 1
                     sns.heatmap(conf_mat, ax=axs[i,j], annot=True, cbar=False, cmap='Blues', linewidths=0.1, linecolor='gray')
                 else:
                     # 3) plot scatterplot if both are continuous
