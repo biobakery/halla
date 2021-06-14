@@ -150,7 +150,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
 
     #---begin plotting---#
     # set up colormap anchor
-    vmax, vmin = np.max(sim_table), np.min(sim_table)
+    vmax, vmin = np.max(clust_sim_table), np.min(clust_sim_table)
     if vmin < 0 and vmax > 0:
         vmax = max(abs(vmin), vmax)
         vmin = -vmax
