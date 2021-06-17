@@ -4,7 +4,7 @@
 import argparse
 import sys
 import numpy as np
-from os.path import join
+from os.path import join, isfile, exists
 import pkg_resources
 
 from halla.utils.filesystem import reset_dir
@@ -59,6 +59,7 @@ def main():
     for i, block in enumerate(loader.significant_blocks[:block_num]):
         title = 'Association %d' % (i+1)
         out_file = join(input_dir, params.output_dir, 'association_%d' % (i+1))
+        warn_file = join(input_dir, params.output_dir, 'warnings.txt')
         x_data = loader.X.to_numpy()[block[0],:]
         y_data = loader.Y.to_numpy()[block[1],:]
         x_ori_data = loader.X_ori.to_numpy()[block[0],:]
@@ -67,8 +68,16 @@ def main():
         y_features = loader.Y_features[block[1]]
         x_types = np.array(loader.X_types)[block[0]]
         y_types = np.array(loader.Y_types)[block[1]]
-        if (x_data.shape[0] + y_data.shape[0]) > 10 and not params.dont_skip:
-            print("Skipping association %d because there are too many included features. Add --dont_skip_large_blocks to disable this behavior." % (i+1))
+        if (x_data.shape[0] + y_data.shape[0]) > 15 and not params.dont_skip:
+            warn_string = "Skipping association %d because there are too many included features. Add --dont_skip_large_blocks to disable this behavior." % (i+1)
+            if exists(warn_file):
+                append_write = 'a'
+            else: 
+                append_write = 'w'
+            warn_file_write = open(warn_file, append_write)
+            warn_file_write.write(warn_string + '\n')
+            warn_file_write.close()
+            print(warn_string)
             continue
         generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data,
                                 x_features, y_features, x_types, y_types, title,
