@@ -169,6 +169,12 @@ def parse_argument(args):
         action='version',
         version=pkg_resources.require('HAllA')[0].version
     )
+    parser.add_argument(
+        '--dont_skip_large_blocks',
+        required=False,
+        dest='dont_skip',
+        default=False,
+        action='store_true')
 
     # --diagnostic-plot parameters--
     parser.add_argument(
@@ -208,6 +214,7 @@ def main():
                  fnr_thresh=params.fnr_thresh, rank_cluster=params.rank_cluster,
                  out_dir=params.out_dir, verbose=not params.disable_verbose,
                  no_progress=params.no_progress, dont_copy=params.dont_copy, force_permutations=params.force_permutations,
+                 dont_skip=params.dont_skip,
                  num_threads=params.num_threads,
                  seed=params.seed)
     instance.load(params.x_file, params.y_file)
