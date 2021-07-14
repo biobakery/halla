@@ -175,6 +175,20 @@ def parse_argument(args):
         dest='dont_skip',
         default=False,
         action='store_true')
+    parser.add_argument(
+        '--splitting_diagnostic_mode',
+        required=False,
+        dest='splitting_diagnostic_mode',
+        help="Diagnostic mode to write out tree descent algorithm progress. Prints branches being considered at each step and Gini score improvement (the latter only if applicable). Values listed in brackets are indices (0-indexed) of features in X and Y datasets respectively.",
+        default=False,
+        action='store_true')
+    parser.add_argument(
+        '--gini_uncertainty_mode',
+        required=False,
+        dest='gini_uncertainty_mode',
+        help="Gini uncertainty mode opts to split larger hierarchical branches when the proposed splits are close in Gini impurity improvement.",
+        default=False,
+        action='store_true')
 
     # --diagnostic-plot parameters--
     parser.add_argument(
@@ -199,7 +213,9 @@ def main():
                  fdr_alpha=params.fdr_alpha, fdr_method=params.fdr_method,
                  out_dir=params.out_dir, verbose=not params.disable_verbose,
                  no_progress=params.no_progress, dont_copy=params.dont_copy, force_permutations=params.force_permutations, 
-                 num_threads=params.num_threads,
+                 num_threads=params.num_threads, 
+                 splitting_diagnostic_mode=params.splitting_diagnostic_mode,
+                 gini_uncertainty_mode=params.gini_uncertainty_mode,
                  seed=params.seed)
     else:
         instance = HAllA(max_freq_thresh=params.max_freq_thresh,
@@ -216,6 +232,8 @@ def main():
                  no_progress=params.no_progress, dont_copy=params.dont_copy, force_permutations=params.force_permutations,
                  dont_skip=params.dont_skip,
                  num_threads=params.num_threads,
+                 splitting_diagnostic_mode=params.splitting_diagnostic_mode,
+                 gini_uncertainty_mode=params.gini_uncertainty_mode,
                  seed=params.seed)
     instance.load(params.x_file, params.y_file)
     instance.run()
