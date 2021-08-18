@@ -8,7 +8,7 @@ Before opening a new issue here, please check the appropriate help channel on th
 Please direct to https://github.com/biobakery/halla_legacy for the 0.8.17 version of HAllA.
 
 ----
-# HAllA version # 0.8.18
+# HAllA version # 0.8.19
 Given two high-dimensional 'omics datasets X and Y (continuous and/or categorical features) from the same `n` biosamples, HAllA (Hierarchical All-against-All Association Testing) discovers **densely-associated blocks** of features in the X vs. Y association matrix where:
 
 - each block is defined as all associations between features in a subtree of X hierarchy and features in a subtree of Y hierarchy,
@@ -53,7 +53,7 @@ pip install -r requirements.txt
 2. Install with `setup.py`
 
 ```
-python setup.py develop
+python setup.py install
 ```
 
 
