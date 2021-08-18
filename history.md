@@ -1,5 +1,9 @@
 # HAllA History #
 
+## v0.8.19 2021-07-18 ##
+
+* Resolved dependencies installation errors during setup
+
 ## v0.8.18 2020-08-26 ##
 
 * Version synced with PyPi
