@@ -53,8 +53,9 @@ pip install -r requirements.txt
 2. Install with `setup.py`
 
 ```
-python setup.py install
+python setup.py develop
 ```
+
 
 ## HAllA Overview
 

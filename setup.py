@@ -41,7 +41,12 @@ class PostInstallCommand(install):
             utils.install_packages("XICOR")
             XICOR = importr('XICOR')
 
-
+# Installing requirements.txt dependencies
+dependencies=[]
+requirements = open('requirements.txt', 'r')
+for dependency in requirements:
+    dependencies.append(str(dependency))
+    
 setuptools.setup(
     name='HAllA',
     author=AUTHOR,
@@ -50,9 +55,10 @@ setuptools.setup(
     license='MIT',
     description='HAllA: Hierarchical All-against All Association Testing',
     long_description=long_description,
-    url='https://github.com/biobakery/halla_revised',
+    url='https://github.com/biobakery/halla',
     keywords=['halla', 'association testing'],
     platforms=['Linux','MacOS'],
+    install_requires=dependencies,
     classifiers=[
         'Programming Language :: Python',
         'Operating System :: MacOS',
