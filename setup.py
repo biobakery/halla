@@ -11,12 +11,9 @@ try:
 except ImportError:
     sys.exit('Please install setuptools.')
 
-VERSION = '0.8.18'
+VERSION = '0.8.19'
 AUTHOR  = 'HAllA Development Team'
 MAINTAINER_EMAIL = 'halla-users@googlegroups.com'
-
-with open('readme.md', 'r') as fh:
-    long_description = fh.read()
 
 class PostInstallCommand(install):
     '''Post-installation for installation mode'''
@@ -41,7 +38,12 @@ class PostInstallCommand(install):
             utils.install_packages("XICOR")
             XICOR = importr('XICOR')
 
-
+# Installing requirements.txt dependencies
+dependencies=[]
+requirements = open('requirements.txt', 'r')
+for dependency in requirements:
+    dependencies.append(str(dependency))
+    
 setuptools.setup(
     name='HAllA',
     author=AUTHOR,
@@ -49,10 +51,11 @@ setuptools.setup(
     version=VERSION,
     license='MIT',
     description='HAllA: Hierarchical All-against All Association Testing',
-    long_description=long_description,
-    url='https://github.com/biobakery/halla_revised',
+    long_description="Given two high-dimensional 'omics datasets X and Y (continuous and/or categorical features) from the same n biosamples, HAllA (Hierarchical All-against-All Association Testing) discovers densely-associated blocks of features in the X vs. Y association matrix where: 1) each block is defined as all associations between features in a subtree of X hierarchy and features in a subtree of Y hierarchy and 2) a block is densely associated if (1 - FNR)% of pairwise associations are FDR significant (FNR is the pre-defined expected false negative rate)",
+    url='https://github.com/biobakery/halla',
     keywords=['halla', 'association testing'],
     platforms=['Linux','MacOS'],
+    install_requires=dependencies,
     classifiers=[
         'Programming Language :: Python',
         'Operating System :: MacOS',
