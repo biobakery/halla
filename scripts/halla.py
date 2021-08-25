@@ -4,7 +4,7 @@
 import argparse
 import sys
 import numpy as np
-from os.path import join, basename, splitext
+from os.path import join, basename, splitext, isdir
 import pkg_resources
 
 from halla import HAllA, AllA
@@ -202,6 +202,10 @@ def parse_argument(args):
 
 def main():
     params = parse_argument(sys.argv)
+
+    if isdir(params.out_dir):
+        sys.exit("Error: output directory already exists.")
+
     if params.alla:
         instance = AllA(max_freq_thresh=params.max_freq_thresh,
                  transform_data_funcs=params.transform_data_funcs,
