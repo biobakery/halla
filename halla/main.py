@@ -29,7 +29,7 @@ class AllA(object):
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False, dont_copy=False, force_permutations=False,
-                 num_threads=4, dont_skip=False, splitting_diagnostic_mode=False, gini_uncertainty_mode = False, seed=0):
+                 num_threads=4, dont_skip=False, splitting_diagnostic_mode=False, gini_uncertainty_level = .02, seed=0):
         # update AllA config setting
         update_config('output', dir=out_dir, verbose=verbose)
         update_config('preprocess', max_freq_thresh=max_freq_thresh,
@@ -48,7 +48,7 @@ class AllA(object):
         self.verbose = verbose
         self.seed = seed
         self.splitting_diagnostic_mode = splitting_diagnostic_mode
-        self.gini_uncertainty_mode = gini_uncertainty_mode
+        self.gini_uncertainty_level = gini_uncertainty_level
 
         if (out_dir == ".") or (out_dir == "./") or (out_dir == getcwd()):
             raise ValueError("Please specify an output directory other than the current directory.")
@@ -297,7 +297,7 @@ class HAllA(AllA):
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'], rank_cluster=config.stats['rank_cluster'],
                  out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False,
-                 force_permutations=False, num_threads=4, dont_skip=False, splitting_diagnostic_mode=False, gini_uncertainty_mode = False,
+                 force_permutations=False, num_threads=4, dont_skip=False, splitting_diagnostic_mode=False, gini_uncertainty_level = .02,
                  dont_copy = False, seed=0):
         # TODO: add restrictions on the input - ensure the methods specified are available
         self.name = 'HAllA'
@@ -356,7 +356,7 @@ class HAllA(AllA):
         self.significant_blocks = compare_and_find_dense_block(self.X_hierarchy.tree, self.Y_hierarchy.tree,
                                      self.fdr_reject_table, fnr_thresh=config.stats['fnr_thresh'], 
                                      splitting_diagnostic_mode = self.splitting_diagnostic_mode,
-                                     gini_uncertainty_mode=self.gini_uncertainty_mode)
+                                     gini_uncertainty_level=self.gini_uncertainty_level)
         # sort significant blocks by the rank_cluster method
         sort_func = sort_by_best_qvalue if config.stats['rank_cluster'] == 'best' else sort_by_avg_qvalue
         self.significant_blocks.sort(key=sort_func)

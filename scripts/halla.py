@@ -183,12 +183,12 @@ def parse_argument(args):
         default=False,
         action='store_true')
     parser.add_argument(
-        '--gini_uncertainty_mode',
+        '--gini_uncertainty_level',
         required=False,
-        dest='gini_uncertainty_mode',
-        help="Gini uncertainty mode opts to split larger hierarchical branches when the proposed splits are close in Gini impurity improvement.",
-        default=False,
-        action='store_true')
+        dest='gini_uncertainty_level',
+        type=float,
+        help="Gini uncertainty mode opts to split larger hierarchical branches when the difference in Gini impurity improvement is less than the given level.",
+        default=0.02)
 
     # --diagnostic-plot parameters--
     parser.add_argument(
@@ -215,7 +215,7 @@ def main():
                  no_progress=params.no_progress, dont_copy=params.dont_copy, force_permutations=params.force_permutations, 
                  num_threads=params.num_threads, 
                  splitting_diagnostic_mode=params.splitting_diagnostic_mode,
-                 gini_uncertainty_mode=params.gini_uncertainty_mode,
+                 gini_uncertainty_level=params.gini_uncertainty_level,
                  seed=params.seed)
     else:
         instance = HAllA(max_freq_thresh=params.max_freq_thresh,
@@ -233,7 +233,7 @@ def main():
                  dont_skip=params.dont_skip,
                  num_threads=params.num_threads,
                  splitting_diagnostic_mode=params.splitting_diagnostic_mode,
-                 gini_uncertainty_mode=params.gini_uncertainty_mode,
+                 gini_uncertainty_level=params.gini_uncertainty_level,
                  seed=params.seed)
     instance.load(params.x_file, params.y_file)
     instance.run()

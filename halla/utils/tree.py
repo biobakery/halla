@@ -42,7 +42,7 @@ def bifurcate(tree):
     '''
     return([branch for branch in [tree.get_left(), tree.get_right()] if branch is not None])
 
-def bifurcate_one(x_tree, y_tree, fdr_reject_table, splitting_diagnostic_mode=False, gini_uncertainty_mode = False):
+def bifurcate_one(x_tree, y_tree, fdr_reject_table, splitting_diagnostic_mode=False, gini_uncertainty_level = 0.01):
     '''Given two trees, bifurcate only one:
     - 1) if both are leaves, return (None, None)
     - 2) if one of them is a leaf, return the bifurcated non-leaf tree
@@ -73,7 +73,7 @@ def bifurcate_one(x_tree, y_tree, fdr_reject_table, splitting_diagnostic_mode=Fa
 
     # If the gini impurity of both proposed splits are close, split the larger branch
     # It would be better to make the threshold sensitive to the size and proportions of the proposed splits, but it's hard to get an unbiased interval.
-    if gini_uncertainty_mode and abs(split1_gini - split2_gini) < .033:
+    if gini_uncertainty_level > 0 and abs(split1_gini - split2_gini) < gini_uncertainty_level and (x_tree.get_count() * y_tree.get_count()) > 25:
         return((x_branches, [y_tree]) if x_tree.get_count() > y_tree.get_count() else ([x_tree], y_branches))
 
     if splitting_diagnostic_mode:
@@ -83,7 +83,7 @@ def bifurcate_one(x_tree, y_tree, fdr_reject_table, splitting_diagnostic_mode=Fa
 
     return((x_branches, [y_tree]) if split1_gini < split2_gini else ([x_tree], y_branches)) 
 
-def compare_and_find_dense_block(X, Y, fdr_reject_table, fnr_thresh=0.1, splitting_diagnostic_mode=False, gini_uncertainty_mode = False):
+def compare_and_find_dense_block(X, Y, fdr_reject_table, fnr_thresh=0.1, splitting_diagnostic_mode=False, gini_uncertainty_level = .02):
     '''Given another HierarchicalTree object Y, compare and find
     densely-associated block from the top of the hierarchy;
 
@@ -96,7 +96,7 @@ def compare_and_find_dense_block(X, Y, fdr_reject_table, fnr_thresh=0.1, splitti
     - fnr_thresh      : false negative rate threshold
     '''
 
-    def _check_iter_block(x_tree, y_tree, splitting_diagnostic_mode=False, gini_uncertainty_mode = False):
+    def _check_iter_block(x_tree, y_tree, gini_uncertainty_level, splitting_diagnostic_mode=False):
         '''Check block iteratively until:
         - a densely-associated block is found
         - x_tree and y_tree are leaves
@@ -118,15 +118,15 @@ def compare_and_find_dense_block(X, Y, fdr_reject_table, fnr_thresh=0.1, splitti
             # 1) terminate when the block is reported
             final_blocks.append([X_features, Y_features])
             return
-        x_branches, y_branches = bifurcate_one(x_tree, y_tree, fdr_reject_table, splitting_diagnostic_mode, gini_uncertainty_mode=gini_uncertainty_mode)
+        x_branches, y_branches = bifurcate_one(x_tree, y_tree, fdr_reject_table, splitting_diagnostic_mode, gini_uncertainty_level=gini_uncertainty_level)
         if x_branches is None and y_branches is None:
             # 2) terminate when both trees can no longer bifurcate
             return
         for x_branch, y_branch in itertools.product(x_branches, y_branches):
-            _check_iter_block(x_branch, y_branch, splitting_diagnostic_mode, gini_uncertainty_mode)
+            _check_iter_block(x_branch, y_branch, gini_uncertainty_level, splitting_diagnostic_mode)
 
     final_blocks = []
-    _check_iter_block(X, Y, splitting_diagnostic_mode, gini_uncertainty_mode)
+    _check_iter_block(X, Y, gini_uncertainty_level, splitting_diagnostic_mode)
     return(final_blocks)
 
 def trim_block(block, fdr_reject_table):
