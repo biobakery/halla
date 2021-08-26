@@ -16,6 +16,7 @@ import scipy.spatial.distance as spd
 from os.path import join, exists
 from os import getcwd
 import time
+import sys
 
 ########
 # AllA
@@ -434,7 +435,7 @@ class HAllA(AllA):
         '''
         # if the dimension is too large, generate a hallagram instead
         if max(self.similarity_table.shape) > 500:
-            print('The dimension is too large - please generate a hallagram instead.')
+            print('The dimension is too large - please generate a hallagram instead.', file = sys.stderr)
             return
         if cmap is None:
             cmap = 'YlGnBu' if config.association['pdist_metric'] in ['mi','nmi', 'dcor', 'xicor'] else 'RdBu_r'
@@ -488,7 +489,7 @@ class HAllA(AllA):
                 warn_file_write = open(warn_file, append_write)
                 warn_file_write.write(warn_string + '\n')
                 warn_file_write.close()
-                print(warn_string)
+                print(warn_string, file = sys.stderr)
                 generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data,
                                     x_features, y_features, x_types, y_types, title,
                                     out_file, axis_stretch=axis_stretch, plot_size=plot_size, n_pairs_to_show = self.large_diagnostic_subset)
@@ -502,7 +503,7 @@ class HAllA(AllA):
                 warn_file_write = open(warn_file, append_write)
                 warn_file_write.write(warn_string + '\n')
                 warn_file_write.close()
-                print(warn_string)
+                print(warn_string, file = sys.stderr)
                 continue
             generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data,
                                     x_features, y_features, x_types, y_types, title,

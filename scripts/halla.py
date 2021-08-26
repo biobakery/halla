@@ -253,7 +253,7 @@ def main():
         if params.y_dataset_label=='':
             params.y_dataset_label = splitext(basename(params.y_file))[0]
         if params.alla:
-            print('AllA does not produce clustermap.')
+            print('AllA does not produce clustermap.', file = sys.stderr)
         else:
             instance.generate_clustermap(x_dataset_label=params.x_dataset_label,
                                            y_dataset_label=params.y_dataset_label,
@@ -268,7 +268,7 @@ def main():
                                            cbar_label=params.cbar_label, trim = params.trim)
     if params.diagnostic_plot:
         if params.alla:
-            print('AllA does not produce diagnostic plot.')
+            print('AllA does not produce diagnostic plot.', file = sys.stderr)
         else:
             instance.generate_diagnostic_plot()
 

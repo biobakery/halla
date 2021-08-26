@@ -1,6 +1,7 @@
 # load configurations from config.yaml
 import yaml
 from os.path import dirname, abspath, join
+import sys
 
 yaml_file = join(dirname(abspath(__file__)), 'config.yaml')
 
@@ -12,7 +13,7 @@ with open(yaml_file, 'r') as stream:
     try:
         config = yaml.safe_load(stream)
     except yaml.YAMLError as err:
-        print(err)
+        print(err, file = sys.stderr)
 
 def update_config(attribute, **args):
     vals = getattr(config, attribute)

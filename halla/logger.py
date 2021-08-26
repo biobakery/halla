@@ -1,5 +1,6 @@
 import pkg_resources  # part of setuptools to retrieve version
 import datetime
+import sys
 from os.path import join
 
 class HAllALogger(object):
@@ -25,8 +26,8 @@ class HAllALogger(object):
         if return_text:
             return(log_txt)
         if not self.verbose: return
-        print('Setting config parameters (irrelevant parameters will be ignored)...')
-        print(log_txt)
+        print('Setting config parameters (irrelevant parameters will be ignored)...', file = sys.stderr)
+        print(log_txt, file = sys.stderr)
 
     def log_step_start(self, message, sub=False):
         '''Log the beginning of a step (or a sub-step):
@@ -34,7 +35,7 @@ class HAllALogger(object):
         - a (sub)  step: -- message --
         '''
         decorator = '--' if sub else '=='
-        if self.verbose: print('%s %s %s' % (decorator, message, decorator))
+        if self.verbose: print('%s %s %s' % (decorator, message, decorator), file = sys.stderr)
 
     def log_step_end(self, label, dur_second, sub=False):
         '''Log the end of a step (or a sub-step):
@@ -46,19 +47,19 @@ class HAllALogger(object):
         dur_str = str(datetime.timedelta(seconds=dur_second))
         self.durations.append((label, dur_second))
         if self.verbose:
-            print('%s Completed; total duration: %s %s\n' % (decorator, dur_str, decorator))
+            print('%s Completed; total duration: %s %s\n' % (decorator, dur_str, decorator), file = sys.stderr)
 
     def log_message(self, message):
         '''Log a message
         '''
-        if self.verbose: print(message)
+        if self.verbose: print(message, file = sys.stderr)
 
     def log_result(self, label, content):
         '''Log results with prefix '  '
         The (label, content) is added to self.results array to be printed in performance.txt
         '''
         self.results.append((label, content))
-        if self.verbose: print('* ', label, content)
+        if self.verbose: print('* ', label, content, file = sys.stderr)
 
     def write_performance_log(self, dir_name, config, file_name='performance.txt'):
         '''Write performance.txt which contains:

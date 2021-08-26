@@ -77,9 +77,9 @@ def bifurcate_one(x_tree, y_tree, fdr_reject_table, splitting_diagnostic_mode=Fa
         return((x_branches, [y_tree]) if x_tree.get_count() > y_tree.get_count() else ([x_tree], y_branches))
 
     if splitting_diagnostic_mode:
-        print(split1_gini, file = sys.stdout)
-        print(split2_gini, file = sys.stdout)
-        print("\n", file = sys.stdout)
+        print(split1_gini, file = sys.stderr)
+        print(split2_gini, file = sys.stderr)
+        print("\n", file = sys.stderr)
 
     return((x_branches, [y_tree]) if split1_gini < split2_gini else ([x_tree], y_branches)) 
 
@@ -111,9 +111,9 @@ def compare_and_find_dense_block(X, Y, fdr_reject_table, fnr_thresh=0.1, splitti
         block_fdr_reject = fdr_reject_table[X_features,:][:,Y_features]
 
         if splitting_diagnostic_mode:
-            print(X_features, file=sys.stdout)
-            print(Y_features, file=sys.stdout)
-            print("\n", file=sys.stdout)
+            print(X_features, file = sys.stderr)
+            print(Y_features, file = sys.stderr)
+            print("\n", file = sys.stderr)
         if is_densely_associated(block_fdr_reject, fnr_thresh):
             # 1) terminate when the block is reported
             final_blocks.append([X_features, Y_features])

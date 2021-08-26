@@ -6,6 +6,7 @@ import scipy.cluster.hierarchy as sch
 import pandas as pd
 from os.path import join
 import itertools
+import sys
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from copy import deepcopy
 
@@ -93,7 +94,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
         top_blocks = significant_blocks
 
     if len(top_blocks) == 0:
-        print('The length of significant blocks is 0, no hallagram can be generated...')
+        print('The length of significant blocks is 0, no hallagram can be generated...', file = sys.stderr)
         return
 
     if force_x_ft is None:

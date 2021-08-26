@@ -9,7 +9,7 @@ def create_dir(dir_name, verbose=True):
     '''
     if isdir(dir_name): return
     try:
-        if verbose: print('Creating a new directory %s' % dir_name)
+        if verbose: print('Creating a new directory %s' % dir_name, file = sys.stderr)
         os.mkdir(dir_name)
     except EnvironmentError:
         sys.exit('Unable to create directory %s' % dir_name)
@@ -19,7 +19,7 @@ def reset_dir(dir_name, verbose=True):
     '''
     if isdir(dir_name):
         try:
-            if verbose: print('Directory %s exists; deleting...' % dir_name)
+            if verbose: print('Directory %s exists; deleting...' % dir_name, file = sys.stderr)
             shutil.rmtree(dir_name)
         except EnvironmentError:
             sys.exit('Unable to remove directory %s' % dir_name)

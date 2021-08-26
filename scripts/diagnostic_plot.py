@@ -77,7 +77,7 @@ def main():
             warn_file_write = open(warn_file, append_write)
             warn_file_write.write(warn_string + '\n')
             warn_file_write.close()
-            print(warn_string)
+            print(warn_string, file = sys.stderr)
             continue
         generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data,
                                 x_features, y_features, x_types, y_types, title,
