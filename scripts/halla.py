@@ -176,6 +176,12 @@ def parse_argument(args):
         default=False,
         action='store_true')
     parser.add_argument(
+        '--large_diagnostic_subset',
+        required=False,
+        dest='large_diagnostic_subset',
+        default=105
+    )
+    parser.add_argument(
         '--splitting_diagnostic_mode',
         required=False,
         dest='splitting_diagnostic_mode',

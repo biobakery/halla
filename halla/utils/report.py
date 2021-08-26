@@ -374,7 +374,7 @@ def report_significant_clusters(dir_name, significant_blocks, scores, x_features
     df.to_csv(filepath, sep='\t', index=False)
 
 def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_features, x_types, y_types,
-                            title, output_file, axis_stretch=1e-5, plot_size=4):
+                            title, output_file, axis_stretch=1e-5, plot_size=4, n_pairs_to_show=105):
     '''Generate and store lattice plot for each associationn, given:
     - {x,y}_data    : the data for features in {x,y} involved in the association in numpy (the discretized data if discretized)
     - {x,y}_ori_data: the original data for features in {x,y} involved in the association in numpy
@@ -389,6 +389,14 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
         (len(y_data) != len(y_features) and len(y_data) != len(y_types)):
         raise ValueError('{x,y}_data should have the same length as {x,y}_features and {x,y}_types!')
     row_num = len(x_data) + len(y_data)
+
+    if (row_num**2 - row_num) > n_pairs_to_show:
+        n_show = n_pairs_to_show
+    else:
+        n_show = row_num**2 - row_num
+    show_pairs = np.random.choice(a = range(row_num**2 - row_num), size = n_show, replace = False)
+    show = -1
+
     sns.set_style('white')
     fig, axs = plt.subplots(row_num, row_num, figsize=(row_num*plot_size, row_num*plot_size))
     # combine all data
@@ -429,6 +437,10 @@ def generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data, x_features, y_
                     # categorical data: bins should not be set by default
                     sns.countplot(x=all_data[i], ax=axs[i,j])
             elif all_types[i] == all_types[j]:
+                show += 1
+                if not show in show_pairs:
+                    axs[i,j].axis('off')
+                    continue
                 if all_types[i] == object:
                     # 2) plot confusion matrix if both are categorical
                     conf_mat = np.zeros((max(all_data[i]).astype(np.int64)+1, max(all_data[j]).astype(np.int64)+1))

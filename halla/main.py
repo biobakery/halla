@@ -29,7 +29,7 @@ class AllA(object):
                  permute_func=config.permute['func'], permute_iters=config.permute['iters'], permute_speedup=config.permute['speedup'],
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False, dont_copy=False, force_permutations=False,
-                 num_threads=4, dont_skip=False, splitting_diagnostic_mode=False, gini_uncertainty_level = .02, seed=0):
+                 num_threads=4, dont_skip=False, large_diagnostic_subset=105, splitting_diagnostic_mode=False, gini_uncertainty_level = .02, seed=0):
         # update AllA config setting
         update_config('output', dir=out_dir, verbose=verbose)
         update_config('preprocess', max_freq_thresh=max_freq_thresh,
@@ -45,6 +45,7 @@ class AllA(object):
         self.force_permutations = force_permutations
         self.num_threads = num_threads
         self.dont_skip = dont_skip
+        self.large_diagnostic_subset = large_diagnostic_subset
         self.verbose = verbose
         self.seed = seed
         self.splitting_diagnostic_mode = splitting_diagnostic_mode
@@ -297,7 +298,7 @@ class HAllA(AllA):
                  fdr_alpha=config.stats['fdr_alpha'], fdr_method=config.stats['fdr_method'],
                  fnr_thresh=config.stats['fnr_thresh'], rank_cluster=config.stats['rank_cluster'],
                  out_dir=config.output['dir'], verbose=config.output['verbose'], no_progress=False,
-                 force_permutations=False, num_threads=4, dont_skip=False, splitting_diagnostic_mode=False, gini_uncertainty_level = .02,
+                 force_permutations=False, num_threads=4, dont_skip=False, large_diagnostic_subset=105, splitting_diagnostic_mode=False, gini_uncertainty_level = .02,
                  dont_copy = False, seed=0):
         # TODO: add restrictions on the input - ensure the methods specified are available
         self.name = 'HAllA'
@@ -468,7 +469,7 @@ class HAllA(AllA):
             block_num = min(block_num, len(self.significant_blocks))
         for i, block in enumerate(self.significant_blocks[:block_num]):
             title = 'Association %d' % (i+1)
-            out_file = join(config.output['dir'], plot_dir, 'association_%d' % (i+1))
+            out_file = join(config.output['dir'], plot_dir, 'association_%d.pdf' % (i+1))
             warn_file = join(config.output['dir'], plot_dir, 'warnings.txt')
             x_data = self.X.to_numpy()[block[0],:]
             y_data = self.Y.to_numpy()[block[1],:]
@@ -478,7 +479,21 @@ class HAllA(AllA):
             y_features = self.Y.index.to_numpy()[block[1]]
             x_types = np.array(self.X_types)[block[0]]
             y_types = np.array(self.Y_types)[block[1]]
-            if (x_data.shape[0] + y_data.shape[0]) > 15 and not self.dont_skip:
+            if (x_data.shape[0] + y_data.shape[0]) > 15 and (x_data.shape[0] + y_data.shape[0]) <= 45:
+                warn_string = "Over 15 features included in association %d. Only a subset of features will be shown in the diagnostic plot. Increase --large_diagnostic_subset beyond 105 to show more." % (i+1)
+                if exists(warn_file):
+                    append_write = 'a'
+                else:
+                    append_write = 'w'
+                warn_file_write = open(warn_file, append_write)
+                warn_file_write.write(warn_string + '\n')
+                warn_file_write.close()
+                print(warn_string)
+                generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data,
+                                    x_features, y_features, x_types, y_types, title,
+                                    out_file, axis_stretch=axis_stretch, plot_size=plot_size, n_pairs_to_show = self.large_diagnostic_subset)
+                continue
+            if (x_data.shape[0] + y_data.shape[0]) > 45 and not self.dont_skip:
                 warn_string = "Skipping association %d because there are too many included features. Add --dont_skip_large_blocks to disable this behavior." % (i+1)
                 if exists(warn_file):
                     append_write = 'a'
@@ -491,4 +506,4 @@ class HAllA(AllA):
                 continue
             generate_lattice_plot(x_data, y_data, x_ori_data, y_ori_data,
                                     x_features, y_features, x_types, y_types, title,
-                                    out_file, axis_stretch=axis_stretch, plot_size=plot_size)
+                                    out_file, axis_stretch=axis_stretch, plot_size=plot_size, n_pairs_to_show = (x_data.shape[0] + y_data.shape[0])**2)
