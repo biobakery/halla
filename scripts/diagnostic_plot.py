@@ -23,7 +23,7 @@ def parse_argument(args):
     parser.add_argument(
         '-n', '--block_num',
         help='Number of top clusters for generating the lattice plots; if -1, show all clusters',
-        default=30, type=int, required=False)
+        default=50, type=int, required=False)
     parser.add_argument(
         '--axis_stretch',
         help='Adding gaps to both ends of axis (for continuous data)',

@@ -42,7 +42,7 @@ def parse_argument(args):
     parser.add_argument(
         '-n', '--block_num',
         help='Number of top clusters to show (for hallagram only); if -1, show all clusters',
-        default=30, type=int, required=False)
+        default=50, type=int, required=False)
     parser.add_argument(
         '--mask',
         help='Mask the hallagram/clustermap',

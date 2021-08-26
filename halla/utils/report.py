@@ -62,7 +62,7 @@ def remove_unshown_features(significant_blocks, shown_x, shown_y):
 
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table, fdr_reject_table,
                         x_dataset_label='', y_dataset_label='', mask=False, trim=True,
-                        signif_dots=True, block_num=30, show_lower=True, force_x_ft=None, force_y_ft=None, dpi=100, suppress_numbers=False,
+                        signif_dots=True, block_num=50, show_lower=True, force_x_ft=None, force_y_ft=None, dpi=100, suppress_numbers=False,
                         figsize=None, cmap='RdBu_r', cbar_label='', text_scale=10, block_border_width=1.65, output_file='out.eps', **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,

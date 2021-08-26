@@ -256,7 +256,7 @@ class AllA(object):
         # generate reports
         self._generate_reports()
 
-    def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='',
+    def generate_hallagram(self, block_num=50, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
                             output_file='hallagram.png', mask=False, signif_dots=True, **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
@@ -399,7 +399,7 @@ class HAllA(AllA):
         # generate reports
         self._generate_reports()
 
-    def generate_hallagram(self, block_num=30, x_dataset_label='', y_dataset_label='',
+    def generate_hallagram(self, block_num=50, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
                             output_file='hallagram.png', mask=False, signif_dots=True, **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
@@ -456,7 +456,7 @@ class HAllA(AllA):
                             signif_dots=signif_dots,
                             **kwargs)
 
-    def generate_diagnostic_plot(self, block_num=30, plot_dir='diagnostic', axis_stretch=1e-5, plot_size=4):
+    def generate_diagnostic_plot(self, block_num=50, plot_dir='diagnostic', axis_stretch=1e-5, plot_size=4):
         '''Generate a lattice plot for each significant association;
         save all plots in the plot_dir folder under config.output['dir']
         '''
