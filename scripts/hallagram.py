@@ -62,7 +62,7 @@ def parse_argument(args):
         default=1.5, type=float, required=False)
     parser.add_argument(
         '-o', '--output',
-        help='Path to output file under the HAllA/AllA result directory; default: hallagram.png or clustermap.png',
+        help='Path to output file under the HAllA/AllA result directory; default: hallagram.pdf or clustermap.pdf',
         default='', required=False)
     parser.add_argument(
         '--fdr_alpha',
@@ -97,7 +97,7 @@ def parse_argument(args):
     params = parser.parse_args()
     if params.block_num == -1: params.block_num = None
     if params.output == '':
-        params.output = 'clustermap.png' if params.clustermap else 'hallagram.png'
+        params.output = 'clustermap.pdf' if params.clustermap else 'hallagram.pdf'
     return(params)
 
 def main():

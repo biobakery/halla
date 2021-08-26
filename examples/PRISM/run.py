@@ -10,6 +10,6 @@ halla = HAllA(max_freq_thresh=1, pdist_metric=pdist_metric, out_dir='prism_out',
 halla.load(X_file, Y_file)
 halla.run()
 
-halla.generate_hallagram(cbar_label='Spearman Correlation', y_dataset_label='Metabolites', x_dataset_label='Microbiomes', mask=True, output_file='hallagram_mask.png')
+halla.generate_hallagram(cbar_label='Spearman Correlation', y_dataset_label='Metabolites', x_dataset_label='Microbiomes', mask=True, output_file='hallagram_mask.pdf')
 halla.generate_hallagram(cbar_label='Spearman Correlation', y_dataset_label='Metabolites', x_dataset_label='Microbiomes')
 halla.generate_diagnostic_plot()

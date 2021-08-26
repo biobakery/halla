@@ -231,7 +231,7 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
 def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table, fdr_reject_table,
                         x_dataset_label='', y_dataset_label='', signif_dots=True, figsize=None, cmap='RdBu_r', text_scale=10,
                         dendrogram_ratio=None, cbar_label='',
-                        block_border_width=1.5, mask=False, output_file='out.png', **kwargs):
+                        block_border_width=1.5, mask=False, output_file='out.pdf', **kwargs):
     '''Plot a clustermap given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks

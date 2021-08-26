@@ -258,7 +258,7 @@ class AllA(object):
 
     def generate_hallagram(self, block_num=50, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='hallagram.png', mask=False, signif_dots=True, **kwargs):
+                            output_file='hallagram.pdf', mask=False, signif_dots=True, **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
@@ -401,7 +401,7 @@ class HAllA(AllA):
 
     def generate_hallagram(self, block_num=50, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='hallagram.png', mask=False, signif_dots=True, **kwargs):
+                            output_file='hallagram.pdf', mask=False, signif_dots=True, **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
@@ -428,7 +428,7 @@ class HAllA(AllA):
 
     def generate_clustermap(self, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='clustermap.png', mask=False, signif_dots=True, **kwargs):
+                            output_file='clustermap.pdf', mask=False, signif_dots=True, **kwargs):
         '''Generate a clustermap (hallagram + dendrogram)
         '''
         # if the dimension is too large, generate a hallagram instead
