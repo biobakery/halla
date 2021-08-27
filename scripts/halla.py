@@ -172,11 +172,13 @@ def parse_argument(args):
     parser.add_argument(
         '--dont_skip_large_blocks',
         required=False,
+        help="Don't skip very large (>45 features) blocks in diagnostic plots",
         dest='dont_skip',
         default=False,
         action='store_true')
     parser.add_argument(
         '--large_diagnostic_subset',
+        help = "Subset the feature pairs plotted in large block (>15, <45) diagnostic plots."
         required=False,
         dest='large_diagnostic_subset',
         default=105
