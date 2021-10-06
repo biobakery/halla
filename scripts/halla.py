@@ -178,7 +178,7 @@ def parse_argument(args):
         action='store_true')
     parser.add_argument(
         '--large_diagnostic_subset',
-        help = "Subset the feature pairs plotted in large block (>15, <45) diagnostic plots."
+        help = "Subset the feature pairs plotted in large block (>15, <45) diagnostic plots.",
         required=False,
         dest='large_diagnostic_subset',
         default=105
