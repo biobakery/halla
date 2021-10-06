@@ -1,5 +1,9 @@
 # HAllA History #
 
+## v0.8.20 2021-09-29 ##
+
+* Resolved dependencies requirements version in setup
+
 ## v0.8.19 2021-07-18 ##
 
 * Resolved dependencies installation errors during setup
