@@ -140,6 +140,13 @@ def parse_argument(args):
         help='Trim hallagram to features containing at least one significant block',
         default=True,
         type=bool, required=False)
+    parser.add_argument(
+        "--plot_file_type",
+        help = "File type of hallagram output",
+        default = "pdf",
+        dest="plot_type",
+        required = False
+    )
 
     # --other options--
     parser.add_argument(
@@ -267,7 +274,8 @@ def main():
             params.y_dataset_label = splitext(basename(params.y_file))[0]
         instance.generate_hallagram(x_dataset_label=params.x_dataset_label,
                                            y_dataset_label=params.y_dataset_label,
-                                           cbar_label=params.cbar_label, trim = params.trim)
+                                           cbar_label=params.cbar_label, trim = params.trim,
+                                           plot_type = params.plot_type)
     if params.diagnostic_plot:
         if params.alla:
             print('AllA does not produce diagnostic plot.', file = sys.stderr)

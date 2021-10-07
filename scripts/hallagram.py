@@ -4,7 +4,7 @@
 import argparse
 import sys
 import numpy as np
-from os.path import join
+from os.path import join, splitext
 import pkg_resources
 
 from halla.utils.report import generate_hallagram, generate_clustermap
@@ -62,7 +62,7 @@ def parse_argument(args):
         default=1.5, type=float, required=False)
     parser.add_argument(
         '-o', '--output',
-        help='Path to output file under the HAllA/AllA result directory; default: hallagram.pdf or clustermap.pdf',
+        help='Path to output file under the HAllA/AllA result directory; default: hallagram or clustermap',
         default='', required=False)
     parser.add_argument(
         '--fdr_alpha',
@@ -93,11 +93,18 @@ def parse_argument(args):
         help='If True, don\'t number the blocks',
         action='store_true', required=False,
         default=False)
+    parser.add_argument(
+        "--plot_file_type",
+        help = "File type of hallagram output. Ignored if specified by --output",
+        default = "pdf",
+        dest="plot_type",
+        required = False
+    )
 
     params = parser.parse_args()
     if params.block_num == -1: params.block_num = None
     if params.output == '':
-        params.output = 'clustermap.pdf' if params.clustermap else 'hallagram.pdf'
+        params.output = 'clustermap.pdf' if params.clustermap else 'hallagram'
     return(params)
 
 def main():
@@ -133,6 +140,12 @@ def main():
             block_num = min(block_num, len(loader.significant_blocks))
         if block_num > 500:
             raise ValueError('The number of blocks to show is too large, please input block # < 300')
+        out_split = splitext(output_file)
+        if out_split[1] == "":
+            pt = params.plot_type
+        else:
+            pt = out_split[1]
+
         generate_hallagram(loader.significant_blocks,
                            loader.X_features,
                            loader.Y_features,
@@ -147,13 +160,14 @@ def main():
                            text_scale=params.text_scale,
                            block_border_width=params.block_border_width,
                            mask=params.mask,
+                           plot_type=out_split[1],
                            trim=params.trim,
                            force_x_ft=params.force_x_ft,
                            force_y_ft=params.force_y_ft,
                            suppress_numbers=params.suppress_numbers,
                            dpi=params.dpi,
                            cmap=params.cmap,
-                           output_file=output_file)
+                           output_file=out_split[0])
 
 if __name__ == "__main__":
     main()

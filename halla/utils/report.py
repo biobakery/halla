@@ -64,7 +64,7 @@ def remove_unshown_features(significant_blocks, shown_x, shown_y):
 def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, clust_y_idx, sim_table, fdr_reject_table,
                         x_dataset_label='', y_dataset_label='', mask=False, trim=True,
                         signif_dots=True, block_num=50, show_lower=True, force_x_ft=None, force_y_ft=None, dpi=100, suppress_numbers=False,
-                        figsize=None, cmap='RdBu_r', cbar_label='', text_scale=10, block_border_width=1.65, output_file='out.eps', **kwargs):
+                        figsize=None, cmap='RdBu_r', cbar_label='', text_scale=10, block_border_width=1.65, output_file='out', plot_type="pdf", **kwargs):
     '''Plot hallagram given args:
     - significant blocks: a list of *ranked* significant blocks in the original indices, e.g.,
                           [[[2], [0]], [[0,1], [1]]] --> two blocks
@@ -226,8 +226,11 @@ def generate_hallagram(significant_blocks, x_features, y_features, clust_x_idx, 
                 path_effects.Normal(),
             ])
 
+    if not ("." in plot_type):
+        plot_type = "." + plot_type
+        
     plt.subplots_adjust(wspace=1/(figsize[0]*6), hspace=0)
-    plt.savefig(output_file, format=output_file.split('.')[-1].lower(), bbox_inches='tight', dpi=dpi)
+    plt.savefig(output_file + plot_type, bbox_inches='tight', dpi=dpi)
 
 def generate_clustermap(significant_blocks, x_features, y_features, x_linkage, y_linkage, sim_table, fdr_reject_table,
                         x_dataset_label='', y_dataset_label='', signif_dots=True, figsize=None, cmap='RdBu_r', text_scale=10,

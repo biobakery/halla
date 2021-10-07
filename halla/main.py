@@ -260,7 +260,7 @@ class AllA(object):
 
     def generate_hallagram(self, block_num=50, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='hallagram.pdf', mask=False, signif_dots=True, **kwargs):
+                            output_file='hallagram', mask=False, signif_dots=True, plot_type="pdf",**kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
@@ -282,6 +282,7 @@ class AllA(object):
                            figsize=figsize,
                            text_scale=text_scale,
                            output_file=file_name,
+                           plot_type=plot_type,
                            cmap=cmap, cbar_label=cbar_label,
                            mask=mask, signif_dots = signif_dots, **kwargs)
 
@@ -403,7 +404,7 @@ class HAllA(AllA):
 
     def generate_hallagram(self, block_num=50, x_dataset_label='', y_dataset_label='',
                             cmap=None, cbar_label='', figsize=None, text_scale=10,
-                            output_file='hallagram.pdf', mask=False, signif_dots=True, **kwargs):
+                            output_file='hallagram', mask=False, signif_dots=True, plot_type="pdf", **kwargs):
         '''Generate a hallagram showing the top [block_num] significant blocks
         '''
         if cmap is None:
@@ -424,6 +425,7 @@ class HAllA(AllA):
                            y_dataset_label=y_dataset_label,
                            figsize=figsize,
                            text_scale=text_scale,
+                           plot_type=plot_type,
                            output_file=file_name,
                            cmap=cmap, cbar_label=cbar_label,
                            mask=mask, signif_dots=signif_dots, block_num=block_num, **kwargs)
