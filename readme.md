@@ -21,10 +21,18 @@ Given two high-dimensional 'omics datasets X and Y (continuous and/or categorica
 Example codes can be found under `examples` directory.
 
 ## Installation
+#### Option 1. (Recommended):
+```
+pip install halla --no-binary :all:
+```
+#### Option 2. Install with `setup.py`
+```
+python setup.py develop
+```
 
-1. Other than [Python](https://www.python.org/) (version >= 3.7) and [R](https://www.r-project.org/) (version >= 3.6.1), install all required libraries listed in `requirements.txt`, specifically:
+Other than [Python](https://www.python.org/) (version >= 3.7) and [R](https://www.r-project.org/) (version >= 3.6.1), install all required libraries listed in `requirements.txt`, specifically:
 
-Python packages:
+Requirements Python packages:
 - [jenkspy](https://github.com/mthh/jenkspy) (version >= 0.1.5)
 - [Matplotlib](https://matplotlib.org/) (version >= 3.3.0)
 - [NumPy](https://numpy.org/) (version >= 1.19.0)
@@ -41,20 +49,11 @@ R packages:
 - [eva](https://cran.r-project.org/web/packages/eva/index.html) (>= 0.2.6)
 - [XICOR](https://cran.r-project.org/web/packages/XICOR/index.html) (>= 0.3.3)
 
-Users can either install them one-by-one or install all of them at once by running:
-
 ```
 # for MacOS - read the notes on installing rpy2:
 #   specifically run 'env CC=/usr/local/Cellar/gcc/X.x.x/bin/gcc-X pip install rpy2'
 #   where X.x.x is the gcc version on the machine **BEFORE** running the following command
-pip install -r requirements.txt
-```
-
-2. Install with `setup.py`
-
-```
-python setup.py develop
-```
+``` 
 
 
 ## HAllA Overview
