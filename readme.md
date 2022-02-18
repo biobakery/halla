@@ -70,9 +70,18 @@ Available pairwise distance metrics:
 
 There are three steps in HAllA:
 
-1. [Computing pairwise similarity matrix between all features in X and Y](#1-pairwise-similarity-matrix-computation)
-2. [Hierarchical clustering of features in X and Y separately](#2-hierarchical-clustering)
-3. [Finding densely-associated blocks iteratively](#3-finding-densely-associated-blocks)
+- [***ATTENTION***](#attention)
+- [***Previous Version***](#previous-version)
+- [HAllA version # 0.8.20](#halla-version--0820)
+  - [Installation](#installation)
+      - [Option 1. (Recommended):](#option-1-recommended)
+      - [Option 2. Install with `setup.py`](#option-2-install-with-setuppy)
+  - [HAllA Overview](#halla-overview)
+    - [Available parameters](#available-parameters)
+    - [1. Pairwise similarity matrix computation](#1-pairwise-similarity-matrix-computation)
+    - [2. Hierarchical clustering](#2-hierarchical-clustering)
+    - [3. Finding densely-associated blocks](#3-finding-densely-associated-blocks)
+  - [Contributions](#contributions)
 
 ### 1. Pairwise similarity matrix computation
 
@@ -127,3 +136,6 @@ Once it picks the split with the lower impurity (let's say the first split), it 
 - find densely-associated blocks in [X3 X4 X5] vs [Y1 Y2 Y3 Y4]
 
 and keep going until it terminates.
+
+## Contributions ##
+Thanks go to these wonderful people:
