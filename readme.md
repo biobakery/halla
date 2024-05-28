@@ -1,3 +1,15 @@
+- [***ATTENTION***](#attention)
+- [***Previous Version***](#previous-version)
+- [HAllA version # 0.8.20](#halla-version--0820)
+  - [Installation](#installation)
+      - [Option 1. (Recommended):](#option-1-recommended)
+      - [Option 2. Install with `setup.py`](#option-2-install-with-setuppy)
+  - [HAllA Overview](#halla-overview)
+    - [Available parameters](#available-parameters)
+    - [1. Pairwise similarity matrix computation](#1-pairwise-similarity-matrix-computation)
+    - [2. Hierarchical clustering](#2-hierarchical-clustering)
+    - [3. Finding densely-associated blocks](#3-finding-densely-associated-blocks)
+  - [Contributions](#contributions)
 
 # ***ATTENTION***
 
@@ -69,19 +81,6 @@ Available pairwise distance metrics:
 - `dcor`
 
 There are three steps in HAllA:
-
-- [***ATTENTION***](#attention)
-- [***Previous Version***](#previous-version)
-- [HAllA version # 0.8.20](#halla-version--0820)
-  - [Installation](#installation)
-      - [Option 1. (Recommended):](#option-1-recommended)
-      - [Option 2. Install with `setup.py`](#option-2-install-with-setuppy)
-  - [HAllA Overview](#halla-overview)
-    - [Available parameters](#available-parameters)
-    - [1. Pairwise similarity matrix computation](#1-pairwise-similarity-matrix-computation)
-    - [2. Hierarchical clustering](#2-hierarchical-clustering)
-    - [3. Finding densely-associated blocks](#3-finding-densely-associated-blocks)
-  - [Contributions](#contributions)
 
 ### 1. Pairwise similarity matrix computation
 
