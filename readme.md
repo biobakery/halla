@@ -1,14 +1,12 @@
 - [***ATTENTION***](#attention)
 - [***Previous Version***](#previous-version)
 - [HAllA version # 0.8.20](#halla-version--0820)
+  - [Requirements](#requirements)
   - [Installation](#installation)
       - [Option 1. (Recommended):](#option-1-recommended)
-      - [Option 2. Install with `setup.py`](#option-2-install-with-setuppy)
-  - [HAllA Overview](#halla-overview)
-    - [Available parameters](#available-parameters)
-    - [1. Pairwise similarity matrix computation](#1-pairwise-similarity-matrix-computation)
-    - [2. Hierarchical clustering](#2-hierarchical-clustering)
-    - [3. Finding densely-associated blocks](#3-finding-densely-associated-blocks)
+- [for MacOS - read the notes on installing rpy2:](#for-macos---read-the-notes-on-installing-rpy2)
+- [specifically run 'env CC=/usr/local/Cellar/gcc/X.x.x/bin/gcc-X pip install rpy2'](#specifically-run-env-ccusrlocalcellargccxxxbingcc-x-pip-install-rpy2)
+- [where X.x.x is the gcc version on the machine **BEFORE** running the following command](#where-xxx-is-the-gcc-version-on-the-machine-before-running-the-following-command)
   - [Contributions](#contributions)
 
 # ***ATTENTION***
@@ -32,11 +30,26 @@ Given two high-dimensional 'omics datasets X and Y (continuous and/or categorica
 
 Example codes can be found under `examples` directory.
 
+## Requirements
+- Python>=3.8
+- R  
+
 ## Installation
 #### Option 1. (Recommended):
 ```
-pip install halla --no-binary :all:
+pip install halla 
 ```
+
+**Note**: Please install the following `R packages` manually:
+- [eva](https://cran.r-project.org/web/packages/eva/index.html) (>= 0.2.6)
+  ```
+  install.packages("eva")
+  ```
+- [XICOR](https://cran.r-project.org/web/packages/XICOR/index.html) (>= 0.3.3)
+  ```
+  install.packages("XICOR")
+  ```
+
 #### Option 2. Install with `setup.py`
 ```
 python setup.py develop
@@ -44,9 +57,10 @@ python setup.py develop
 
 Other than [Python](https://www.python.org/) (version >= 3.7) and [R](https://www.r-project.org/) (version >= 3.6.1), install all required libraries listed in `requirements.txt`, specifically:
 
+
 Requirements Python packages:
 - [jenkspy](https://github.com/mthh/jenkspy) (version >= 0.1.5)
-- [Matplotlib](https://matplotlib.org/) (version >= 3.3.0)
+- [Matplotlib](https://matplotlib.org/) (version >= 3.5.3)
 - [NumPy](https://numpy.org/) (version >= 1.19.0)
 - [pandas](https://pandas.pydata.org/) (version >= 1.0.5)
 - [PyYAML](https://pypi.org/project/PyYAML/) (version >= 5.4)
