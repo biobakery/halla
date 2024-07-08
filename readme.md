@@ -1,14 +1,3 @@
-- [***ATTENTION***](#attention)
-- [***Previous Version***](#previous-version)
-- [HAllA version # 0.8.20](#halla-version--0820)
-  - [Requirements](#requirements)
-  - [Installation](#installation)
-      - [Option 1. (Recommended):](#option-1-recommended)
-- [for MacOS - read the notes on installing rpy2:](#for-macos---read-the-notes-on-installing-rpy2)
-- [specifically run 'env CC=/usr/local/Cellar/gcc/X.x.x/bin/gcc-X pip install rpy2'](#specifically-run-env-ccusrlocalcellargccxxxbingcc-x-pip-install-rpy2)
-- [where X.x.x is the gcc version on the machine **BEFORE** running the following command](#where-xxx-is-the-gcc-version-on-the-machine-before-running-the-following-command)
-  - [Contributions](#contributions)
-
 # ***ATTENTION***
 
 Before opening a new issue here, please check the appropriate help channel on the bioBakery Support Forum (https://forum.biobakery.org) and consider opening or commenting on a thread there.

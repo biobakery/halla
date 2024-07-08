@@ -11,7 +11,7 @@ try:
 except ImportError:
     sys.exit('Please install setuptools.')
 
-VERSION = '0.8.20'
+VERSION = '0.8.30'
 AUTHOR  = 'HAllA Development Team'
 MAINTAINER_EMAIL = 'halla-users@googlegroups.com'
 
