@@ -41,6 +41,8 @@ pip install halla
 
 #### Option 2. Install with `setup.py`
 ```
+git clone https://github.com/biobakery/halla.git
+cd halla
 python setup.py develop
 ```
 
