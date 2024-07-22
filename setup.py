@@ -23,7 +23,8 @@ class PostInstallCommand(install):
         try:
             from rpy2.robjects.packages import importr
         except ImportError as e:
-            print(f"An error occurred while importing: {e}")
+            print(f"An error occurred while importing: {e}. Unable to install R packages. Please install R packages manually.")
+            return
         try:
             eva = importr('eva')
         except:
