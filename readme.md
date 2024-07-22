@@ -71,7 +71,10 @@ R packages:
 #   specifically run 'env CC=/usr/local/Cellar/gcc/X.x.x/bin/gcc-X pip install rpy2'
 #   where X.x.x is the gcc version on the machine **BEFORE** running the following command
 ``` 
-
+#### Option 3. Install with `conda`
+```
+conda install -c biobakery halla
+```
 
 ## HAllA Overview
 
